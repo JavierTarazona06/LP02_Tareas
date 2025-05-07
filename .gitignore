@@ -172,3 +172,33 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Archivos de compilación
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*/Latex/*.bcf
+*/Latex/*run.xml
+
+# Archivos de respaldo del editor
+*~
+*.bak
+*.swp
+
+# Archivos específicos de LaTeX que no se necesitan en el repositorio
+*.pdf
+*.dvi
+*.ps
+
+# Archivos específicos de editor
+.vscode/
+.idea/
+*.latexmk
