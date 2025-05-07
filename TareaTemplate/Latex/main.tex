@@ -1,0 +1,262 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titletoc}
+\usepackage{adjustbox}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue, % Color del texto del enlace
+    urlcolor=blue % Color del enlace
+}
+
+\usepackage{longtable} % Agrega el paquete longtable
+
+\definecolor{mygreen}{RGB}{0,128,0}
+
+\usepackage{array} % Para personalizar la tabla
+\usepackage{booktabs} % Para líneas horizontales de mejor calidad
+\usepackage{graphicx} % Paquete para incluir imágenes
+\usepackage{float}
+
+% Definir márgenes
+\usepackage[margin=1in]{geometry}
+
+\renewcommand{\contentsname}{\textcolor{mygreen}{Tabla de Contenidos}}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    % Logo de la Universidad
+    \includegraphics[width=0.48\textwidth]{logo_universidad.png}
+    \par\vspace{2cm}
+
+    % Nombre de la Universidad y detalles del curso
+    {\Large \textbf{Universidad Nacional de Colombia} \par}
+    \vspace{0.5cm}
+    {\large Ingeniería de Sistemas y Computación \par}
+    {\large 2025966 Lenguajes de Programación (02)\par}
+    \vspace{3cm}
+
+    % Detalles del laboratorio y actividad
+    {\large \textbf{Tarea Template} \par}
+    {\large Emulación de su computador\par}
+    \vspace{3cm}
+
+    % Lista de integrantes
+    {\large \textbf{Integrantes:} \par}
+    \vspace{0.5cm}
+    \begin{tabular}{ll}
+    Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
+    - & -@unal.edu.co \\
+    \end{tabular}
+    \par\vspace{3cm}
+
+    % Fecha
+    {\large Mayo 7 de 2025 \par}
+\end{titlepage}
+
+\tableofcontents % Inserta la tabla de contenidos
+
+\newpage % Salto de página para separar la tabla de contenidos del contenido del documento
+
+% Contenido del artículo----------------------------------------------------------
+
+%---------------------------------------------------------------------------------
+% Intro --------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Introducción}\label{sec:intr}
+
+%---------------------------------------------------------------------------------
+% Marco Teórico ------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Marco Teórico}\label{sec:marc}
+
+\subsection{Contextualización del problema}
+
+
+
+
+%---------------------------------------------------------------------------------
+% Descripción y Justificación del Problema a Resolver ----------------------------
+%---------------------------------------------------------------------------------
+
+\section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
+
+
+\subsection{Objetivo Principal}
+
+
+%---------------------------------------------------------------------------------
+% Diseño de la solución ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Diseño de la solución}\label{sec:dis}
+
+
+\subsection{Metodología}
+
+
+\section{Métricas de Evaluación}
+Para cuantificar la calidad, equidad y eficiencia de las asignaciones en los cuatro escenarios, definimos las siguientes métricas, implementadas en \texttt{metrics.py}:
+
+\subsection{Métrica 1}
+
+
+
+%---------------------------------------------------------------------------------
+% Código Fuente ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Código Fuente}\label{sec:cod}
+
+El código fuente completo de este modelo se encuentra adjunto en el buzón 
+(11 Tarazona Jimenez Javier Andres 02.zip)
+y disponible en el repositorio GitHub del proyecto:
+
+\begin{center}
+\url{URL}
+\end{center}
+
+El repositorio contiene:
+\begin{itemize}
+\item A
+\item B
+\item C
+\end{itemize}
+
+%---------------------------------------------------------------------------------
+% Manual Usuario ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Manual Usuario}\label{sec:man_u}
+
+El primer paso es descargar el archivo \texttt{11 Tarazona Jimenez Javier Andres 02.zip}.
+
+Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un 
+entorno virtual utilizando Python 3.12. o superior. Para ello, ejecute el siguiente 
+comando en 
+la terminal o línea de comandos:
+
+\begin{itemize}
+  \item En Windows:
+  \begin{verbatim}
+    python3.12 -m venv nombre_del_entorno
+  \end{verbatim}
+  \item En macOS o Linux:
+  \begin{verbatim}
+    python3.12 -m venv nombre_del_entorno
+  \end{verbatim}
+\end{itemize}
+
+Donde \texttt{nombre\_del\_entorno} es el nombre que desea asignar a su entorno virtual. 
+A continuación, active el entorno virtual:
+
+\begin{itemize}
+  \item En Windows:
+  \begin{verbatim}
+    .\nombre_del_entorno\Scripts\activate
+  \end{verbatim}
+  \item En macOS o Linux:
+  \begin{verbatim}
+    source nombre_del_entorno/bin/activate
+  \end{verbatim}
+\end{itemize}
+
+En el archivo \texttt{constants/program.py} encontrará las constantes del programa. 
+En ese archivo, podrá modificar los parámetros de entrada que se detallan más abajo.\\
+
+Después de configurar los parámetros, asegúrese de tener el entorno virtual activado. 
+Una vez activo, puede ejecutar el archivo principal con el siguiente comando:
+
+\begin{center}
+  \begin{adjustbox}{minipage=\linewidth, center}
+  \begin{verbatim}
+    python main.py
+  \end{verbatim}
+  \end{adjustbox}
+\end{center}
+
+\textbf{Datos de entrada}
+
+Todos los parámetros de entrada son opcionales.
+
+\begin{itemize}
+  \item Número de cursos.
+  \item Número máximo de grupos por curso.
+  \item Número mínimo de grupos por curso.
+  \item Promedio de número de grupos por curso.
+  \item Desviación estandar de número de grupos por curso.
+  \item Número de docentes, debe ser mayor o igual al número de cursos por maximo de grupos.
+  \item Número de aulas, debe ser mayor o igual al número de cursos por maximo de grupos.
+  \item Número máximo de cupos por curso.
+  \item Número mínimo de cupos por curso.
+  \item Promedio de número de cupos por curso.
+  \item Desviación estandar de número de cupos por curso.
+  \item Número de estudiantes.
+  \item Promedio de P.A.P.I de los estudiantes
+  \item Desviación estandar de P.A.P.I de los estudiantes
+  \item Máximo número de materias que un estudiante va a inscribir (mayor o igual a 3, 
+        menor o igual a lista de deseos).
+  \item Máximo número de materias deseadas de un estudiante (Predeterminado=9, 
+        mayor o igual a 3).
+  \item Tiempo de simulación (CONSUMO\_CT)
+  \item Iteraciones de las realizaciones (ITERACIONES\_CT)
+\end{itemize}
+
+
+%---------------------------------------------------------------------------------
+% Manual Técnico ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Manual Técnico}\label{sec:man_t}
+
+
+\subsection{Fases de la Simulación}
+
+
+\subsection{Manejo de Datos}
+
+\subsection{Evaluación de la Simulación}
+
+
+\subsection{Conclusiones y Recomendaciones}
+
+
+%---------------------------------------------------------------------------------
+% Experimentación ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Experimentación}\label{sec:exp}
+
+\subsection{Análisis de resultados}
+
+\subsubsection{Escenario 1: }
+
+\subsubsection{Escenario 2: }
+ 
+\subsubsection{Escenario 3: }
+
+\subsubsection{Comparación resultados?}
+
+
+
+\section{Referencias}
+\renewcommand{\refname}{}
+
+\begin{thebibliography}{9}
+
+\bibitem{ref} \label{ref:BPS} M. Bichler, S. Merting, and A. Uzunoglu, 
+“Assigning Course Schedules: About Preference Elicitation, Fairness, and Truthfulness,” 
+arXiv preprint arXiv:1812.02630, 2018. [En línea]. Disponible en: 
+\url{https://arxiv.org/abs/1812.02630}
+
+
+\end{thebibliography}
+
+\end{document}
