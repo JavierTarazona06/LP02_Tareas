@@ -326,78 +326,78 @@ El repositorio contiene:
 
 \section{Manual Usuario}\label{sec:man_u}
 
-El primer paso es descargar el archivo \texttt{11 Tarazona Jimenez Javier Andres 02.zip}.
+Para ejecutar correctamente el notebook que utiliza Qiskit y acceder al hardware cuántico de IBM, 
+se deben seguir los siguientes pasos:
 
-Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un 
-entorno virtual utilizando Python 3.12. o superior. Para ello, ejecute el siguiente 
-comando en 
-la terminal o línea de comandos:
+\subsection*{1. Descargar el proyecto}
 
 \begin{itemize}
-  \item En Windows:
-  \begin{verbatim}
-    python3.12 -m venv nombre_del_entorno
-  \end{verbatim}
-  \item En macOS o Linux:
-  \begin{verbatim}
-    python3.12 -m venv nombre_del_entorno
-  \end{verbatim}
+    \item Descarga la carpeta comprimida que contiene:
+    \begin{itemize}
+        \item El archivo \texttt{.ipynb} (notebook de Jupyter).
+        \item El archivo \texttt{requirements.txt} con las librerías necesarias.
+    \end{itemize}
 \end{itemize}
 
-Donde \texttt{nombre\_del\_entorno} es el nombre que desea asignar a su entorno virtual. 
-A continuación, active el entorno virtual:
+\subsection*{2. Extraer los archivos}
 
 \begin{itemize}
-  \item En Windows:
-  \begin{verbatim}
-    .\nombre_del_entorno\Scripts\activate
-  \end{verbatim}
-  \item En macOS o Linux:
-  \begin{verbatim}
-    source nombre_del_entorno/bin/activate
-  \end{verbatim}
+    \item Descomprime la carpeta en una ubicación de tu preferencia.
 \end{itemize}
 
-En el archivo \texttt{constants/program.py} encontrará las constantes del programa. 
-En ese archivo, podrá modificar los parámetros de entrada que se detallan más abajo.\\
+\subsection*{3. Crear el entorno virtual}
 
-Después de configurar los parámetros, asegúrese de tener el entorno virtual activado. 
-Una vez activo, puede ejecutar el archivo principal con el siguiente comando:
-
-\begin{center}
-  \begin{adjustbox}{minipage=\linewidth, center}
-  \begin{verbatim}
-    python main.py
-  \end{verbatim}
-  \end{adjustbox}
-\end{center}
-
-\textbf{Datos de entrada}
-
-Todos los parámetros de entrada son opcionales.
+\textbf{Requisito:} Tener Python instalado en tu sistema.
 
 \begin{itemize}
-  \item Número de cursos.
-  \item Número máximo de grupos por curso.
-  \item Número mínimo de grupos por curso.
-  \item Promedio de número de grupos por curso.
-  \item Desviación estandar de número de grupos por curso.
-  \item Número de docentes, debe ser mayor o igual al número de cursos por maximo de grupos.
-  \item Número de aulas, debe ser mayor o igual al número de cursos por maximo de grupos.
-  \item Número máximo de cupos por curso.
-  \item Número mínimo de cupos por curso.
-  \item Promedio de número de cupos por curso.
-  \item Desviación estandar de número de cupos por curso.
-  \item Número de estudiantes.
-  \item Promedio de P.A.P.I de los estudiantes
-  \item Desviación estandar de P.A.P.I de los estudiantes
-  \item Máximo número de materias que un estudiante va a inscribir (mayor o igual a 3, 
-        menor o igual a lista de deseos).
-  \item Máximo número de materias deseadas de un estudiante (Predeterminado=9, 
-        mayor o igual a 3).
-  \item Tiempo de simulación (CONSUMO\_CT)
-  \item Iteraciones de las realizaciones (ITERACIONES\_CT)
+    \item Abre una terminal (o consola) en la carpeta descomprimida.
+    \item Ejecuta el siguiente comando para crear el entorno virtual:
+
+\begin{verbatim}
+python -m venv venv
+\end{verbatim}
+
+    \item Activa el entorno:
+    \begin{itemize}
+        \item En Windows:
+\begin{verbatim}
+venv\Scripts\activate
+\end{verbatim}
+        \item En macOS/Linux:
+\begin{verbatim}
+source venv/bin/activate
+\end{verbatim}
+    \end{itemize}
 \end{itemize}
+
+\subsection*{4. Instalar las dependencias}
+
+\begin{itemize}
+    \item Con el entorno virtual activado, instala las librerías requeridas (incluyendo Qiskit):
+
+\begin{verbatim}
+pip install -r requirements.txt
+\end{verbatim}
+
+\end{itemize}
+
+\subsection*{5. Configurar el acceso a IBM Quantum}
+
+\begin{itemize}
+    \item Crea un archivo de texto llamado \texttt{SECRETKEY.txt} en la misma carpeta.
+    \item Copia y pega dentro de ese archivo tu \textbf{token de API} de IBM Quantum.
+    \item Puedes obtener tu token en \url{https://quantum.ibm.com/}, en la parte superior 
+          derecha tras iniciar sesión.
+\end{itemize}
+
+\subsection*{6. Ejecutar el Notebook}
+
+\begin{itemize}
+    \item Abre el archivo \texttt{.ipynb} con Jupyter Notebook o un editor como VS Code con 
+          la extensión de Jupyter.
+    \item Asegúrate de que el entorno virtual esté activado al ejecutar las celdas.
+\end{itemize}
+
 
 
 %---------------------------------------------------------------------------------
