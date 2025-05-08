@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{graphicx}
+\usepackage{amsmath}
 \usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
 \usepackage{xcolor}
 \usepackage{hyperref}
@@ -40,18 +41,16 @@
     {\large Ingeniería de Sistemas y Computación \par}
     {\large 2025966 Lenguajes de Programación (02)\par}
     \vspace{3cm}
-
     % Detalles del laboratorio y actividad
     {\large \textbf{Tarea 11} \par}
     {\large Computación cuántica: Implementación del algoritmo de búsqueda de Grovers \par}
     \vspace{3cm}
-
     % Lista de integrantes
     {\large \textbf{Integrantes:} \par}
     \vspace{0.5cm}
     \begin{tabular}{ll}
     Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
-    - & -@unal.edu.co \\
+    Juan Sebastian Muñoz Lemus & jumunozle@unal.edu.co \\
     \end{tabular}
     \par\vspace{3cm}
 
@@ -71,15 +70,150 @@
 
 \section{Introducción}\label{sec:intr}
 
+En la computación clásica, la búsqueda en una base de datos no estructurada de $N$ elementos requiere en promedio $O(N)$ operaciones. Este proceso puede resultar ineficiente cuando se trata de grandes volúmenes de datos. En cambio, la computación cuántica ofrece nuevas perspectivas para resolver este tipo de problemas gracias a su capacidad de paralelismo cuántico y manipulación de estados en superposición.
+
+El algoritmo de búsqueda de Grover, desarrollado por Lov Grover en 1996, permite encontrar un elemento marcado (o solución) dentro de un conjunto no estructurado con una complejidad de $O(\sqrt{N})$, lo que representa una mejora cuadrática significativa respecto a cualquier algoritmo clásico conocido.
+
+Este proyecto busca implementar dicho algoritmo utilizando el \textbf{SDK Qiskit} y ejecutar el programa en uno de los computadores cuánticos disponibles a través de IBM Quantum Experience, con el fin de verificar su funcionamiento y estudiar su comportamiento frente a diferentes tamaños de entrada.
+
 %---------------------------------------------------------------------------------
 % Marco Teórico ------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 
 \section{Marco Teórico}\label{sec:marc}
 
+\subsection*{¿Cómo funcionan los computadores cuánticos?}
+
+Un computador tradicional ejecuta algoritmos secuenciales utilizando una \textbf{unidad de procesamiento clásico (CPU)}. En cambio, un computador cuántico emplea una \textbf{unidad de procesamiento cuántico (QPU)} para ejecutar \textbf{circuitos cuánticos}.
+
+Para programar estos dispositivos, se pueden usar lenguajes como \textbf{Python} junto con frameworks que permiten interactuar con el hardware cuántico. Entre los más utilizados están \textbf{Qiskit} (desarrollado por IBM) y \textbf{Cirq} (de Google). En este curso se utilizará \textbf{Qiskit} como herramienta principal para diseñar y ejecutar algoritmos cuánticos.
+
+\subsection*{¿Qué es un Qubit?}
+
+Un \textbf{qubit} (bit cuántico) es la unidad básica de información en computación cuántica. A diferencia del bit clásico que puede tomar únicamente los valores 0 o 1, un qubit puede tomar simultáneamente ambos valores gracias al principio de \textbf{superposición}.
+
+Cuando se mide un qubit, su estado \textbf{colapsa} y toma uno de los dos valores clásicos (0 o 1). El estado de un qubit se puede visualizar mediante la \textbf{esfera de Bloch}, donde:
+
+\begin{itemize}
+    \item Si el vector apunta hacia arriba, el qubit está en el estado $\vert 0 \rangle$.
+    \item Si apunta hacia abajo, está en el estado $\vert 1 \rangle$.
+    \item Cualquier otra dirección representa un estado en superposición.
+\end{itemize}
+
+La probabilidad de que colapse a 0 o 1 depende de la orientación del vector:
+
+\begin{itemize}
+    \item Si el vector apunta cerca del polo norte ($\vert 0 \rangle$), es más probable que colapse a 0.
+    \item Si apunta hacia el ecuador de la esfera, hay un 50\% de probabilidad de obtener 0 y 50\% de obtener 1.
+\end{itemize}
+
+Desde un punto de vista matemático, el estado de un qubit se representa como un vector con dos componentes complejas:
+
+\[
+|\psi\rangle = \alpha \vert 0 \rangle + \beta \vert 1 \rangle \quad \text{representado como } [\alpha, \beta]
+\]
+
+donde:
+\begin{itemize}
+    \item $\alpha$: amplitud para colapsar a 0,
+    \item $\beta$: amplitud para colapsar a 1,
+    \item Las probabilidades de medición se obtienen como $|\alpha|^2$ y $|\beta|^2$,
+    \item Propiedad fundamental: $|\alpha|^2 + |\beta|^2 = 1$.
+\end{itemize}
+
+\subsection*{Sistemas de más de un qubit}
+
+Cuando se tienen \textbf{dos qubits}, el sistema puede representar simultáneamente las cuatro combinaciones clásicas posibles: 00, 01, 10 y 11. Además, en computación cuántica existe el fenómeno del \textbf{entrelazamiento cuántico}, que permite la creación de estados globales que no pueden describirse como la suma de los estados individuales de cada qubit.
+
+Así, el estado cuántico de 2 qubits se representa como un vector con \textbf{4 amplitudes}, una para cada combinación. De manera general, para un sistema de $n$ qubits, se necesita un vector de \textbf{$2^n$ componentes} complejas para describir el estado completo del sistema.
+
+Este crecimiento exponencial de la información procesada permite que los computadores cuánticos sean muy potentes para ciertas tareas, como la búsqueda en bases de datos o la factorización de grandes números. Sin embargo, también impone retos técnicos y teóricos importantes, especialmente relacionados con la corrección de errores, la decoherencia y la escalabilidad del hardware.
+
+\subsection*{Sistemas de más de un Qubit}
+
+Cuando se tienen \textbf{2 qubits}, existen \textbf{4 combinaciones clásicas posibles}: 00, 01, 10 y 11. En un sistema cuántico, también existe el fenómeno del \textbf{entrelazamiento cuántico}, que permite estados complejos que no pueden separarse en qubits individuales.
+
+Así, el estado cuántico de 2 qubits se representa con un vector de \textbf{4 amplitudes}, una para cada combinación clásica. Para un sistema de \textbf{$n$ qubits}, se requiere un vector de \textbf{$2^n$ componentes} para describir el estado completo del sistema.
+
+Este crecimiento exponencial permite que los computadores cuánticos sean especialmente potentes para ciertas tareas. Sin embargo, también impone \textbf{retos técnicos y teóricos} importantes relacionados con la manipulación y el control de sistemas cuánticos de múltiples qubits.
+
+\subsection*{Puertas Cuánticas}
+
+\subsubsection*{Puerta X (NOT cuántica)}
+
+Esta es la versión cuántica de la \textbf{puerta NOT clásica}. Su función es \textbf{intercambiar los valores} del qubit:
+
+\begin{itemize}
+    \item Si el qubit está en el estado $\vert 0 \rangle$, pasa a $\vert 1 \rangle$.
+    \item Si está en $\vert 1 \rangle$, pasa a $\vert 0 \rangle$.
+\end{itemize}
+
+Su representación matricial es:
+
+\[
+X = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
+\]
+
+Para aplicar la puerta, se \textbf{multiplica la matriz $X$} por el \textbf{vector de estado} del qubit.
+
+\textbf{Nota}: Si se tienen múltiples qubits, la puerta $X$ se aplica solo al qubit seleccionado, y la matriz total se expande usando el \textbf{producto tensorial}.
+
+\subsubsection*{Puerta Hadamard (H)}
+
+Esta puerta transforma un estado definido (como $\vert 0 \rangle$ o $\vert 1 \rangle$) en una \textbf{superposición cuántica}. Su matriz es:
+
+\[
+H = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}
+\]
+
+Aplicando $H$ al estado $\vert 0 \rangle$ se obtiene:
+
+\[
+\vert \psi \rangle = \frac{1}{\sqrt{2}}(\vert 0 \rangle + \vert 1 \rangle)
+\]
+
+Esto significa que el qubit tiene \textbf{50\% de probabilidad de colapsar a 0 y 50\% de colapsar a 1} al ser medido.
+
+En general, las operaciones cuánticas se implementan mediante \textbf{multiplicación de matrices}. Aunque estas operaciones son costosas para un computador clásico, los \textbf{ordenadores cuánticos las realizan físicamente y en paralelo}, aprovechando las propiedades de los qubits reales.
+
+\subsection*{Teleportación Cuántica}
+
+La \textbf{teleportación cuántica} es un protocolo que permite \textbf{transferir el estado cuántico de un qubit a otro qubit distante}, \textbf{sin mover físicamente el qubit original}.
+
+\subsubsection*{¿Cómo funciona?}
+
+\begin{enumerate}
+    \item Dos personas (Alice y Bob) comparten un \textbf{par de qubits entrelazados}.
+    \item Alice tiene un qubit adicional en un estado desconocido $\vert \psi \rangle$ que desea enviar a Bob.
+    \item Alice realiza una \textbf{medición conjunta} entre su qubit desconocido y su parte del par entrelazado.
+    \item El resultado de esa medición se \textbf{envía a Bob por un canal clásico} (por ejemplo, un mensaje de texto).
+    \item Bob, con esa información, \textbf{aplica una puerta cuántica} a su qubit para transformarlo en el estado original $\vert \psi \rangle$.
+\end{enumerate}
+
+\subsubsection*{Aspectos clave}
+
+\begin{itemize}
+    \item \textbf{No se transmite información más rápido que la luz}, ya que se requiere comunicación clásica.
+    \item El estado original se \textbf{destruye} en Alice al ser medido, respetando el \textbf{principio de no-clonación cuántica}.
+    \item El protocolo \textbf{no transporta materia ni energía}, solo \textbf{el estado cuántico}.
+\end{itemize}
+
+\subsubsection*{Aplicaciones}
+
+La teleportación cuántica es fundamental en tecnologías emergentes como:
+
+\begin{itemize}
+    \item \textbf{Computación cuántica distribuida}
+    \item \textbf{Redes cuánticas}
+    \item \textbf{Repetidores cuánticos} para extender comunicación segura, especialmente en el campo de la \textbf{criptografía cuántica}.
+\end{itemize}
+
+
 \subsection{Contextualización del problema}
 
+La computación cuántica ofrece ventajas significativas frente a la computación clásica en ciertos tipos de problemas, especialmente en tareas de búsqueda no estructurada. En este contexto, el \textbf{algoritmo de Grover} destaca por reducir el tiempo de búsqueda de $O(N)$ a $O(\sqrt{N})$, demostrando una mejora cuadrática.
 
+Gracias a herramientas como \textbf{Qiskit} y el acceso a hardware cuántico real mediante plataformas como IBM Quantum, es posible implementar y probar este tipo de algoritmos. Este trabajo se enfoca en la implementación del algoritmo de Grover como un caso de estudio práctico que permite explorar las capacidades actuales de la computación cuántica y su potencial para resolver problemas complejos de manera más eficiente.
 
 
 %---------------------------------------------------------------------------------
@@ -88,26 +222,82 @@
 
 \section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
 
+Buscar eficientemente un elemento dentro de una gran base de datos no estructurada es un problema central en muchas aplicaciones prácticas: desde motores de búsqueda, hasta problemas de satisfacibilidad y optimización. Si bien los ordenadores clásicos han sido capaces de abordar estos problemas, el tiempo requerido puede crecer exponencialmente con el tamaño de los datos.
+
+El algoritmo de Grover demuestra una de las ventajas fundamentales de la computación cuántica: la posibilidad de realizar búsquedas de manera significativamente más rápida, sin requerir estructuras de datos específicas ni ordenamientos previos. Esta propiedad lo convierte en un caso de estudio ideal para experimentar con computadores cuánticos actuales, limitados en capacidad, pero suficientemente potentes para ejecutar este tipo de algoritmos.
+
+La elección de Qiskit como entorno de desarrollo y de IBM Quantum como plataforma de ejecución responde a su accesibilidad, documentación robusta y a que permite la ejecución en hardware cuántico real.
 
 \subsection{Objetivo Principal}
 
-
-%---------------------------------------------------------------------------------
-% Diseño de la solución ---------------------------------------------------------
-%---------------------------------------------------------------------------------
+Implementar y ejecutar el algoritmo de búsqueda de Grover utilizando Qiskit sobre un computador cuántico de IBM, con el fin de analizar su rendimiento, validarlo empíricamente y comparar su comportamiento teórico y práctico.
 
 \section{Diseño de la solución}\label{sec:dis}
 
+El diseño del algoritmo de Grover parte de la necesidad de amplificar la probabilidad del estado objetivo dentro de una superposición cuántica de múltiples estados. Para lograr esto, se estructura el circuito cuántico en tres bloques fundamentales:
+
+\begin{enumerate}
+    \item \textbf{Inicialización:} Se parte de un registro de $n$ qubits, cada uno preparado inicialmente en el estado base $\vert 0 \rangle$. Luego, se aplica una compuerta Hadamard ($H$) a cada qubit para generar una superposición uniforme de los $2^n$ posibles estados.
+
+    \item \textbf{Oráculo cuántico:} Es un circuito que identifica el estado objetivo $\vert x \rangle$ mediante un cambio de fase. Este oráculo actúa como una función $f(x)$ tal que:
+    \[
+    f(x) = \begin{cases}
+    1 & \text{si } x = x_{objetivo} \\
+    0 & \text{en otro caso}
+    \end{cases}
+    \]
+    y realiza la transformación:
+    \[
+    \vert x \rangle \rightarrow (-1)^{f(x)} \vert x \rangle
+    \]
+
+    \item \textbf{Difusor o operador de inversión sobre la media:} Este bloque amplifica la amplitud del estado marcado mediante una inversión de las amplitudes alrededor del promedio de todas las amplitudes. Se construye aplicando Hadamard a todos los qubits, seguido de una compuerta de fase en el estado $\vert 0 \rangle$, y luego otra vez Hadamards.
+
+    \item \textbf{Iteración de Grover:} La aplicación secuencial del oráculo y el difusor constituye una iteración de Grover. El número óptimo de iteraciones es aproximadamente:
+    \[
+    r \approx \left\lfloor \frac{\pi}{4} \sqrt{N} \right\rfloor
+    \]
+    donde $N = 2^n$ es el número total de posibles estados. Tras este número de iteraciones, la probabilidad de medir el estado deseado se aproxima a 1.
+
+    \item \textbf{Medición:} Finalmente, se miden los qubits en la base computacional para obtener el estado colapsado. Si el algoritmo ha sido exitoso, el estado observado será el objetivo con alta probabilidad.
+    
+\end{enumerate}
+
+Este diseño modular permite adaptar el algoritmo para distintas cantidades de qubits y funciones objetivo. Además, se alinea con la estructura del SDK Qiskit, que proporciona bloques de construcción adecuados para implementar tanto el oráculo como el difusor de forma explícita.
 
 \subsection{Metodología}
 
+El proyecto se llevará a cabo en las siguientes etapas:
 
-\section{Métricas de Evaluación}
-Para cuantificar la calidad, equidad y eficiencia de las asignaciones en los cuatro escenarios, definimos las siguientes métricas, implementadas en \texttt{metrics.py}:
-
-\subsection{Métrica 1}
-
-
+\begin{enumerate}
+    \item \textbf{Modelado del problema:}
+    \begin{itemize}
+        \item Selección del número de qubits adecuados para codificar una base de datos de $N = 2^n$ elementos.
+        \item Definición del oráculo: circuito cuántico que identifica el estado objetivo marcando su fase.
+    \end{itemize}
+    
+    \item \textbf{Implementación del algoritmo:}
+    \begin{itemize}
+        \item Construcción del circuito de Grover en Qiskit: preparación de la superposición inicial, aplicación del oráculo, difusión (amplificación de amplitudes), y repetición óptima de iteraciones $\sim \sqrt{N}$.
+    \end{itemize}
+    
+    \item \textbf{Simulación y prueba local:}
+    \begin{itemize}
+        \item Prueba del circuito en un simulador cuántico local para verificar su correcto funcionamiento.
+    \end{itemize}
+    
+    \item \textbf{Ejecución en hardware cuántico:}
+    \begin{itemize}
+        \item Ejecución del programa en uno de los dispositivos cuánticos de IBM a través de su plataforma en la nube.
+        \item Recolección de resultados estadísticos tras múltiples ejecuciones.
+    \end{itemize}
+    
+    \item \textbf{Análisis y comparación de resultados:}
+    \begin{itemize}
+        \item Comparación de los resultados obtenidos en el simulador ideal y el hardware real.
+        \item Evaluación del impacto del ruido y los errores de medición.
+    \end{itemize}
+\end{enumerate}
 
 %---------------------------------------------------------------------------------
 % Código Fuente ---------------------------------------------------------
@@ -116,7 +306,7 @@ Para cuantificar la calidad, equidad y eficiencia de las asignaciones en los cua
 \section{Código Fuente}\label{sec:cod}
 
 El código fuente completo de este modelo se encuentra adjunto en el buzón 
-(11 Tarazona Jimenez Javier Andres 02.zip)
+(11 Tarazona Jimenez Javier Andres 02.zip/11 Juan Sebastian Muñoz Lemus 02.zip)
 y disponible en el repositorio GitHub del proyecto:
 
 \begin{center}
