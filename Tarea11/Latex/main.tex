@@ -26,6 +26,7 @@
 \usepackage[margin=1in]{geometry}
 
 \renewcommand{\contentsname}{\textcolor{mygreen}{Tabla de Contenidos}}
+\renewcommand{\figurename}{Figura}
 
 \begin{document}
 
@@ -121,14 +122,6 @@ donde:
     \item Propiedad fundamental: $|\alpha|^2 + |\beta|^2 = 1$.
 \end{itemize}
 
-\subsection*{Sistemas de más de un qubit}
-
-Cuando se tienen \textbf{dos qubits}, el sistema puede representar simultáneamente las cuatro combinaciones clásicas posibles: 00, 01, 10 y 11. Además, en computación cuántica existe el fenómeno del \textbf{entrelazamiento cuántico}, que permite la creación de estados globales que no pueden describirse como la suma de los estados individuales de cada qubit.
-
-Así, el estado cuántico de 2 qubits se representa como un vector con \textbf{4 amplitudes}, una para cada combinación. De manera general, para un sistema de $n$ qubits, se necesita un vector de \textbf{$2^n$ componentes} complejas para describir el estado completo del sistema.
-
-Este crecimiento exponencial de la información procesada permite que los computadores cuánticos sean muy potentes para ciertas tareas, como la búsqueda en bases de datos o la factorización de grandes números. Sin embargo, también impone retos técnicos y teóricos importantes, especialmente relacionados con la corrección de errores, la decoherencia y la escalabilidad del hardware.
-
 \subsection*{Sistemas de más de un Qubit}
 
 Cuando se tienen \textbf{2 qubits}, existen \textbf{4 combinaciones clásicas posibles}: 00, 01, 10 y 11. En un sistema cuántico, también existe el fenómeno del \textbf{entrelazamiento cuántico}, que permite estados complejos que no pueden separarse en qubits individuales.
@@ -176,6 +169,40 @@ Esto significa que el qubit tiene \textbf{50\% de probabilidad de colapsar a 0 y
 
 En general, las operaciones cuánticas se implementan mediante \textbf{multiplicación de matrices}. Aunque estas operaciones son costosas para un computador clásico, los \textbf{ordenadores cuánticos las realizan físicamente y en paralelo}, aprovechando las propiedades de los qubits reales.
 
+\subsection*{La compuerta Cuántica Z}
+
+La \textbf{compuerta Z} es una compuerta cuántica unitaria que no altera la probabilidad de 
+colapso del qubit, pero sí cambia su fase cuántica cuando se encuentra 
+en el estado \(|1\rangle\). Matemáticamente, se representa como:
+
+\[
+Z = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}
+\]
+
+\begin{itemize}
+    \item Si el qubit está en \(|0\rangle\), no hay efecto.
+    \item Si está en \(|1\rangle\), el signo de la amplitud cambia a negativo.
+    \item Esta operación es clave en algoritmos como \textbf{Grover}, ya 
+            que permite invertir la fase de estados específicos como parte del proceso 
+            de amplificación.
+\end{itemize}
+
+\subsection*{Z multi-controlada (MCMT)}
+
+Una \textbf{Z multi-controlada} aplica la compuerta Z únicamente si una combinación específica 
+    de qubits de control está en el estado deseado (por lo general, todos en \(|1\rangle\)).
+
+Esto permite cambiar el signo de la amplitud de un solo estado objetivo dentro de una 
+superposición cuántica, sin afectar a los demás.
+
+\begin{itemize}
+    \item En Qiskit, se puede construir con la función \texttt{MCMT(ZGate(), num\_ctrls, 1)}.
+    \item Se rodea de compuertas X cuando se quiere controlar sobre ceros.
+    \item Esta técnica es fundamental para construir \textbf{oráculos cuánticos} que ``marcan'' 
+            las soluciones dentro del espacio de búsqueda en algoritmos como Grover.
+\end{itemize}
+
+
 \subsection*{Teleportación Cuántica}
 
 La \textbf{teleportación cuántica} es un protocolo que permite \textbf{transferir el estado cuántico de un qubit a otro qubit distante}, \textbf{sin mover físicamente el qubit original}.
@@ -207,6 +234,54 @@ La teleportación cuántica es fundamental en tecnologías emergentes como:
     \item \textbf{Redes cuánticas}
     \item \textbf{Repetidores cuánticos} para extender comunicación segura, especialmente en el campo de la \textbf{criptografía cuántica}.
 \end{itemize}
+
+
+\subsection*{Oráculo Cuántico}
+
+Un \textbf{oráculo cuántico} en el algoritmo de Grover es una operación diseñada 
+para \textit{marcar uno o varios estados cuánticos como soluciones}. Técnicamente, se aplica una 
+compuerta Z (cambio de fase) únicamente cuando el sistema se encuentra en el estado deseado.
+
+Esto no altera las probabilidades directamente, pero 
+\textbf{multiplica la amplitud del estado marcado por $-1$}, lo cual permite que, tras aplicar 
+el difusor, la amplitud (y por ende la probabilidad) de esos estados se amplifique.
+
+El oráculo actúa como una \textit{función booleana oculta} $f(x)$, que devuelve 1 solo para 
+los estados solución, y es implementada como un \textbf{circuito cuántico reversible}.
+
+\subsection*{Transpilación}
+
+Antes de ejecutar un circuito cuántico en un backend (procesador físico o simulador), 
+se requiere \textbf{adaptar el circuito a la arquitectura específica del dispositivo}. 
+A este proceso se le llama \textit{transpilación}.
+
+Incluye:
+\begin{itemize}
+    \item Reemplazar compuertas lógicas abstractas por compuertas físicas compatibles.
+    \item Optimizar el orden y tipo de operaciones.
+    \item Ajustarse a la conectividad de los qubits físicos.
+\end{itemize}
+
+Es el equivalente a \textit{pasar de una arquitectura lógica a una arquitectura física} 
+(clásica a cuántica).
+
+\subsection*{Qiskit Primitives}
+
+Los \textbf{primitives} en Qiskit son una \textit{interfaz de alto nivel} para ejecutar tareas 
+cuánticas comunes de forma modular y eficiente. Se utilizan especialmente en algoritmos 
+modernos como Grover, VQE o QAOA.
+
+Primitivas principales:
+\begin{itemize}
+    \item \textbf{Sampler}: ejecuta un circuito y devuelve una 
+            \textit{distribución de probabilidad} de los estados medidos.
+    \item \textbf{Estimator}: calcula el \textit{valor esperado de un observable cuántico} 
+            sobre el estado generado por un circuito.
+\end{itemize}
+
+Estas primitivas son ideales para sistemas en la nube o simuladores locales, 
+    ya que \textit{abstraen los detalles técnicos y permiten enfocarse en la lógica del algoritmo}.
+
 
 
 \subsection{Contextualización del problema}
@@ -310,15 +385,8 @@ El código fuente completo de este modelo se encuentra adjunto en el buzón
 y disponible en el repositorio GitHub del proyecto:
 
 \begin{center}
-\url{URL}
+\url{https://drive.google.com/drive/folders/19ZaKmOjhIuH5cjhIU_QGMGlHxLM4Jris?usp=drive_link}
 \end{center}
-
-El repositorio contiene:
-\begin{itemize}
-\item A
-\item B
-\item C
-\end{itemize}
 
 %---------------------------------------------------------------------------------
 % Manual Usuario ---------------------------------------------------------
@@ -407,21 +475,134 @@ pip install -r requirements.txt
 \section{Manual Técnico}\label{sec:man_t}
 
 
+\subsection*{Requisitos Previos}
+
+Antes de ejecutar el notebook es importante tener lo siguiente listo:
+
+\begin{itemize}
+    \item Python 3.8 o superior.
+    \item Qiskit y Qiskit Runtime instalados.
+    \item Cuenta activa en IBM Quantum.
+    \item Archivo \texttt{SECRETKEY.txt} con el token de acceso 
+            (este token se usa para autenticar el servicio con Qiskit).
+\end{itemize}
+
+\subsection*{Estructura del Notebook}
+
+\subsubsection*{a. Importaciones}
+
+Se utilizan módulos esenciales de Qiskit para construir y visualizar el circuito de Grover:
+
+\begin{itemize}
+    \item \texttt{QuantumCircuit}, \texttt{GroverOperator}, \texttt{MCMT}, \texttt{ZGate}
+    \item \texttt{plot\_distribution} para mostrar gráficamente los resultados
+    \item \texttt{SamplerV2} para ejecutar el circuito en la nube usando Qiskit Runtime
+\end{itemize}
+
+\subsubsection*{b. Autenticación}
+
+Para conectarse a los servidores de IBM Quantum, el notebook lee el token directamente 
+desde el archivo \texttt{SECRETKEY.txt}. Esto permite inicializar el servicio y usar 
+el backend real de IBM.
+
+
+\subsection*{Proceso General}
+
+\begin{enumerate}
+    \item \textbf{Definición del oráculo:} se crea un circuito cuántico que marca uno o 
+    varios estados específicos como soluciones, utilizando compuertas Z multi-controladas.
+
+    \item \textbf{Creación del operador de Grover:} se combina el oráculo con un difusor 
+    (operador que amplifica la probabilidad de las soluciones).
+
+    \item \textbf{Cálculo del número óptimo de iteraciones:} el número de veces que se aplica 
+    el operador depende de la relación entre el número de soluciones y el tamaño total del espacio.
+
+    \item \textbf{Construcción del circuito completo:} primero se aplica Hadamard a todos los 
+    qubits para crear la superposición, luego se aplica el \texttt{GroverOperator} varias veces.
+
+    \item \textbf{Ejecución y comparación:}
+    \begin{itemize}
+        \item En simulador ideal (\texttt{StatevectorSampler}) para ver el comportamiento sin ruido.
+        \item En hardware real con \texttt{SamplerV2} (Qiskit Runtime) para ver el efecto del ruido.
+    \end{itemize}
+
+    \item \textbf{Visualización de resultados:} se muestra un histograma con la distribución de 
+    los resultados medidos, lo cual permite ver cómo el algoritmo logró amplificar los estados 
+    correctos.
+\end{enumerate}
+
+
 %---------------------------------------------------------------------------------
 % Experimentación ---------------------------------------------------------
 %---------------------------------------------------------------------------------
 
 \section{Experimentación}\label{sec:exp}
 
-\subsection{Análisis de resultados}
+\subsection{Escenario 1: Comparación entre simulador ideal y hardware real}
 
-\subsubsection{Escenario 1: }
+En esta implementación se probó el algoritmo de Grover de dos formas: en un 
+simulador ideal y en un procesador cuántico real de IBM.
 
-\subsubsection{Escenario 2: }
+\begin{itemize}
+    \item \textbf{Simulador ideal:}
+    \begin{itemize}
+        \item Reproduce la evolución del circuito cuántico sin errores ni ruido.
+        \item El estado marcado por el oráculo aparece con probabilidad 
+                cercana al 100\% si se aplica el número óptimo de iteraciones.
+    \end{itemize}
+
+    \item \textbf{Hardware cuántico real (Sampler con backend IBM Quantum):}
+    \begin{itemize}
+        \item Introduce ruido cuántico, errores en compuertas y errores de lectura.
+        \item El estado solución sigue apareciendo con mayor frecuencia, 
+                pero no tant como en el simulador.
+        \item Aparecen estados no marcados con cierta frecuencia, 
+                por efecto del ruido físico.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection*{Impacto del ruido y errores de medición}
+
+Cuando se corre en hardware real, el entorno físico sí afecta. Algunos ejemplos:
+
+\begin{itemize}
+    \item \textbf{Errores de compuerta:} las operaciones físicas no son perfectas y 
+            pueden alterar las amplitudes esperadas.
+    \item \textbf{Errores de lectura (readout):} al medir, el resultado puede no 
+            coincidir con el estado real del qubit.
+    \item \textbf{Decoherencia y ruido ambiental:} el sistema pierde coherencia con 
+            el tiempo, y eso afecta más si el circuito es largo o complejo.
+\end{itemize}
+
+Esto se nota en los resultados como:
+
+\begin{itemize}
+    \item Distribución más dispersa en el histograma de conteos.
+    \item Presencia de estados que no son solución.
+    \item Disminución de la probabilidad del estado 
+            correcto respecto al simulador ideal.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{hist1.png}
+    \caption{Comparación de resultados: distribución de conteos en el 
+            simulador ideal y el hardware real.}
+    \label{fig:grover_histogram}
+\end{figure}
+
+Aunque el algoritmo de Grover es eficiente en teoría, su comportamiento en la 
+práctica depende de la calidad del hardware cuántico. Los simuladores sirven 
+para verificar que el circuito está bien construido, pero ejecutar en un backend 
+real como el de IBm permite ver qué tan robusto es frente al ruido y qué tan 
+factible sería usarlo 
+en escenarios reales.
+
+
+\subsection{Escenario 2: }
  
-\subsubsection{Escenario 3: }
-
-\subsubsection{Comparación resultados?}
+\subsection{Escenario 3: }
 
 
 
@@ -430,10 +611,24 @@ pip install -r requirements.txt
 
 \begin{thebibliography}{9}
 
-\bibitem{ref} \label{ref:BPS} M. Bichler, S. Merting, and A. Uzunoglu, 
-“Assigning Course Schedules: About Preference Elicitation, Fairness, and Truthfulness,” 
-arXiv preprint arXiv:1812.02630, 2018. [En línea]. Disponible en: 
-\url{https://arxiv.org/abs/1812.02630}
+\bibitem{ref} \label{ref:Teo_Par}
+A. Párraga, “Cómo se programa un ORDENADOR CUÁNTICO (bien explicado),” 
+YouTube, 2021. [En línea]. Disponible en: 
+\url{https://www.youtube.com/watch?v=eRlQdW1lgJE}.
+
+\bibitem{ref} \label{ref:KetG} Ket.G, “Ket.G,” YouTube. 
+[En línea]. Disponible en: \url{https://www.youtube.com/channel/UCedVPGH5fnWBmsR4oHVOX6w}.
+
+\bibitem{ref} \label{ref:IBM_exp}
+IBM Research, “Running an experiment in the IBM Quantum Experience,” 
+YouTube, 2016. [En línea]. Disponible en: 
+\url{https://www.youtube.com/watch?v=pYD6bvKLI_c}.
+
+\bibitem{ref} \label{ref:IBM_QUAN} 
+IBM Quantum, “IBM Quantum Platform,” \url{https://quantum.ibm.com/}.
+
+\bibitem{ref} \label{ref:IBM_GROV} IBM Quantum. “Grover's algorithm.” 
+IBM Quantum Learning, \url{https://learning.quantum.ibm.com/tutorial/grovers-algorithm}.
 
 
 \end{thebibliography}
