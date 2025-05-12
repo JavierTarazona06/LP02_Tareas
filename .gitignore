@@ -187,6 +187,7 @@ cython_debug/
 *.synctex.gz
 */Latex/*.bcf
 */Latex/*run.xml
+*main.bbl-SAVE-ERROR
 
 # Archivos de respaldo del editor
 *~
