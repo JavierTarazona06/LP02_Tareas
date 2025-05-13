@@ -44,7 +44,7 @@
     \vspace{3cm}
     % Detalles del laboratorio y actividad
     {\large \textbf{Tarea 11} \par}
-    {\large Computación cuántica: Implementación del algoritmo de búsqueda de Grovers \par}
+    {\large Computación cuántica: Implementación del algoritmo de búsqueda de Grover \par}
     \vspace{3cm}
     % Lista de integrantes
     {\large \textbf{Integrantes:} \par}
@@ -56,7 +56,7 @@
     \par\vspace{3cm}
 
     % Fecha
-    {\large Mayo 7 de 2025 \par}
+    {\large Mayo 12 de 2025 \par}
 \end{titlepage}
 
 \tableofcontents % Inserta la tabla de contenidos
@@ -328,11 +328,15 @@ El diseño del algoritmo de Grover parte de la necesidad de amplificar la probab
 
     \item \textbf{Difusor o operador de inversión sobre la media:} Este bloque amplifica la amplitud del estado marcado mediante una inversión de las amplitudes alrededor del promedio de todas las amplitudes. Se construye aplicando Hadamard a todos los qubits, seguido de una compuerta de fase en el estado $\vert 0 \rangle$, y luego otra vez Hadamards.
 
-    \item \textbf{Iteración de Grover:} La aplicación secuencial del oráculo y el difusor constituye una iteración de Grover. El número óptimo de iteraciones es aproximadamente:
+    \item \textbf{Iteración de Grover:} La aplicación secuencial del oráculo y el difusor constituye una iteración del algoritmo. 
+    El número óptimo de iteraciones se calcula en función del número total de estados posibles ($N = 2^n$) y del número de soluciones marcadas ($M$), mediante la siguiente expresión:
+
     \[
-    r \approx \left\lfloor \frac{\pi}{4} \sqrt{N} \right\rfloor
+    r \approx \left\lfloor \frac{\pi}{4 \cdot \arcsin\left( \sqrt{\frac{M}{N}} \right)} \right\rfloor
     \]
-    donde $N = 2^n$ es el número total de posibles estados. Tras este número de iteraciones, la probabilidad de medir el estado deseado se aproxima a 1.
+
+    Tras este número de iteraciones, la probabilidad de medir uno de los estados marcados se aproxima a 1, siempre que el circuito esté correctamente construido y ejecutado en condiciones ideales (sin ruido).
+
 
     \item \textbf{Medición:} Finalmente, se miden los qubits en la base computacional para obtener el estado colapsado. Si el algoritmo ha sido exitoso, el estado observado será el objetivo con alta probabilidad.
     
@@ -356,9 +360,11 @@ El proyecto se llevará a cabo en las siguientes etapas:
         \item Construcción del circuito de Grover en Qiskit: preparación de la superposición inicial, aplicación del oráculo, difusión (amplificación de amplitudes), y repetición óptima de iteraciones $\sim \sqrt{N}$.
     \end{itemize}
     
-    \item \textbf{Simulación y prueba local:}
+    \item \textbf{Simulación:}
     \begin{itemize}
-        \item Prueba del circuito en un simulador cuántico local para verificar su correcto funcionamiento.
+        \item Prueba del circuito en un simulador cuántico local para verificar su 
+                correcto funcionamiento. Esto mediante la 
+                visualización de las compuertas cuánticas que se van creando.
     \end{itemize}
     
     \item \textbf{Ejecución en hardware cuántico:}
@@ -367,9 +373,10 @@ El proyecto se llevará a cabo en las siguientes etapas:
         \item Recolección de resultados estadísticos tras múltiples ejecuciones.
     \end{itemize}
     
-    \item \textbf{Análisis y comparación de resultados:}
+    \item \textbf{Análisis de resultados:}
     \begin{itemize}
-        \item Comparación de los resultados obtenidos en el simulador ideal y el hardware real.
+        \item Comparación de los resultados obtenidos en el hardware real con
+            la esperanza teórica.
         \item Evaluación del impacto del ruido y los errores de medición.
     \end{itemize}
 \end{enumerate}
@@ -385,7 +392,7 @@ El código fuente completo de este modelo se encuentra adjunto en el buzón
 y disponible en el repositorio GitHub del proyecto:
 
 \begin{center}
-\url{https://drive.google.com/drive/folders/19ZaKmOjhIuH5cjhIU_QGMGlHxLM4Jris?usp=drive_link}
+\url{https://github.com/JavierTarazona06/LP02_Tareas}
 \end{center}
 
 %---------------------------------------------------------------------------------
@@ -523,7 +530,6 @@ el backend real de IBM.
 
     \item \textbf{Ejecución y comparación:}
     \begin{itemize}
-        \item En simulador ideal (\texttt{StatevectorSampler}) para ver el comportamiento sin ruido.
         \item En hardware real con \texttt{SamplerV2} (Qiskit Runtime) para ver el efecto del ruido.
     \end{itemize}
 
@@ -541,17 +547,10 @@ el backend real de IBM.
 
 \subsection{Escenario 1: Comparación entre simulador ideal y hardware real}
 
-En esta implementación se probó el algoritmo de Grover de dos formas: en un 
-simulador ideal y en un procesador cuántico real de IBM.
+En esta implementación se probó el algoritmo de Grover de dos formas en un 
+procesador cuántico real de IBM.
 
 \begin{itemize}
-    \item \textbf{Simulador ideal:}
-    \begin{itemize}
-        \item Reproduce la evolución del circuito cuántico sin errores ni ruido.
-        \item El estado marcado por el oráculo aparece con probabilidad 
-                cercana al 100\% si se aplica el número óptimo de iteraciones.
-    \end{itemize}
-
     \item \textbf{Hardware cuántico real (Sampler con backend IBM Quantum):}
     \begin{itemize}
         \item Introduce ruido cuántico, errores en compuertas y errores de lectura.
@@ -581,16 +580,20 @@ Esto se nota en los resultados como:
     \item Distribución más dispersa en el histograma de conteos.
     \item Presencia de estados que no son solución.
     \item Disminución de la probabilidad del estado 
-            correcto respecto al simulador ideal.
+            correcto respecto a lo que se esperaría en un simulador ideal.
 \end{itemize}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{hist1.png}
-    \caption{Comparación de resultados: distribución de conteos en el 
-            simulador ideal y el hardware real.}
+    \caption{Distribución de conteos enel hardware real.}
     \label{fig:grover_histogram}
 \end{figure}
+
+En al figura \ref{fig:grover_histogram} se puede ver como
+la realidad se ajusta a la teoría. El sistema de qubits colapsó 
+a 010 y 110, los cuales habían sido los estados
+marcados. Esto con un porcentaje de desviación de 18.76\%.
 
 Aunque el algoritmo de Grover es eficiente en teoría, su comportamiento en la 
 práctica depende de la calidad del hardware cuántico. Los simuladores sirven 
@@ -600,10 +603,104 @@ factible sería usarlo
 en escenarios reales.
 
 
-\subsection{Escenario 2: }
- 
-\subsection{Escenario 3: }
+\subsection{Escenario 2: Estado Único}
 
+En este caso se busca validar que el algoritmo de Grover identifica correctamente 
+un único estado solución en un espacio pequeño. Es decir, llevarlo a su mínima 
+expresión para estudiar su comportamiento base.
+
+Se utilizan 3 qubits para representar el número 5 en decimal, que corresponde al 
+estado \texttt{"101"} en binario. Según la teoría, el número óptimo de iteraciones 
+es 2, ya que el valor de \( k \) se aproxima a 2.17.
+
+\[
+\theta = \arcsin\left( \sqrt{\frac{1}{8}} \right) = \arcsin\left( \frac{1}{\sqrt{8}} \right) \approx 0.361
+\]
+
+\[
+k = \left\lfloor \frac{\pi}{4 \cdot \theta} \right\rfloor = \left\lfloor \frac{\pi}{4 \cdot 0.361} \right\rfloor = \left\lfloor \frac{\pi}{1.444} \right\rfloor \approx \left\lfloor 2.17 \right\rfloor = 2
+\]
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{hist2.png}
+    \caption{Distribución de conteos en el hardware real.}
+    \label{fig:grover_histogram2}
+\end{figure}
+
+En la figura \ref{fig:grover_histogram2} se puede ver cómo, al configurar el 
+circuito para marcar un solo estado, el sistema cuántico real entrega una mayor 
+cantidad de conteos en \texttt{101} al aplicar Grover. Esto valida que el algoritmo 
+sigue funcionando incluso en presencia de ruido. De hecho, 
+el porcentaje de desvicaicón estandar por el ruido es de 31.81\% lo cual es bueno.
+
+Empíricamente se confirma la hipótesis: al tener solo una solución, se requieren 
+más iteraciones para amplificar su probabilidad. Menos soluciones implican más 
+rotación de amplitud. También es clave recordar que si se excede el número 
+óptimo de iteraciones, la probabilidad de éxito empieza a disminuir nuevamente 
+debido a interferencia cuántica.
+
+Este escenario demuestra cómo la teoría se refleja de forma tangible en el 
+comportamiento del hardware real, incluso con las limitaciones de ruido y 
+decoherencia presentes.
+
+ 
+\subsection{Escenario 3: Varios estados marcados con más qubits}
+
+En este caso se busca validar si el algoritmo de Grover identifica correctamente 
+dos estados solución dentro de un espacio de búsqueda más amplio, usando 4 qubits.
+
+Los estados marcados corresponden a los números 6 y 11 en decimal, es decir,
+\texttt{"0110"} y \texttt{"1011"} en binario.
+
+El número óptimo de iteraciones se calcula según la fórmula teórica:
+
+\[
+k = \left\lfloor \frac{\pi}{4 \cdot \arcsin\left(\sqrt{\frac{2}{16}}\right)} 
+\right\rfloor = 2
+\]
+
+Por tanto, se aplicaron dos iteraciones del operador de Grover en la ejecución 
+sobre el hardware real de IBM.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{hist3.png}
+    \caption{Distribución de conteos en el hardware real con 2 iteraciones.}
+    \label{fig:grover_histogram3}
+\end{figure}
+
+Sin embargo, en la figura \ref{fig:grover_histogram3} se observa que los estados 
+marcados \texttt{0110} y \texttt{1011} no colapsan con mayor probabilidad, a 
+diferencia de los resultados esperados y de lo visto en los escenarios 
+anteriores (\ref{fig:grover_histogram} y \ref{fig:grover_histogram2}). 
+En este caso, la probabilidad total desviada hacia estados no marcados fue del 86.33\%.
+
+Ante esto, se propone la hipótesis de que, aunque teóricamente el número 
+de iteraciones es correcto, la ejecución sobre hardware real específicamente 
+una máquina cuántica compartida de IBM con 120 qubits introduce factores físicos como:
+
+\begin{itemize}
+    \item Ruido cuántico.
+    \item Difusión imperfecta del operador de Grover.
+    \item Limitaciones en la calibración o fidelidad de los qubits usados.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{hist3_a.png}
+    \caption{Distribución de conteos con 1 iteración del operador de Grover.}
+    \label{fig:grover_histogram3a}
+\end{figure}
+
+También se evaluó si el problema era el número de iteraciones. Al repetir el 
+experimento con solo una iteración (figura \ref{fig:grover_histogram3a}), 
+los estados marcados tampoco resultaron los más probables, y la desviación fue de 81.58\%. Esto permite descartar el exceso de iteraciones como causa principal del error.
+
+Por lo tanto, se concluye que el bajo rendimiento en este escenario se 
+debe principalmente al \textbf{ruido cuántico} y la \textbf{difusión imperfecta} 
+en el backend físico utilizado.
 
 
 \section{Referencias}
