@@ -85,15 +85,15 @@ Este proyecto busca implementar dicho algoritmo utilizando el \textbf{SDK Qiskit
 
 \subsection*{¿Cómo funcionan los computadores cuánticos?}
 
-Un computador tradicional ejecuta algoritmos secuenciales utilizando una \textbf{unidad de procesamiento clásico (CPU)}. En cambio, un computador cuántico emplea una \textbf{unidad de procesamiento cuántico (QPU)} para ejecutar \textbf{circuitos cuánticos}.
+Un computador tradicional ejecuta algoritmos secuenciales utilizando una unidad de procesamiento clásico (CPU). En cambio, un computador cuántico emplea una unidad de procesamiento cuántico (QPU) para ejecutar circuitos cuánticos.
 
-Para programar estos dispositivos, se pueden usar lenguajes como \textbf{Python} junto con frameworks que permiten interactuar con el hardware cuántico. Entre los más utilizados están \textbf{Qiskit} (desarrollado por IBM) y \textbf{Cirq} (de Google). En este curso se utilizará \textbf{Qiskit} como herramienta principal para diseñar y ejecutar algoritmos cuánticos.
+Para programar estos dispositivos, se pueden usar lenguajes como Python junto con frameworks que permiten interactuar con el hardware cuántico. Entre los más utilizados están Qiskit (desarrollado por IBM) y Cirq (de Google). En este curso se utilizará Qiskit como herramienta principal para diseñar y ejecutar algoritmos cuánticos.
 
 \subsection*{¿Qué es un Qubit?}
 
-Un \textbf{qubit} (bit cuántico) es la unidad básica de información en computación cuántica. A diferencia del bit clásico que puede tomar únicamente los valores 0 o 1, un qubit puede tomar simultáneamente ambos valores gracias al principio de \textbf{superposición}.
+Un qubit (bit cuántico) es la unidad básica de información en computación cuántica. A diferencia del bit clásico que puede tomar únicamente los valores 0 o 1, un qubit puede tomar simultáneamente ambos valores gracias al principio de superposición.
 
-Cuando se mide un qubit, su estado \textbf{colapsa} y toma uno de los dos valores clásicos (0 o 1). El estado de un qubit se puede visualizar mediante la \textbf{esfera de Bloch}, donde:
+Cuando se mide un qubit, su estado colapsa y toma uno de los dos valores clásicos (0 o 1). El estado de un qubit se puede visualizar mediante la esfera de Bloch, donde:
 
 \begin{itemize}
     \item Si el vector apunta hacia arriba, el qubit está en el estado $\vert 0 \rangle$.
@@ -124,17 +124,17 @@ donde:
 
 \subsection*{Sistemas de más de un Qubit}
 
-Cuando se tienen \textbf{2 qubits}, existen \textbf{4 combinaciones clásicas posibles}: 00, 01, 10 y 11. En un sistema cuántico, también existe el fenómeno del \textbf{entrelazamiento cuántico}, que permite estados complejos que no pueden separarse en qubits individuales.
+Cuando se tienen 2 qubits, existen 4 combinaciones clásicas posibles: 00, 01, 10 y 11. En un sistema cuántico, también existe el fenómeno del entrelazamiento cuántico, que permite estados complejos que no pueden separarse en qubits individuales.
 
-Así, el estado cuántico de 2 qubits se representa con un vector de \textbf{4 amplitudes}, una para cada combinación clásica. Para un sistema de \textbf{$n$ qubits}, se requiere un vector de \textbf{$2^n$ componentes} para describir el estado completo del sistema.
+Así, el estado cuántico de 2 qubits se representa con un vector de 4 amplitudes, una para cada combinación clásica. Para un sistema de $n$ qubits, se requiere un vector de $2^n$ componentes para describir el estado completo del sistema.
 
-Este crecimiento exponencial permite que los computadores cuánticos sean especialmente potentes para ciertas tareas. Sin embargo, también impone \textbf{retos técnicos y teóricos} importantes relacionados con la manipulación y el control de sistemas cuánticos de múltiples qubits.
+Este crecimiento exponencial permite que los computadores cuánticos sean especialmente potentes para ciertas tareas. Sin embargo, también impone retos técnicos y teóricos importantes relacionados con la manipulación y el control de sistemas cuánticos de múltiples qubits.
 
 \subsection*{Puertas Cuánticas}
 
 \subsubsection*{Puerta X (NOT cuántica)}
 
-Esta es la versión cuántica de la \textbf{puerta NOT clásica}. Su función es \textbf{intercambiar los valores} del qubit:
+Esta es la versión cuántica de la puerta NOT clásica. Su función es intercambiar los valores del qubit:
 
 \begin{itemize}
     \item Si el qubit está en el estado $\vert 0 \rangle$, pasa a $\vert 1 \rangle$.
@@ -147,13 +147,13 @@ Su representación matricial es:
 X = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}
 \]
 
-Para aplicar la puerta, se \textbf{multiplica la matriz $X$} por el \textbf{vector de estado} del qubit.
+Para aplicar la puerta, se multiplica la matriz $X$ por el vector de estado del qubit.
 
-\textbf{Nota}: Si se tienen múltiples qubits, la puerta $X$ se aplica solo al qubit seleccionado, y la matriz total se expande usando el \textbf{producto tensorial}.
+Nota: Si se tienen múltiples qubits, la puerta $X$ se aplica solo al qubit seleccionado, y la matriz total se expande usando el producto tensorial.
 
 \subsubsection*{Puerta Hadamard (H)}
 
-Esta puerta transforma un estado definido (como $\vert 0 \rangle$ o $\vert 1 \rangle$) en una \textbf{superposición cuántica}. Su matriz es:
+Esta puerta transforma un estado definido (como $\vert 0 \rangle$ o $\vert 1 \rangle$) en una superposición cuántica. Su matriz es:
 
 \[
 H = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}
@@ -165,13 +165,13 @@ Aplicando $H$ al estado $\vert 0 \rangle$ se obtiene:
 \vert \psi \rangle = \frac{1}{\sqrt{2}}(\vert 0 \rangle + \vert 1 \rangle)
 \]
 
-Esto significa que el qubit tiene \textbf{50\% de probabilidad de colapsar a 0 y 50\% de colapsar a 1} al ser medido.
+Esto significa que el qubit tiene 50\% de probabilidad de colapsar a 0 y 50\% de colapsar a 1 al ser medido.
 
-En general, las operaciones cuánticas se implementan mediante \textbf{multiplicación de matrices}. Aunque estas operaciones son costosas para un computador clásico, los \textbf{ordenadores cuánticos las realizan físicamente y en paralelo}, aprovechando las propiedades de los qubits reales.
+En general, las operaciones cuánticas se implementan mediante multiplicación de matrices. Aunque estas operaciones son costosas para un computador clásico, los ordenadores cuánticos las realizan físicamente y en paralelo, aprovechando las propiedades de los qubits reales.
 
 \subsection*{La compuerta Cuántica Z}
 
-La \textbf{compuerta Z} es una compuerta cuántica unitaria que no altera la probabilidad de 
+La compuerta Z es una compuerta cuántica unitaria que no altera la probabilidad de 
 colapso del qubit, pero sí cambia su fase cuántica cuando se encuentra 
 en el estado \(|1\rangle\). Matemáticamente, se representa como:
 
@@ -182,15 +182,15 @@ Z = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}
 \begin{itemize}
     \item Si el qubit está en \(|0\rangle\), no hay efecto.
     \item Si está en \(|1\rangle\), el signo de la amplitud cambia a negativo.
-    \item Esta operación es clave en algoritmos como \textbf{Grover}, ya 
+    \item Esta operación es clave en algoritmos como Grover, ya 
             que permite invertir la fase de estados específicos como parte del proceso 
             de amplificación.
 \end{itemize}
 
 \subsection*{Z multi-controlada (MCMT)}
 
-Una \textbf{Z multi-controlada} aplica la compuerta Z únicamente si una combinación específica 
-    de qubits de control está en el estado deseado (por lo general, todos en \(|1\rangle\)).
+Una Z multi-controlada aplica la compuerta Z únicamente si una combinación específica 
+de qubits de control está en el estado deseado (por lo general, todos en \(|1\rangle\)).
 
 Esto permite cambiar el signo de la amplitud de un solo estado objetivo dentro de una 
 superposición cuántica, sin afectar a los demás.
@@ -198,62 +198,47 @@ superposición cuántica, sin afectar a los demás.
 \begin{itemize}
     \item En Qiskit, se puede construir con la función \texttt{MCMT(ZGate(), num\_ctrls, 1)}.
     \item Se rodea de compuertas X cuando se quiere controlar sobre ceros.
-    \item Esta técnica es fundamental para construir \textbf{oráculos cuánticos} que ``marcan'' 
+    \item Esta técnica es fundamental para construir oráculos cuánticos que ``marcan'' 
             las soluciones dentro del espacio de búsqueda en algoritmos como Grover.
 \end{itemize}
 
-
 \subsection*{Teleportación Cuántica}
 
-La \textbf{teleportación cuántica} es un protocolo que permite \textbf{transferir el estado cuántico de un qubit a otro qubit distante}, \textbf{sin mover físicamente el qubit original}.
+La teleportación cuántica es un protocolo que permite transferir el estado cuántico de un qubit a otro qubit distante, sin mover físicamente el qubit original.
 
 \subsubsection*{¿Cómo funciona?}
 
 \begin{enumerate}
-    \item Dos personas (Alice y Bob) comparten un \textbf{par de qubits entrelazados}.
+    \item Dos personas (Alice y Bob) comparten un par de qubits entrelazados.
     \item Alice tiene un qubit adicional en un estado desconocido $\vert \psi \rangle$ que desea enviar a Bob.
-    \item Alice realiza una \textbf{medición conjunta} entre su qubit desconocido y su parte del par entrelazado.
-    \item El resultado de esa medición se \textbf{envía a Bob por un canal clásico} (por ejemplo, un mensaje de texto).
-    \item Bob, con esa información, \textbf{aplica una puerta cuántica} a su qubit para transformarlo en el estado original $\vert \psi \rangle$.
+    \item Alice realiza una medición conjunta entre su qubit desconocido y su parte del par entrelazado.
+    \item El resultado de esa medición se envía a Bob por un canal clásico (por ejemplo, un mensaje de texto).
+    \item Bob, con esa información, aplica una puerta cuántica a su qubit para transformarlo en el estado original $\vert \psi \rangle$.
 \end{enumerate}
 
-\subsubsection*{Aspectos clave}
-
-\begin{itemize}
-    \item \textbf{No se transmite información más rápido que la luz}, ya que se requiere comunicación clásica.
-    \item El estado original se \textbf{destruye} en Alice al ser medido, respetando el \textbf{principio de no-clonación cuántica}.
-    \item El protocolo \textbf{no transporta materia ni energía}, solo \textbf{el estado cuántico}.
-\end{itemize}
-
-\subsubsection*{Aplicaciones}
-
-La teleportación cuántica es fundamental en tecnologías emergentes como:
-
-\begin{itemize}
-    \item \textbf{Computación cuántica distribuida}
-    \item \textbf{Redes cuánticas}
-    \item \textbf{Repetidores cuánticos} para extender comunicación segura, especialmente en el campo de la \textbf{criptografía cuántica}.
-\end{itemize}
-
+Es importante aclarar que no se transmite información más rápido que la luz ya que se requiere 
+comunicación clásica. También el estado original se destruye en Alice al ser medido, respetando 
+el principio de no-clonación cuántica. El protocolo 
+no transporta materia ni energía, solo el estado cuántico.
 
 \subsection*{Oráculo Cuántico}
 
-Un \textbf{oráculo cuántico} en el algoritmo de Grover es una operación diseñada 
-para \textit{marcar uno o varios estados cuánticos como soluciones}. Técnicamente, se aplica una 
+Un oráculo cuántico en el algoritmo de Grover es una operación diseñada 
+para marcar uno o varios estados cuánticos como soluciones. Técnicamente, se aplica una 
 compuerta Z (cambio de fase) únicamente cuando el sistema se encuentra en el estado deseado.
 
 Esto no altera las probabilidades directamente, pero 
-\textbf{multiplica la amplitud del estado marcado por $-1$}, lo cual permite que, tras aplicar 
+multiplica la amplitud del estado marcado por $-1$, lo cual permite que, tras aplicar 
 el difusor, la amplitud (y por ende la probabilidad) de esos estados se amplifique.
 
-El oráculo actúa como una \textit{función booleana oculta} $f(x)$, que devuelve 1 solo para 
-los estados solución, y es implementada como un \textbf{circuito cuántico reversible}.
+El oráculo actúa como una función booleana oculta $f(x)$, que devuelve 1 solo para 
+los estados solución, y es implementada como un circuito cuántico reversible.
 
 \subsection*{Transpilación}
 
 Antes de ejecutar un circuito cuántico en un backend (procesador físico o simulador), 
-se requiere \textbf{adaptar el circuito a la arquitectura específica del dispositivo}. 
-A este proceso se le llama \textit{transpilación}.
+se requiere adaptar el circuito a la arquitectura específica del dispositivo. 
+A este proceso se le llama transpilación.
 
 Incluye:
 \begin{itemize}
@@ -262,26 +247,25 @@ Incluye:
     \item Ajustarse a la conectividad de los qubits físicos.
 \end{itemize}
 
-Es el equivalente a \textit{pasar de una arquitectura lógica a una arquitectura física} 
+Es el equivalente a pasar de una arquitectura lógica a una arquitectura física 
 (clásica a cuántica).
 
 \subsection*{Qiskit Primitives}
 
-Los \textbf{primitives} en Qiskit son una \textit{interfaz de alto nivel} para ejecutar tareas 
+Los primitives en Qiskit son una interfaz de alto nivel para ejecutar tareas 
 cuánticas comunes de forma modular y eficiente. Se utilizan especialmente en algoritmos 
 modernos como Grover, VQE o QAOA.
 
 Primitivas principales:
 \begin{itemize}
-    \item \textbf{Sampler}: ejecuta un circuito y devuelve una 
-            \textit{distribución de probabilidad} de los estados medidos.
-    \item \textbf{Estimator}: calcula el \textit{valor esperado de un observable cuántico} 
+    \item Sampler: ejecuta un circuito y devuelve una 
+            distribución de probabilidad de los estados medidos.
+    \item Estimator: calcula el valor esperado de un observable cuántico 
             sobre el estado generado por un circuito.
 \end{itemize}
 
 Estas primitivas son ideales para sistemas en la nube o simuladores locales, 
-    ya que \textit{abstraen los detalles técnicos y permiten enfocarse en la lógica del algoritmo}.
-
+ya que abstraen los detalles técnicos y permiten enfocarse en la lógica del algoritmo.
 
 
 \subsection{Contextualización del problema}
