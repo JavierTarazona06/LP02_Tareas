@@ -77,6 +77,30 @@
 
 El computador propuesto está basado en la arquitectura de Von Neumann.
 
+\section{Nombre Computador}
+
+El computador presentado se denomina \textbf{ORISC-I}, una fusión entre las 
+palabras \textit{Oráculo} y \textbf{RISC}. El término \textit{Oráculo}, según 
+la literatura, hace referencia a un lugar sagrado donde se acudía en busca de 
+respuestas confiables. Esta metáfora representa nuestro objetivo: construir una 
+máquina eficiente, precisa y confiable, capaz de ejecutar operaciones con mayor 
+rapidez que un ser humano.
+
+Por otro lado, \textbf{RISC} (Reduced Instruction Set Computer) alude a la 
+arquitectura utilizada, caracterizada por un conjunto reducido de instrucciones 
+simples pero suficientes, lo que permite optimizar la ejecución, facilitar la 
+implementación y favorecer el rendimiento general del sistema.
+
+\section{Nombre de la empresa}
+
+La empresa se denomina \textbf{UN Sparkle}, donde \textit{UN} hace referencia a 
+la Universidad Nacional de Colombia, institución a la que pertenecen los autores 
+de este proyecto, y \textit{Sparkle} significa “destello” en inglés. Este nombre 
+simboliza nuestra intención de proyectar nuestras ideas y desarrollos como 
+\textit{destellos de innovación}, capaces de generar un impacto positivo en 
+el ámbito académico y tecnológico.
+
+
 \subsection{Unidad Central de Proceso (CPU)}
 
 La CPU está compuesta por los dos módulos esenciales en un procesador clásico:
@@ -125,7 +149,7 @@ Ambas unidades están en \textbf{comunicación constante} para avanzar en la eje
     7 & — & \textbf{Reservado} \\
     \hline
     \end{tabular}
-    \caption{Banderas del registro STATE}
+    \caption{Banderas del registro ESTADO}
 \end{table}
 
 \begin{itemize}
@@ -141,7 +165,7 @@ Ambas unidades están en \textbf{comunicación constante} para avanzar en la eje
     \texttt{R0: PC} & 00000 \\
     \texttt{R1: SP} & 00001 \\
     \texttt{R2: IR} & 00010 \\
-    \texttt{R3: State} & 00011 \\
+    \texttt{R3: ESTADO} & 00011 \\
     \texttt{R4} & 00100 \\
     \vdots & \vdots \\
     \texttt{R31} & 11111 \\
@@ -307,9 +331,17 @@ El ordenador va a pasar por los ciclos de \texttt{fetch-decode-execute}:
 
 \subsubsection{Variables}
 
-Las variables \textbf{globales} se almacenan en el segmento de \textbf{datos estáticos}, ubicado entre las direcciones \texttt{0x020000} y \texttt{0x1EFFFF}. Estas variables existen durante toda la ejecución del programa.
+Las variables \textbf{globales} se almacenan en el segmento de 
+\textbf{datos estáticos}, ubicado entre las direcciones 
+\texttt{0x020000} y \texttt{0x1EFFFF}. Estas variables 
+existen durante toda la ejecución del programa.
 
-Las variables \textbf{locales}, por el contrario, se almacenan dinámicamente en la \textbf{pila}, gestionada por el registro \texttt{SP}. Se reservan y liberan mediante instrucciones que modifican el puntero de pila (\texttt{PUSH}, \texttt{POP}, \texttt{ADDI} y \texttt{SUBI} sobre \texttt{SP}), y solo existen mientras la subrutina correspondiente está en ejecución.
+Las variables \textbf{locales}, por el contrario, se 
+almacenan dinámicamente en la \textbf{pila}, gestionada por 
+el registro \texttt{SP}. Se reservan y liberan mediante 
+instrucciones que modifican el puntero de pila, 
+y solo existen mientras la subrutina 
+correspondiente está en ejecución.
 
 \subsection{Microinstrucciones}
 
@@ -382,7 +414,7 @@ Las variables \textbf{locales}, por el contrario, se almacenan dinámicamente en
     \hline
     22 & & 010110 & XOR inmediato & \\
     \hline
-    23 & & 010111 & Compara con inmediato y actualiza ESTADO & \\
+    23 & & 010111 & Compara con inmediato y actualiza 0 & \\
     \hline
     24 & & 011000 & Decrementa SP y guarda registro en la pila & \\
     \hline

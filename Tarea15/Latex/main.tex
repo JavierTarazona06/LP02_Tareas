@@ -80,8 +80,6 @@
 \subsection{Contextualización del problema}
 
 
-
-
 %---------------------------------------------------------------------------------
 % Descripción y Justificación del Problema a Resolver ----------------------------
 %---------------------------------------------------------------------------------
@@ -98,14 +96,179 @@
 
 \section{Diseño de la solución}\label{sec:dis}
 
+\section{Diseño de la solución}\label{sec:dis}
 
-\subsection{Metodología}
+Para la implementación del emulador del computador diseñado por el grupo de trabajo, se propone 
+utilizar el paradigma de \textbf{programación orientada a objetos}, aplicando la arquitectura de 
+desarrollo \textbf{Modelo-Vista-Controlador (MVC)}. Esto permite separar la lógica funcional 
+(modelo), la interfaz de interacción (vista) y la gestión del flujo de ejecución (controlador), 
+facilitando la mantenibilidad y escalabilidad del sistema.
 
+\subsection{Modelo}
 
-\section{Métricas de Evaluación}
-Para cuantificar la calidad, equidad y eficiencia de las asignaciones en los cuatro escenarios, definimos las siguientes métricas, implementadas en \texttt{metrics.py}:
+\subsubsection*{Registros}
 
-\subsection{Métrica 1}
+Esta clase representa la abstracción de los registros del sistema, incluyendo registros de 
+propósito general y registros especiales (PC, SP, IR, ESTADO).
+
+\textbf{Atributos:}
+\begin{itemize}
+  \item \texttt{memoria} (\texttt{bool[32][64]}): Matriz que representa los 32 registros 
+  de 64 bits. Cada fila corresponde a un registro, y cada columna a un bit.
+\end{itemize}
+
+\subsubsection*{CPU}
+
+Clase que modela la Unidad Central de Proceso. Coordina la ejecución del ciclo 
+\texttt{fetch-decode-execute} y comunica las unidades internas.
+
+\textbf{Atributos:}
+\begin{itemize}
+  \item \texttt{alu} (\texttt{ALU}): Objeto de la unidad aritmético-lógica.
+  \item \texttt{uc} (\texttt{UC}): Objeto de la unidad de control.
+  \item \texttt{registros} (\texttt{Registros}): Banco de registros.
+  \item \texttt{memoria} (\texttt{Memoria}): Memoria principal.
+\end{itemize}
+
+\textbf{Métodos:}
+\begin{itemize}
+  \item \texttt{\_\_init\_\_(alu, uc)}: Constructor que vincula las unidades de la CPU.
+  \item \texttt{fetch()}: Carga en el registro \texttt{IR} la instrucción ubicada en la
+      dirección del \texttt{PC}, y actualiza el contador de programa.
+  \item \texttt{decode()}: Extrae el \texttt{opcode} y los campos relevantes de 
+        la instrucción para preparar su ejecución.
+  \item \texttt{execute()}: Llama al método correspondiente definido en la ISA 
+        según el \texttt{opcode} decodificado.
+\end{itemize}
+
+\subsubsection*{UC (Unidad de Control)}
+
+Esta clase decodifica instrucciones y genera las señales necesarias para su ejecución. 
+
+\textbf{Métodos:}
+\begin{itemize}
+  \item \texttt{decodificar(ir: str)}: Extrae campos de la instrucción.
+  \item \texttt{seleccionar\_accion(opcode: str)}: Invoca la operación correspondiente en la ISA.
+\end{itemize}
+
+\subsubsection*{ALU}
+
+Ejecuta operaciones aritméticas y lógicas entre registros o con valores inmediatos.
+
+\textbf{Métodos:}
+\begin{itemize}
+  \item \texttt{operar(op: str, op1: int, op2: int)}: Devuelve el resultado de aplicar 
+        la operación \texttt{op} a los operandos.
+  \item \texttt{actualizar\_estado(resultado: int)}: Actualiza los bits del 
+        registro \texttt{ESTADO} (C, N, P, D).
+\end{itemize}
+
+\subsubsection*{Memoria}
+
+Clase que abstrae la memoria principal, organizada en $2^{24}$ direcciones de 64 bits cada una.
+
+\textbf{Atributos:}
+\begin{itemize}
+  \item \texttt{arreglo} (\texttt{bool[$2^{24}$][64]}): Arreglo de palabras de memoria.
+\end{itemize}
+
+\textbf{Métodos:}
+\begin{itemize}
+  \item \texttt{leer(direccion: int) → int}: Retorna la palabra almacenada en la dirección dada.
+  \item \texttt{escribir(direccion: int, palabra: int)}: Guarda una palabra de 64 bits en 
+        la dirección dada.
+  \item \texttt{check\_structure(operator: str, direccion: int)}: Verifica si la operación es válida 
+        según el segmento de memoria:
+    \begin{itemize}
+      \item 0: Código
+      \item 1: Entrada/Salida
+      \item 2: Datos estáticos/globales
+      \item 3: Pila
+    \end{itemize}
+\end{itemize}
+
+\subsubsection*{UnidadES (Entrada/Salida)}
+
+Abstracción de la unidad de E/S. Interactúa con dispositivos externos a través de direcciones 
+mapeadas en memoria.
+
+\textbf{Métodos:}
+\begin{itemize}
+  \item \texttt{leer\_dispositivo(direccion: int)}: Simula lectura desde un periférico.
+  \item \texttt{escribir\_dispositivo(direccion: int, valor: int)}: Simula salida de datos hacia 
+  un periférico.
+\end{itemize}
+
+\subsubsection*{ISA (Instruction Set Architecture)}
+
+Define el conjunto de instrucciones que puede ejecutar el procesador. Cada instrucción tiene 
+su propia función que es invocada por la CPU durante la fase de ejecución.
+
+\textbf{Métodos:}
+\begin{itemize}
+  \item \texttt{SUMA(rd, rb)}, \texttt{MUEV(rd, rb)}, etc.
+  \item \texttt{ejecutar(opcode: str, campos: dict)}: Mapea el opcode a la función correspondiente.
+\end{itemize}
+
+% -----------------------------------------
+% -----------------------------------------
+
+\subsection{Controlador}
+
+El controlador actúa como intermediario entre la vista y el modelo. 
+Es responsable de recibir las acciones del usuario, traducirlas en comandos válidos y 
+enviarlas a las clases del modelo, así como actualizar la vista con los cambios 
+de estado del sistema.
+
+\textbf{Responsabilidades:}
+\begin{itemize}
+  \item Capturar eventos del usuario (ejecutar paso a paso, correr todo, resetear, cargar programa).
+  \item Invocar los métodos del modelo (CPU, memoria, registros, etc.).
+  \item Actualizar los datos presentados en la vista según el estado actual del sistema.
+\end{itemize}
+
+\textbf{Métodos pensados:}
+\begin{itemize}
+  \item \texttt{cargar\_programa(ruta)}: Traduce el programa en código máquina y lo 
+      almacena en memoria.
+  \item \texttt{ejecutar\_paso()}: Ejecuta una instrucción y actualiza la vista.
+  \item \texttt{ejecutar\_todo()}: Ejecuta hasta la instrucción \texttt{HALT}.
+  \item \texttt{resetear()}: Inicializa todos los componentes del modelo.
+\end{itemize}
+
+%------------------------
+%------------------------
+
+\subsection{Vista}
+
+La vista representa la interfaz de interacción entre el usuario y el sistema. 
+Es implementada como una interfaz gráfica (GUI),
+Su propósito es presentar visualmente el estado interno 
+del computador (registros, memoria, instrucciones) y permitir la carga de programas, 
+control de ejecución y visualización de resultados.
+
+\textbf{Responsabilidades:}
+\begin{itemize}
+  \item Mostrar en tiempo real el contenido de los registros y de la memoria.
+  \item Representar gráficamente en tablas las instrucciones cargadas y el puntero de programa.
+  \item Permitir al usuario:
+    \begin{itemize}
+      \item Cargar un programa ensamblador o en binario.
+      \item Iniciar, pausar y reiniciar la ejecución.
+      \item Observar los resultados de entrada/salida.
+    \end{itemize}
+\end{itemize}
+
+\textbf{Ejemplo de componentes de GUI:}
+\begin{itemize}
+  \item Tabla de registros (R0–R31).
+  \item Área de memoria con resaltado por segmento (código, datos, E/S, pila).
+  \item Área de código de máquina 
+  \item Área de código de máquina relocalizable
+  \item Área de código ensamblador
+  \item Área de código alto nivel
+  \item Consola interactiva para entrada/salida.
+\end{itemize}
 
 
 
@@ -241,9 +404,6 @@ Todos los parámetros de entrada son opcionales.
 \subsubsection{Escenario 2: }
  
 \subsubsection{Escenario 3: }
-
-\subsubsection{Comparación resultados?}
-
 
 
 \section{Referencias}
