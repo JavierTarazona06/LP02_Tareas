@@ -1,6 +1,6 @@
 import utils
 
-from model import memory
+from model.procesador import memory
 
 codigo_modulo = "ES"
 
