@@ -8,6 +8,9 @@
 \usepackage{verbatim}
 \usepackage{amsmath}
 \usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{listings}
 
 \hypersetup{
     colorlinks=true,
@@ -55,12 +58,12 @@
     \begin{tabular}{ll}
     Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
     Eder & -@unal.edu.co \\
-    Sebastián & -@unal.edu.co \\
+    Juan Sebastián Muñoz Lemus & jumunozle@unal.edu.co \\
     \end{tabular}
     \par\vspace{3cm}
 
     % Fecha
-    {\large Mayo 19 de 2025 \par}
+    {\large Mayo 23 de 2025 \par}
 \end{titlepage}
 
 \tableofcontents % Inserta la tabla de contenidos
@@ -514,6 +517,107 @@ correspondiente está en ejecución.
 
 
 \section{Módulo Enlazador-Cargador}
+
+\section*{Objetivo del módulo}
+
+El módulo {Cargador} es responsable de tomar un programa en código máquina relocalizable y cargarlo en una posición específica de la memoria RAM. Esta tarea forma parte del módulo \texttt{Enlazador-Cargador} y permite ubicar programas en distintas regiones de la memoria sin necesidad de recompilarlos.
+
+\section*{Entradas y salidas}
+
+\begin{itemize}
+  \item \textbf{Entradas}:
+  \begin{itemize}
+    \item \texttt{ProgramaBinario[]} : Arreglo de palabras de 64 bits (código máquina).
+    \item \texttt{DirecciónBase} : Dirección de inicio en RAM donde se debe cargar el programa.
+  \end{itemize}
+  \item \textbf{Salidas}:
+  \begin{itemize}
+    \item Contenido de la RAM actualizado desde la \texttt{DirecciónBase}.
+  \end{itemize}
+\end{itemize}
+
+\section*{Formato del código relocalizable}
+
+Cada palabra del programa es de 64 bits. El bit más significativo (bit 63) indica si contiene una dirección relativa:
+
+\begin{itemize}
+  \item \texttt{0}: Dirección absoluta (no se modifica).
+  \item \texttt{1}: Dirección relativa (se suma la \texttt{DirecciónBase}).
+\end{itemize}
+
+\section*{Algoritmo del cargador}
+
+\begin{enumerate}
+  \item Inicializar: \texttt{PC} $\leftarrow$ \texttt{DirecciónBase}
+  \item Para cada palabra $W$ en \texttt{ProgramaBinario[]}:
+  \begin{enumerate}
+    \item Si el bit 63 de $W$ es 1:
+    \begin{enumerate}
+      \item Extraer dirección relativa $D$ de los bits 0--31
+      \item Calcular $D' \leftarrow D + \texttt{DirecciónBase}$
+      \item Reemplazar bits 0--31 de $W$ por $D'$
+      \item Poner el bit 63 de $W$ a 0
+    \end{enumerate}
+    \item Escribir $W$ en \texttt{RAM[PC]}
+    \item Incrementar \texttt{PC} $\leftarrow$ \texttt{PC} + 1
+  \end{enumerate}
+\end{enumerate}
+
+\section*{Ejemplo ilustrativo}
+
+\begin{itemize}
+  \item Programa de entrada (hexadecimal simplificado):\\
+  \texttt{[0x80000010\_00000000, 0x00000000\_FFFFFFFF, 0x80000020\_00000001]}
+  \item \texttt{DirecciónBase = 0x0040}
+\end{itemize}
+
+\textbf{Resultado:}
+\begin{itemize}
+  \item Primera palabra: dirección relativa $0x10$ $\rightarrow$ $0x0050$
+  \item Segunda palabra: sin cambios
+  \item Tercera palabra: dirección relativa $0x20$ $\rightarrow$ $0x0060$
+\end{itemize}
+
+\section*{Diseño lógico del módulo}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1cm and 1.5cm, every node/.style={draw, minimum height=1cm}]
+  \node (prog) {ProgramaBinario[]};
+  \node[right=of prog] (temp) {Registro Temporal};
+  \node[below=of temp] (testbit) {Comparador Bit 63};
+  \node[below=of testbit] (sumador) {Sumador Relocalización};
+  \node[below=of sumador] (memoria) {Memoria RAM};
+  \node[left=of memoria] (pc) {Contador PC};
+  \node[below=of memoria] (salida) {RAM[DirecciónBase .. +n]};
+  \draw[->] (prog) -- (temp);
+  \draw[->] (temp) -- (testbit);
+  \draw[->] (testbit) -- (sumador);
+  \draw[->] (sumador) -- (memoria);
+  \draw[->] (pc) -- (memoria);
+  \draw[->] (memoria) -- (salida);
+\end{tikzpicture}
+\end{center}
+
+\section*{Microinstrucciones requeridas (nivel bajo)}
+
+\begin{lstlisting}[language={[x86masm]Assembler}, basicstyle=\ttfamily\small]
+CARGAR TMP, PROG[I]
+TESTEARBIT TMP, 63
+IF 1 THEN GOTO RELOCALIZAR
+ESCRIBIR RAM[PC], TMP
+INCREMENTAR PC
+GOTO SIGUIENTE
+
+RELOCALIZAR:
+  EXTRAER DIRREL, TMP[0..31]
+  ANADIR DIRABS, DIRREL, DirecciónBase
+  REEMPLAZAR TMP[0..31] ← DIRABS
+  LIMPIAR BIT TMP, 63
+  ESCRIBIR RAM[PC], TMP
+  INCREMENTAR PC
+
+SIGUIENTE:
+\end{lstlisting}
 
 %---------------------------------------------------------------------------------
 % Algoritmos de Prueba -----------------------------------------------------------
