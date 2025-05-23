@@ -73,10 +73,6 @@
 % Diseño del Computador ----------------------------------------------------------
 %---------------------------------------------------------------------------------
 
-\section{Diseño del computador}
-
-El computador propuesto está basado en la arquitectura de Von Neumann.
-
 \section{Nombre Computador}
 
 El computador presentado se denomina \textbf{ORISC-I}, una fusión entre las 
@@ -99,6 +95,58 @@ de este proyecto, y \textit{Sparkle} significa “destello” en inglés. Este n
 simboliza nuestra intención de proyectar nuestras ideas y desarrollos como 
 \textit{destellos de innovación}, capaces de generar un impacto positivo en 
 el ámbito académico y tecnológico.
+
+
+\section{Diseño del computador}
+
+El computador propuesto está basado en la arquitectura de Von Neumann.
+En primer lugar, se cuentan con los buses que van a conectar con todos los componentes 
+que se presentan posteriormente.
+
+\subsection{Buses}
+
+El computador cuenta con tres buses principales que permiten la comunicación entre 
+la Unidad Central de Proceso (CPU), la Memoria Principal (RAM) y la Unidad de 
+Entrada/Salida. Estos buses son esenciales para implementar el 
+modelo de arquitectura Von Neumann, en el que todos los componentes 
+comparten un medio común de transmisión de información.
+
+\subsubsection*{Bus de Datos}
+
+Este bus se encarga de transportar las palabras de datos 
+(de 64 bits) entre los distintos módulos del sistema. Utilizado para:
+\begin{itemize}
+  \item Transferir instrucciones desde memoria hacia el registro de instrucciones (IR).
+  \item Transferir datos entre registros, memoria, y dispositivos de E/S.
+  \item Intercambiar operandos entre la CPU y la ALU.
+\end{itemize}
+El bus de datos es bidireccional, ya que tanto la CPU como la memoria y la E/S 
+pueden escribir o leer a través de él.
+
+\subsubsection*{Bus de Control}
+
+El bus de control transporta señales de sincronización y 
+comandos que determinan el tipo de operación a realizar en cada 
+ciclo del procesador. Estas señales incluyen:
+\begin{itemize}
+  \item Lectura de memoria
+  \item Escritura de memoria
+  \item Lectura/Escritura de E/S
+  \item Activación de ALU
+  \item Ciclo de instrucción (fetch, decode, execute)
+\end{itemize}
+El bus de control también incluye señales de interrupción, reset y 
+reloj, esenciales para el control del flujo de ejecución.
+
+\subsubsection*{Bus de Direcciones}
+
+Este bus se utiliza para especificar la ubicación de memoria o 
+dispositivo con el que se desea interactuar. En este computador, las 
+direcciones son de 24 bits, lo cual permite direccionar hasta 
+$2^{24} = 16,\!777,\!216$ posiciones (16 MiB) distintas. 
+Este bus es unidireccional, va desde la CPU hacia la memoria o 
+dispositivos de E/S, y es usado durante operaciones de lectura o 
+escritura para indicar la dirección objetivo.
 
 
 \subsection{Unidad Central de Proceso (CPU)}
@@ -183,10 +231,6 @@ Ambas unidades están en \textbf{comunicación constante} para avanzar en la eje
     \]
     \item Cada posición puede almacenar una palabra (8 Bytes).
     \item Está conectada a la Unidad de Servicio mediante los tres buses (datos, direcciones y control).
-    \item La memoria total direccionable sería:
-    \[
-    2^{24} \, \text{direcciones} \times 8 \, \text{bytes} = 128 \, \text{MiB}
-    \]
     \item Toda palabra de memoria contiene 64 bits, tanto para datos como para instrucciones. En caso de datos más pequeños (enteros de 32 bits o 8 bits), se usa alineamiento y enmascaramiento de bits.
     \item Es así que las direcciones de memoria van de:
     \[
@@ -375,7 +419,7 @@ correspondiente está en ejecución.
     \hline
     8  & \texttt{NOT R} & 001000 & Negación bit a bit & R ← $\sim$R (inversión de bits) \\
     \hline
-    9  & \texttt{COMP R, R'} & 001001 & Compara dos registros & Actualiza el registro ESTADO (\texttt{R3}) según el resultado \\
+    9  & \texttt{COMP R, R'} & 001001 & Compara dos registros (Resta R - R') & Actualiza el registro ESTADO (\texttt{R3}) según el resultado \\
     \hline
     10 & \texttt{MUEV R, R'} & 001010 & Copia el valor de un registro a otro & R ← R' \\
     \hline
