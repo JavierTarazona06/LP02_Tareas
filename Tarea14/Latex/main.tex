@@ -635,7 +635,51 @@ Un algoritmo de secuencial que....
 
 \subsection{Factorial de un número}
 
-Un algoritmo recursivo que ...
+
+\begin{verbatim}
+
+int factorial(int n) {
+    if (n == 0)
+        return 1;
+    else
+        return n * factorial(n - 1);
+}
+\end{verbatim}
+Ahora, lo escribiremos en terminos del lenguaje ensamblador para nuestro computador ORISC-I:
+
+\begin{verbatim}
+
+; factorial(n) en ensamblador
+; Entrada: R4 = n
+; Salida:  R5 = factorial(n)
+
+; factorial(n) en ensamblador
+; Entrada: R4 = n
+; Salida:  R5 = factorial(n)
+
+; factorial(n)
+; Entrada: R4 = n
+; Salida: R5 = factorial(n)
+
+FACTORIAL:
+    APILAR R4              ; Guardar n en la pila
+    ICARGA R6, #0         ; Cargar 0 en R6
+    COMP   R4, R6         ; Comparar n con 0 (actualiza R3)
+    SICERO   BASE_CASE      ; Si n == 0, ir a caso base
+    ICARGA R7, #1         ; Cargar 1 en R7
+    RESTA   R4, R7         ; R4 = R4 - 1
+    LLAMA  FACTORIAL      ; Llamar recursivamente factorial(n-1)
+    DESAPILAR   R6             ; Recuperar n original en R6
+    COPIA   R7, R5         ; Guardar factorial(n-1) en R7
+    COPIA   R5, R6         ; Poner n en R5
+    MULT   R5, R7         ; R5 = n * factorial(n-1)
+    VUELVE                ; Retornar con resultado en R5
+BASE_CASE:
+    ICARGA R5, #1         ; factorial(0) = 1
+    DESAPILAR   R4             ; Restaurar n antes de retornar
+    VUELVE
+
+\end{verbatim}
 
 %---------------------------------------------------------------------------------
 % Referencias -----------------------------------------------------------
@@ -656,3 +700,4 @@ Un algoritmo recursivo que ...
 \end{thebibliography}
 
 \end{document}
+
