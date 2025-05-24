@@ -177,7 +177,7 @@ Ambas unidades están en \textbf{comunicación constante} para avanzar en la eje
         \item \textbf{\texttt{R0: PC}}: Program Counter: Apunta a la dirección de la próxima instrucción.
         \item \textbf{\texttt{R1: SP}}: Stack Pointer.
         \item \textbf{\texttt{R2: IR}}: Instruction Register: Almacena la instrucción actual que está siendo ejecutada.
-        \item \textbf{\texttt{R3: ESTADO}}: Banderas que permiten obtener información sobre los resultados.
+        \item \textbf{\texttt{R3: ESTADO}}: Banderas que permiten obtener información sobre los resultados al realizar una instrucción.
     \end{itemize}
 \end{itemize}
 
@@ -386,6 +386,37 @@ el registro \texttt{SP}. Se reservan y liberan mediante
 instrucciones que modifican el puntero de pila, 
 y solo existen mientras la subrutina 
 correspondiente está en ejecución.
+
+\subsection{Tipos de datos}
+
+\subsubsection{Representación de enteros}
+
+En el computador \textbf{ORISC-I}, los números enteros se representan en formato de \textit{complemento a dos} sobre \textbf{64 bits}. 
+
+Esto permite representar eficientemente tanto enteros positivos como negativos, sin necesidad de un bit de signo separado ni lógica adicional para la ALU.
+
+El \textit{bit más significativo} (MSB, por sus siglas en inglés) indica el signo del número:
+
+\begin{itemize}
+    \item Si el MSB es \textbf{0}, el número es \textbf{positivo}.
+    \item Si el MSB es \textbf{1}, el número es \textbf{negativo} (en complemento a dos).
+\end{itemize}
+
+\subsubsection{Representación de números en punto flotante}
+
+Para representar números en punto flotante, el computador \textbf{ORISC-I} adopta el estándar \textbf{IEEE 754 de doble precisión} (\textit{64 bits}).
+
+Cada palabra puede codificar un número real con la siguiente estructura:
+
+\begin{itemize}
+    \item \textbf{1 bit} de signo.
+    \item \textbf{11 bits} para el exponente, con un \textit{sesgo de 1023}.
+    \item \textbf{52 bits} para la mantisa (fracción).
+\end{itemize}
+
+En versiones futuras, se planea implementar instrucciones especializadas para operaciones aritméticas en coma flotante, tales como:
+
+\texttt{FADD}, \texttt{FSUB}, \texttt{FMUL}, \texttt{FDIV}.
 
 \subsection{Microinstrucciones}
 

@@ -3,7 +3,8 @@
 # ----------------------------------
 
 WORDS_SIZE_BITS = 64
-MEMORY_SIZE = 2**24
+MEMORY_BITS = 24
+MEMORY_SIZE = 2**MEMORY_BITS
 
 CODE_RANGE = (0, 65535)
 E_S_RANGE = (65536, 131071)
@@ -14,7 +15,7 @@ STACK_RANGE = (2031616, MEMORY_SIZE-1)
 # Bus: CONTROL
 # ----------------------------------
 
-CONTROL_SIZE = 2**5
+CONTROL_SIZE = 5
 
 
 # ----------------------------------
