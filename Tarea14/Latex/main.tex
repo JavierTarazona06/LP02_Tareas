@@ -1,4 +1,4 @@
-\documentclass{article}
+ICA\documentclass{article}
 \usepackage{graphicx}
 \usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
 \usepackage{xcolor}
@@ -8,9 +8,7 @@
 \usepackage{verbatim}
 \usepackage{amsmath}
 \usepackage{array}
-\usepackage{tikz}
-\usetikzlibrary{positioning}
-\usepackage{listings}
+\usepackage{longtable}
 
 \hypersetup{
     colorlinks=true,
@@ -35,35 +33,36 @@
 \begin{document}
 
 \begin{titlepage}
-    \centering
-    % Logo de la Universidad
-    \includegraphics[width=0.48\textwidth]{logo_universidad.png}
-    \par\vspace{2cm}
+  \centering
+  % Logo de la Universidad
+  \includegraphics[width=0.48\textwidth]{logo_universidad.png}
+  \par\vspace{2cm}
 
-    % Nombre de la Universidad y detalles del curso
-    {\Large \textbf{Universidad Nacional de Colombia} \par}
-    \vspace{0.5cm}
-    {\large Ingeniería de Sistemas y Computación \par}
-    {\large 2025966 Lenguajes de Programación (02)\par}
-    \vspace{3cm}
+  % Nombre de la Universidad y detalles del curso
+  {\Large \textbf{Universidad Nacional de Colombia} \par}
+  \vspace{0.5cm}
+  {\large Ingeniería de Sistemas y Computación \par}
+  {\large 2025966 Lenguajes de Programación (02)\par}
+  \vspace{3cm}
 
-    % Detalles del laboratorio y actividad
-    {\large \textbf{Tarea 14} \par}
-    {\large Diseño del computador\par}
-    \vspace{3cm}
+  % Detalles del laboratorio y actividad
+  {\large \textbf{Tarea 14} \par}
+  {\large Diseño del computador\par}
+  \vspace{3cm}
 
-    % Lista de integrantes
-    {\large \textbf{Integrantes:} \par}
-    \vspace{0.5cm}
-    \begin{tabular}{ll}
+  % Lista de integrantes
+  {\large \textbf{Integrantes:} \par}
+  \vspace{0.5cm}
+  \begin{tabular}{ll}
     Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
-    Eder & -@unal.edu.co \\
-    Juan Sebastián Muñoz Lemus & jumunozle@unal.edu.co \\
-    \end{tabular}
-    \par\vspace{3cm}
+    Eder  José Hernández Buelvas   & ehernandezbu@unal.edu.co \\
+    Juan Sebastián Muñoz Lemus     & jumunozle@unal.edu.co          \\
+    David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
+  \end{tabular}
+  \par\vspace{3cm}
 
-    % Fecha
-    {\large Mayo 23 de 2025 \par}
+  % Fecha
+  {\large Mayo 19 de 2025 \par}
 \end{titlepage}
 
 \tableofcontents % Inserta la tabla de contenidos
@@ -78,58 +77,58 @@
 
 \section{Nombre Computador}
 
-El computador presentado se denomina \textbf{ORISC-I}, una fusión entre las 
-palabras \textit{Oráculo} y \textbf{RISC}. El término \textit{Oráculo}, según 
-la literatura, hace referencia a un lugar sagrado donde se acudía en busca de 
-respuestas confiables. Esta metáfora representa nuestro objetivo: construir una 
-máquina eficiente, precisa y confiable, capaz de ejecutar operaciones con mayor 
+El computador presentado se denomina \textbf{ORISC-I}, una fusión entre las
+palabras \textit{Oráculo} y \textbf{RISC}. El término \textit{Oráculo}, según
+la literatura, hace referencia a un lugar sagrado donde se acudía en busca de
+respuestas confiables. Esta metáfora representa nuestro objetivo: construir una
+máquina eficiente, precisa y confiable, capaz de ejecutar operaciones con mayor
 rapidez que un ser humano.
 
-Por otro lado, \textbf{RISC} (Reduced Instruction Set Computer) alude a la 
-arquitectura utilizada, caracterizada por un conjunto reducido de instrucciones 
-simples pero suficientes, lo que permite optimizar la ejecución, facilitar la 
+Por otro lado, \textbf{RISC} (Reduced Instruction Set Computer) alude a la
+arquitectura utilizada, caracterizada por un conjunto reducido de instrucciones
+simples pero suficientes, lo que permite optimizar la ejecución, facilitar la
 implementación y favorecer el rendimiento general del sistema.
 
 \section{Nombre de la empresa}
 
-La empresa se denomina \textbf{UN Sparkle}, donde \textit{UN} hace referencia a 
-la Universidad Nacional de Colombia, institución a la que pertenecen los autores 
-de este proyecto, y \textit{Sparkle} significa “destello” en inglés. Este nombre 
-simboliza nuestra intención de proyectar nuestras ideas y desarrollos como 
-\textit{destellos de innovación}, capaces de generar un impacto positivo en 
+La empresa se denomina \textbf{UN Sparkle}, donde \textit{UN} hace referencia a
+la Universidad Nacional de Colombia, institución a la que pertenecen los autores
+de este proyecto, y \textit{Sparkle} significa “destello” en inglés. Este nombre
+simboliza nuestra intención de proyectar nuestras ideas y desarrollos como
+\textit{destellos de innovación}, capaces de generar un impacto positivo en
 el ámbito académico y tecnológico.
 
 
 \section{Diseño del computador}
 
 El computador propuesto está basado en la arquitectura de Von Neumann.
-En primer lugar, se cuentan con los buses que van a conectar con todos los componentes 
+En primer lugar, se cuentan con los buses que van a conectar con todos los componentes
 que se presentan posteriormente.
 
 \subsection{Buses}
 
-El computador cuenta con tres buses principales que permiten la comunicación entre 
-la Unidad Central de Proceso (CPU), la Memoria Principal (RAM) y la Unidad de 
-Entrada/Salida. Estos buses son esenciales para implementar el 
-modelo de arquitectura Von Neumann, en el que todos los componentes 
+El computador cuenta con tres buses principales que permiten la comunicación entre
+la Unidad Central de Proceso (CPU), la Memoria Principal (RAM) y la Unidad de
+Entrada/Salida. Estos buses son esenciales para implementar el
+modelo de arquitectura Von Neumann, en el que todos los componentes
 comparten un medio común de transmisión de información.
 
 \subsubsection*{Bus de Datos}
 
-Este bus se encarga de transportar las palabras de datos 
+Este bus se encarga de transportar las palabras de datos
 (de 64 bits) entre los distintos módulos del sistema. Utilizado para:
 \begin{itemize}
   \item Transferir instrucciones desde memoria hacia el registro de instrucciones (IR).
   \item Transferir datos entre registros, memoria, y dispositivos de E/S.
   \item Intercambiar operandos entre la CPU y la ALU.
 \end{itemize}
-El bus de datos es bidireccional, ya que tanto la CPU como la memoria y la E/S 
+El bus de datos es bidireccional, ya que tanto la CPU como la memoria y la E/S
 pueden escribir o leer a través de él.
 
 \subsubsection*{Bus de Control}
 
-El bus de control transporta señales de sincronización y 
-comandos que determinan el tipo de operación a realizar en cada 
+El bus de control transporta señales de sincronización y
+comandos que determinan el tipo de operación a realizar en cada
 ciclo del procesador. Estas señales incluyen:
 \begin{itemize}
   \item Lectura de memoria
@@ -138,17 +137,17 @@ ciclo del procesador. Estas señales incluyen:
   \item Activación de ALU
   \item Ciclo de instrucción (fetch, decode, execute)
 \end{itemize}
-El bus de control también incluye señales de interrupción, reset y 
+El bus de control también incluye señales de interrupción, reset y
 reloj, esenciales para el control del flujo de ejecución.
 
 \subsubsection*{Bus de Direcciones}
 
-Este bus se utiliza para especificar la ubicación de memoria o 
-dispositivo con el que se desea interactuar. En este computador, las 
-direcciones son de 24 bits, lo cual permite direccionar hasta 
-$2^{24} = 16,\!777,\!216$ posiciones (16 MiB) distintas. 
-Este bus es unidireccional, va desde la CPU hacia la memoria o 
-dispositivos de E/S, y es usado durante operaciones de lectura o 
+Este bus se utiliza para especificar la ubicación de memoria o
+dispositivo con el que se desea interactuar. En este computador, las
+direcciones son de 24 bits, lo cual permite direccionar hasta
+$2^{24} = 16,\!777,\!216$ posiciones (16 MiB) distintas.
+Este bus es unidireccional, va desde la CPU hacia la memoria o
+dispositivos de E/S, y es usado durante operaciones de lectura o
 escritura para indicar la dirección objetivo.
 
 
@@ -157,16 +156,16 @@ escritura para indicar la dirección objetivo.
 La CPU está compuesta por los dos módulos esenciales en un procesador clásico:
 
 \begin{itemize}
-    \item \textbf{Unidad Aritmético-Lógica (ALU):}
-    \begin{itemize}
-        \item Ejecuta operaciones matemáticas y lógicas.
-        \item Contiene los \textbf{registros de propósito general}, además de los registros PC, SP, IR, ESTADO. Ver detalle del campo \texttt{ESTADO} más adelante.
-    \end{itemize}
-    \item \textbf{Unidad de Control (UC):}
-    \begin{itemize}
-        \item Incluye el \textbf{decodificador de instrucciones}, el \textbf{program counter (PC)} y el \textbf{registro de instrucciones (IR)}.
-        \item Interpreta el \texttt{opcode} de cada palabra de instrucción y coordina el flujo de datos en el sistema.
-    \end{itemize}
+  \item \textbf{Unidad Aritmético-Lógica (ALU):}
+        \begin{itemize}
+          \item Ejecuta operaciones matemáticas y lógicas.
+          \item Contiene los \textbf{registros de propósito general}, además de los registros PC, SP, IR, ESTADO. Ver detalle del campo \texttt{ESTADO} más adelante.
+        \end{itemize}
+  \item \textbf{Unidad de Control (UC):}
+        \begin{itemize}
+          \item Incluye el \textbf{decodificador de instrucciones}, el \textbf{program counter (PC)} y el \textbf{registro de instrucciones (IR)}.
+          \item Interpreta el \texttt{opcode} de cada palabra de instrucción y coordina el flujo de datos en el sistema.
+        \end{itemize}
 \end{itemize}
 
 Ambas unidades están en \textbf{comunicación constante} para avanzar en la ejecución del programa, decodificando y ejecutando instrucciones de 64 bits mediante los buses conectados de datos, direcciones y control.
@@ -174,71 +173,71 @@ Ambas unidades están en \textbf{comunicación constante} para avanzar en la eje
 \subsubsection{Registros}
 
 \begin{itemize}
-    \item Codificados en 5 bits $\rightarrow$ \textbf{32 registros disponibles}.
-    \item Se incluyen registros de propósito general (\texttt{R0} a \texttt{R31}), además de registros especiales:
-    \begin{itemize}
-        \item \textbf{\texttt{R0: PC}}: Program Counter: Apunta a la dirección de la próxima instrucción.
-        \item \textbf{\texttt{R1: SP}}: Stack Pointer.
-        \item \textbf{\texttt{R2: IR}}: Instruction Register: Almacena la instrucción actual que está siendo ejecutada.
-        \item \textbf{\texttt{R3: ESTADO}}: Banderas que permiten obtener información sobre los resultados.
-    \end{itemize}
+  \item Codificados en 5 bits $\rightarrow$ \textbf{32 registros disponibles}.
+  \item Se incluyen registros de propósito general (\texttt{R0} a \texttt{R31}), además de registros especiales:
+        \begin{itemize}
+          \item \textbf{\texttt{R0: PC}}: Program Counter: Apunta a la dirección de la próxima instrucción.
+          \item \textbf{\texttt{R1: SP}}: Stack Pointer.
+          \item \textbf{\texttt{R2: IR}}: Instruction Register: Almacena la instrucción actual que está siendo ejecutada.
+          \item \textbf{\texttt{R3: ESTADO}}: Banderas que permiten obtener información sobre los resultados.
+        \end{itemize}
 \end{itemize}
 
 \begin{table}[H]
-    \centering
-    \begin{tabular}{|c|c|c|}
+  \centering
+  \begin{tabular}{|c|c|c|}
     \hline
-    \textbf{Bit} & \textbf{Nombre} & \textbf{Significado} \\
+    \textbf{Bit} & \textbf{Nombre} & \textbf{Significado}                                                \\
     \hline
-    0 & \texttt{C} & Resultado igual a cero (\texttt{== 0}) \\
-    1 & \texttt{P} & Resultado estrictamente positivo (\texttt{> 0}) \\
-    2 & \texttt{N} & Resultado estrictamente negativo (\texttt{< 0}) \\
-    3 & \texttt{D} & \textbf{Desbordamiento (Overflow)}: el resultado no cabe en 64 bits \\
-    4 & — & \textbf{Reservado} \\
-    5 & — & \textbf{Reservado} \\
-    6 & — & \textbf{Reservado} \\
-    7 & — & \textbf{Reservado} \\
+    0            & \texttt{C}      & Resultado igual a cero (\texttt{== 0})                              \\
+    1            & \texttt{P}      & Resultado estrictamente positivo (\texttt{> 0})                     \\
+    2            & \texttt{N}      & Resultado estrictamente negativo (\texttt{< 0})                     \\
+    3            & \texttt{D}      & \textbf{Desbordamiento (Overflow)}: el resultado no cabe en 64 bits \\
+    4            & —               & \textbf{Reservado}                                                  \\
+    5            & —               & \textbf{Reservado}                                                  \\
+    6            & —               & \textbf{Reservado}                                                  \\
+    7            & —               & \textbf{Reservado}                                                  \\
     \hline
-    \end{tabular}
-    \caption{Banderas del registro ESTADO}
+  \end{tabular}
+  \caption{Banderas del registro ESTADO}
 \end{table}
 
 \begin{itemize}
-    \item \textbf{\texttt{R4} a \texttt{R31}}: Propósito general.
+  \item \textbf{\texttt{R4} a \texttt{R31}}: Propósito general.
 \end{itemize}
 
 \begin{table}[H]
-    \centering
-    \begin{tabular}{|c|c|}
+  \centering
+  \begin{tabular}{|c|c|}
     \hline
-    \textbf{Registro} & \textbf{Codificación} \\
+    \textbf{Registro}   & \textbf{Codificación} \\
     \hline
-    \texttt{R0: PC} & 00000 \\
-    \texttt{R1: SP} & 00001 \\
-    \texttt{R2: IR} & 00010 \\
-    \texttt{R3: ESTADO} & 00011 \\
-    \texttt{R4} & 00100 \\
-    \vdots & \vdots \\
-    \texttt{R31} & 11111 \\
+    \texttt{R0: PC}     & 00000                 \\
+    \texttt{R1: SP}     & 00001                 \\
+    \texttt{R2: IR}     & 00010                 \\
+    \texttt{R3: ESTADO} & 00011                 \\
+    \texttt{R4}         & 00100                 \\
+    \vdots              & \vdots                \\
+    \texttt{R31}        & 11111                 \\
     \hline
-    \end{tabular}
-    \caption{Tabla de registros}
+  \end{tabular}
+  \caption{Tabla de registros}
 \end{table}
 
 \subsection{Memoria Principal (RAM)}
 
 \begin{itemize}
-    \item Se trata de una memoria direccionable de 24 bits, lo que permite un total de:
-    \[
-    2^{24} = 16,777,216 \, \text{posiciones} = 16 \, \text{MiB de memoria direccionable}
-    \]
-    \item Cada posición puede almacenar una palabra (8 Bytes).
-    \item Está conectada a la Unidad de Servicio mediante los tres buses (datos, direcciones y control).
-    \item Toda palabra de memoria contiene 64 bits, tanto para datos como para instrucciones. En caso de datos más pequeños (enteros de 32 bits o 8 bits), se usa alineamiento y enmascaramiento de bits.
-    \item Es así que las direcciones de memoria van de:
-    \[
-    0x000000 \, \text{a} \, 0xFFFFFF
-    \]
+  \item Se trata de una memoria direccionable de 24 bits, lo que permite un total de:
+        \[
+          2^{24} = 16,777,216 \, \text{posiciones} = 16 \, \text{MiB de memoria direccionable}
+        \]
+  \item Cada posición puede almacenar una palabra (8 Bytes).
+  \item Está conectada a la Unidad de Servicio mediante los tres buses (datos, direcciones y control).
+  \item Toda palabra de memoria contiene 64 bits, tanto para datos como para instrucciones. En caso de datos más pequeños (enteros de 32 bits o 8 bits), se usa alineamiento y enmascaramiento de bits.
+  \item Es así que las direcciones de memoria van de:
+        \[
+          0x000000 \, \text{a} \, 0xFFFFFF
+        \]
 \end{itemize}
 
 \subsubsection{Espacio reservado para pila}
@@ -246,61 +245,61 @@ Ambas unidades están en \textbf{comunicación constante} para avanzar en la eje
 El computador incluye un \textbf{modelo de pila} gestionado por el registro especial \texttt{SP} (Stack Pointer). La pila es una estructura \textbf{LIFO (Last In, First Out)} utilizada para almacenar temporalmente datos como:
 
 \begin{itemize}
-    \item Direcciones de retorno en llamadas a subrutinas (\texttt{CALL}, \texttt{RET})
-    \item Registros temporales
-    \item Variables locales
+  \item Direcciones de retorno en llamadas a subrutinas (\texttt{CALL}, \texttt{RET})
+  \item Registros temporales
+  \item Variables locales
 \end{itemize}
 
 La pila \textbf{crece hacia direcciones de memoria menores}, es decir, cada operación \texttt{PUSH} decrementa el \texttt{SP}, y cada \texttt{POP} lo incrementa. Las instrucciones \texttt{PUSH Rn} y \texttt{POP Rn} permiten guardar o recuperar el contenido de un registro en la cima de la pila, respectivamente.
 
 \begin{itemize}
-    \item Las direcciones van de la 2.031.616 a la 16.777.215 (14.745.599 direcciones)
-    \[
-    0x1F0000 \, \text{a} \, 0xFFFFFF
-    \]
+  \item Las direcciones van de la 2.031.616 a la 16.777.215 (14.745.599 direcciones)
+        \[
+          0x1F0000 \, \text{a} \, 0xFFFFFF
+        \]
 \end{itemize}
 
 \subsubsection{Espacio de datos}
 
 \begin{itemize}
-    \item Espacio para datos estáticos o globales.
-    \item Es la parte media de la memoria.
-    \item Las direcciones van de la 131.072 a la 2.031.615 (1.900.543 direcciones).
-    \[
-    0x020000 \, \text{a} \, 0x1EFFFF
-    \]
+  \item Espacio para datos estáticos o globales.
+  \item Es la parte media de la memoria.
+  \item Las direcciones van de la 131.072 a la 2.031.615 (1.900.543 direcciones).
+        \[
+          0x020000 \, \text{a} \, 0x1EFFFF
+        \]
 \end{itemize}
 
 \subsubsection{Espacio reservado para E/S}
 
 \begin{itemize}
-    \item Ver más detalles en la Unidad de Entrada y salida.
-    \item Se ubica desde la dirección 65.536 hasta la 131.071 (65.536 direcciones).
-    \[
-    0x010000 \, \text{a} \, 0x01FFFF
-    \]
+  \item Ver más detalles en la Unidad de Entrada y salida.
+  \item Se ubica desde la dirección 65.536 hasta la 131.071 (65.536 direcciones).
+        \[
+          0x010000 \, \text{a} \, 0x01FFFF
+        \]
 \end{itemize}
 
 \subsubsection{Espacio reservado para código}
 
 \begin{itemize}
-    \item En este espacio se van a guardar las instrucciones.
-    \item Este espacio es la parte inferior de la memoria.
-    \item Se ubica en la parte baja de la memoria, con direcciones de 0 a 65535 (65.536 direcciones):
-    \[
-    0x000000 \, \text{a} \, 0x00FFFF
-    \]
+  \item En este espacio se van a guardar las instrucciones.
+  \item Este espacio es la parte inferior de la memoria.
+  \item Se ubica en la parte baja de la memoria, con direcciones de 0 a 65535 (65.536 direcciones):
+        \[
+          0x000000 \, \text{a} \, 0x00FFFF
+        \]
 \end{itemize}
 
 
 \subsection{Unidad de Entrada y Salida (E/S)}
 
 \begin{itemize}
-    \item Administra la interacción con dispositivos periféricos.
-    \item Opera tanto para entrada (recepción de datos) como para salida (envío de datos).
-    \item Se comunica con la consola.
-    \item El computador implementa \textbf{E/S mapeada en memoria (Memory-Mapped I/O)}, es decir, los dispositivos periféricos comparten el mismo espacio de direcciones que la memoria RAM.
-    \item Se reserva un rango de direcciones para la comunicación con periféricos conectados a la Unidad de E/S. Esto permite acceder a los dispositivos usando instrucciones estándar, sin necesidad de instrucciones exclusivas de E/S.
+  \item Administra la interacción con dispositivos periféricos.
+  \item Opera tanto para entrada (recepción de datos) como para salida (envío de datos).
+  \item Se comunica con la consola.
+  \item El computador implementa \textbf{E/S mapeada en memoria (Memory-Mapped I/O)}, es decir, los dispositivos periféricos comparten el mismo espacio de direcciones que la memoria RAM.
+  \item Se reserva un rango de direcciones para la comunicación con periféricos conectados a la Unidad de E/S. Esto permite acceder a los dispositivos usando instrucciones estándar, sin necesidad de instrucciones exclusivas de E/S.
 \end{itemize}
 
 
@@ -309,26 +308,26 @@ La pila \textbf{crece hacia direcciones de memoria menores}, es decir, cada oper
 Las instrucciones del procesador están codificadas en palabras de 64 bits, siguiendo el formato:
 
 \begin{table}[h!]
-    \centering
-    \begin{tabular}{|c|c|c|}
+  \centering
+  \begin{tabular}{|c|c|c|}
     \hline
-    \textbf{Campo} & \textbf{Bits} & \textbf{Descripción} \\
+    \textbf{Campo}                                     & \textbf{Bits} & \textbf{Descripción}                           \\
     \hline
-    \texttt{Opcode} & 6 & Código que determina la operación a ejecutar \\
-    \texttt{Registro destino} & 5 & Registro donde se almacenará el resultado \\
-    \texttt{Registro base} & 5 & Registro utilizado para direccionamiento base \\
-    \texttt{Memoria o Desplazamiento de registro base} & 24 & Offset o dirección absoluta en memoria \\
-    \texttt{Extra o valor Inmediato} & 24 & Reservado para ampliación o valores inmediatos \\
+    \texttt{Opcode}                                    & 6             & Código que determina la operación a ejecutar   \\
+    \texttt{Registro destino}                          & 5             & Registro donde se almacenará el resultado      \\
+    \texttt{Registro base}                             & 5             & Registro utilizado para direccionamiento base  \\
+    \texttt{Memoria o Desplazamiento de registro base} & 24            & Offset o dirección absoluta en memoria         \\
+    \texttt{Extra o valor Inmediato}                   & 24            & Reservado para ampliación o valores inmediatos \\
     \hline
-    \end{tabular}
+  \end{tabular}
 \end{table}
 
 Este formato se \textbf{reutiliza} para los tres tipos de instrucciones:
 
 \begin{itemize}
-    \item \textbf{Tipo I (inmediato / memoria)}: todos los campos son relevantes.
-    \item \textbf{Tipo R (entre registros)}: el campo \texttt{Memoria} puede representar un segundo registro o dejarse en cero.
-    \item \textbf{Tipo J (salto)}: se usa el campo \texttt{Memoria} como dirección absoluta, y los demás campos se ignoran o se rellenan con ceros.
+  \item \textbf{Tipo I (inmediato / memoria)}: todos los campos son relevantes.
+  \item \textbf{Tipo R (entre registros)}: el campo \texttt{Memoria} puede representar un segundo registro o dejarse en cero.
+  \item \textbf{Tipo J (salto)}: se usa el campo \texttt{Memoria} como dirección absoluta, y los demás campos se ignoran o se rellenan con ceros.
 \end{itemize}
 
 Esta salvedad aplica para todos los casos a no ser que se especifique lo contrario en una instrucción específica.
@@ -336,9 +335,9 @@ Esta salvedad aplica para todos los casos a no ser que se especifique lo contrar
 \subsubsection{Opcodes}
 
 \begin{itemize}
-    \item Codificados en 6 bits.
-    \item Capacidad para definir \textbf{hasta 64 instrucciones distintas}.
-    \item Instrucciones divididas en categorías: aritméticas, lógicas, control de flujo, memoria, E/S.
+  \item Codificados en 6 bits.
+  \item Capacidad para definir \textbf{hasta 64 instrucciones distintas}.
+  \item Instrucciones divididas en categorías: aritméticas, lógicas, control de flujo, memoria, E/S.
 \end{itemize}
 
 
@@ -349,28 +348,28 @@ El ordenador va a pasar por los ciclos de \texttt{fetch-decode-execute}:
 \subsubsection{Fetch}
 
 \begin{itemize}
-    \item La dirección de la siguiente instrucción se encuentra en el \textbf{PC (\texttt{R0})}.
-    \item Se accede a la memoria, se lee la instrucción (64 bits) y se guarda en el \textbf{IR (\texttt{R2})}.
-    \item El \texttt{PC} se incrementa en 1.
+  \item La dirección de la siguiente instrucción se encuentra en el \textbf{PC (\texttt{R0})}.
+  \item Se accede a la memoria, se lee la instrucción (64 bits) y se guarda en el \textbf{IR (\texttt{R2})}.
+  \item El \texttt{PC} se incrementa en 1.
 \end{itemize}
 
 \subsubsection{Decode}
 
 \begin{itemize}
-    \item La Unidad de Control extrae el \texttt{opcode}, los registros y los operandos desde el \textbf{IR}.
-    \item Determina el tipo de instrucción (I, R, J), identifica la instrucción y prepara el entorno.
+  \item La Unidad de Control extrae el \texttt{opcode}, los registros y los operandos desde el \textbf{IR}.
+  \item Determina el tipo de instrucción (I, R, J), identifica la instrucción y prepara el entorno.
 \end{itemize}
 
 \subsubsection{Execute}
 
 \begin{itemize}
-    \item Según el tipo de instrucción:
-    \begin{itemize}
-        \item \textbf{Tipo R}: la ALU ejecuta la operación entre registros.
-        \item \textbf{Tipo I}: se accede a memoria usando direccionamiento con desplazamiento o directo.
-        \item \textbf{Tipo J}: el \texttt{PC} se actualiza con la nueva dirección de salto.
-    \end{itemize}
-    \item Si aplica, se actualiza el registro \textbf{ESTADO (\texttt{R3})} con los indicadores del resultado.
+  \item Según el tipo de instrucción:
+        \begin{itemize}
+          \item \textbf{Tipo R}: la ALU ejecuta la operación entre registros.
+          \item \textbf{Tipo I}: se accede a memoria usando direccionamiento con desplazamiento o directo.
+          \item \textbf{Tipo J}: el \texttt{PC} se actualiza con la nueva dirección de salto.
+        \end{itemize}
+  \item Si aplica, se actualiza el registro \textbf{ESTADO (\texttt{R3})} con los indicadores del resultado.
 \end{itemize}
 
 
@@ -378,263 +377,263 @@ El ordenador va a pasar por los ciclos de \texttt{fetch-decode-execute}:
 
 \subsubsection{Variables}
 
-Las variables \textbf{globales} se almacenan en el segmento de 
-\textbf{datos estáticos}, ubicado entre las direcciones 
-\texttt{0x020000} y \texttt{0x1EFFFF}. Estas variables 
+Las variables \textbf{globales} se almacenan en el segmento de
+\textbf{datos estáticos}, ubicado entre las direcciones
+\texttt{0x020000} y \texttt{0x1EFFFF}. Estas variables
 existen durante toda la ejecución del programa.
 
-Las variables \textbf{locales}, por el contrario, se 
-almacenan dinámicamente en la \textbf{pila}, gestionada por 
-el registro \texttt{SP}. Se reservan y liberan mediante 
-instrucciones que modifican el puntero de pila, 
-y solo existen mientras la subrutina 
+Las variables \textbf{locales}, por el contrario, se
+almacenan dinámicamente en la \textbf{pila}, gestionada por
+el registro \texttt{SP}. Se reservan y liberan mediante
+instrucciones que modifican el puntero de pila,
+y solo existen mientras la subrutina
 correspondiente está en ejecución.
 
 \subsection{Microinstrucciones}
 
 \begin{itemize}
-    \item Cada una de 6 bits: Posibilidad de 64 instrucciones
-    \item \textbf{R}: es para registros.
-    \item \textbf{M}: es para dirección de memoria.
+  \item Cada una de 6 bits: Posibilidad de 64 instrucciones
+  \item \textbf{R}: es para registros.
+  \item \textbf{M}: es para dirección de memoria.
+  \item \textbf{V}: es para valores inmediatos.
+  \item Para diferenciar entre los contenidos de los registros y sus direcciones usamos la notación de punteros de C, donde \texttt{\&R} es la dirección del registro \texttt{R} y si R contiene una dirección, entonces .\texttt{*R} es el contenido de la dirección que contiene \texttt{R}.
 \end{itemize}
 
 \subsubsection{Tipo R: \textbf{entre registros}}
 
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|p{1.3cm}|p{3cm}|p{1.6cm}|p{5cm}|p{4cm}|}
-    \hline
-    \textbf{Número} & \textbf{Código Ensamblador} & \textbf{Código Máquina Binario} & \textbf{Instrucción} & \textbf{Descripción} \\
-    \hline
-    1  & \texttt{SUMA R, R'} & 000001 & Suma dos registros R1 y R2 & Guarda el resultado en R \\
-    \hline
-    2  & \texttt{RESTA R, R'} & 000010 & Resta dos registros & Guarda el resultado en R \\
-    \hline
-    3  & \texttt{MULT R, R'} & 000011 & Multiplica dos registros & Guarda el resultado en R \\
-    \hline
-    4  & \texttt{DIVI R, R'} & 000100 & Divide dos registros (entera) & Guarda el resultado en R \\
-    \hline
-    5  & \texttt{AND R, R'} & 000101 & Conjunción bit a bit & R ← R \& R' \\
-    \hline
-    6  & \texttt{OR R, R'} & 000110 & Disyunción bit a bit & R ← R | R' \\
-    \hline
-    7  & \texttt{XOR R, R'} & 000111 & XOR bit a bit & $R \leftarrow R \oplus R'$ \\
-    \hline
-    8  & \texttt{NOT R} & 001000 & Negación bit a bit & R ← $\sim$R (inversión de bits) \\
-    \hline
-    9  & \texttt{COMP R, R'} & 001001 & Compara dos registros (Resta R - R') & Actualiza el registro ESTADO (\texttt{R3}) según el resultado \\
-    \hline
-    10 & \texttt{MUEV R, R'} & 001010 & Copia el valor de un registro a otro & R ← R' \\
-    \hline
-    11 & & 001011 & Limpia (pone en cero) un registro & \\
-    \hline
-    12 & & 001100 & Incrementa un registro en 1 & \\
-    \hline
-    \end{tabular}
-\end{table}
+\begin{longtable}{|p{0.1\textwidth}|p{0.2\textwidth}|p{0.1\textwidth}|p{0.3\textwidth}|p{0.3\textwidth}|}
+  \hline
+  \textbf{Número} & \textbf{Código Ensamblador} & \textbf{Código Máquina Binario} & \textbf{Instrucción}                                               & \textbf{Descripción}                       \\
+  \hline
+  1               & \texttt{SUMA R, R'}         & 000001                          & Suma dos registros R y R'                                          & $R \leftarrow  R + R'$                     \\
+  \hline
+  2               & \texttt{RESTA R, R'}        & 000010                          & Resta dos registros                                                & $R \leftarrow R - R'$                      \\
+  \hline
+  3               & \texttt{MULT R, R'}         & 000011                          & Multiplica dos registros                                           & $R \leftarrow R \times R'$                 \\
+  \hline
+  4               & \texttt{DIVI R, R'}         & 000100                          & Realiza la división entera entre dos registros                     & $\lfloor R \leftarrow R / R' \rfloor$      \\
+  \hline
+  5               & \texttt{AND R, R'}          & 000101                          & Conjunción bit a bit                                               & $R \leftarrow R \wedge R'$                 \\
+  \hline
+  6               & \texttt{OR R, R'}           & 000110                          & Disyunción bit a bit                                               & $R \leftarrow R \vee R'$                   \\
+  \hline
+  7               & \texttt{XOR R, R'}          & 000111                          & XOR bit a bit                                                      & $R \leftarrow R \oplus R'$                 \\
+  \hline
+  8               & \texttt{NOT R}              & 001000                          & Negación bit a bit                                                 & R ← $\sim$R (inversión de bits)            \\
+  \hline
+  9               & \texttt{COMP R, R'}         & 001001                          & Compara dos registros                                              & Actualiza el registro ESTADO (\texttt{R3}) \\
+  \hline
+  10              & \texttt{COPIA R, R'}        & 001010                          & Copia el valor de un registro a otro                               & R ← R'                                     \\
+  \hline
+  11              & \texttt{LIMP \&R}           & 001011                          & Limpia (pone en cero) un registro usando su dirección \texttt{\&R} & R ← 0                                      \\
+  \hline
+  12              & \texttt{INCRE R}            & 001100                          & Incrementa un registro en 1                                        & $R \leftarrow R + 1$                       \\
+  \hline
+\end{longtable}
 
 \subsubsection{Tipo I: \textbf{inmediato / memoria}}
 
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|p{1.3cm}|p{3cm}|p{1.6cm}|p{5cm}|p{4cm}|}
-    \hline
-    \textbf{Número} & \textbf{Código} & \textbf{Código Máquina Binario} & \textbf{Instrucción} & \textbf{Descripción} \\
-    \hline
-    13 & \texttt{CARGA R, M} & 001101 & Carga desde memoria a un registro & \\
-    \hline
-    14 & & 001110 & Guarda el contenido de un registro en memoria & \\
-    \hline
-    15 & & 001111 & Carga un valor inmediato a un registro & \\
-    \hline
-    16 & & 010000 & Suma inmediata a un registro & \\
-    \hline
-    17 & & 010001 & Resta inmediata a un registro & \\
-    \hline
-    18 & & 010010 & Multiplica un registro por un inmediato & \\
-    \hline
-    19 & & 010011 & Divide un registro entre un inmediato & \\
-    \hline
-    20 & & 010100 & AND inmediato & \\
-    \hline
-    21 & & 010101 & OR inmediato & \\
-    \hline
-    22 & & 010110 & XOR inmediato & \\
-    \hline
-    23 & & 010111 & Compara con inmediato y actualiza 0 & \\
-    \hline
-    24 & & 011000 & Decrementa SP y guarda registro en la pila & \\
-    \hline
-    25 & & 011001 & Recupera desde pila y carga en registro & \\
-    \hline
-    26 & & 011010 & No hace nada (instrucción vacía) & \\
-    \hline
-    \end{tabular}
-\end{table}
+\begin{longtable}{|p{0.1\textwidth}|p{0.2\textwidth}|p{0.1\textwidth}|p{0.3\textwidth}|p{0.3\textwidth}|}
+  \hline
+  \textbf{Número} & \textbf{Código}      & \textbf{Código Máquina Binario} & \textbf{Instrucción}                                                                                                                                                                          & \textbf{Descripción}                                                                                                \\
+  \hline
+  13              & \texttt{CARGA R, M}  & 001101                          & Carga desde el espacio de memoria M al registro R                                                                                                                                             & $R \leftarrow M$                                                                                                    \\
+  \hline
+  14              & \texttt{GUARD M, R}  & 001110                          & Guarda el contenido del registro R en el espacio de memoria M                                                                                                                                 & $M \leftarrow R$                                                                                                    \\
+  \hline
+  15              & \texttt{ICARGA R, V} & 001111                          & Carga un valor inmediato V a un registro R                                                                                                                                                    & $R \leftarrow V$                                                                                                    \\
+  \hline
+  16              & \texttt{ISUMA R, V}  & 010000                          & Suma inmediata de un valor V a un registro R                                                                                                                                                  & $R \leftarrow R + V$                                                                                                \\
+  \hline
+  17              & \texttt{IRESTA R, V} & 010001                          & Resta inmediata de un valor V a un registro R                                                                                                                                                 & $R \leftarrow R - V$                                                                                                \\
+  \hline
+  18              & \texttt{IMULT R, V}  & 010010                          & Multiplica un registro por un inmediato                                                                                                                                                       & $R \leftarrow R \times V$                                                                                           \\
+  \hline
+  19              & \texttt{IDIVI R, V}  & 010011                          & Realiza la división entera de un registro R entre un valor inmediato V                                                                                                                        & $R \Leftarrow \lfloor R / V \rfloor $                                                                               \\
+  \hline
+  20              & \texttt{IAND R, V}   & 010100                          & Conjunción AND entre un registro R y un valor inmediato V                                                                                                                                     & $ R \leftarrow R \wedge R'$                                                                                         \\
+  \hline
+  21              & \texttt{IOR R, V}    & 010101                          & Disyunción OR entre un registro R y un valor inmediato V                                                                                                                                      & $R \leftarrow R \vee R'$                                                                                            \\
+  \hline
+  22              & \texttt{IXOR R, V}   & 010110                          & XOR bit a bit entre un registro R y un valor inmediato V                                                                                                                                      & $R \leftarrow R \oplus R'$                                                                                          \\
+  \hline
+  23              & \texttt{ICOMP R, V}  & 010111                          & Compara un registro R con un valor inmediato V y guarda el resultado en R3 (Registro de estado)                                                                                               & Se realiza la resta $R - V$ y se indica si el resultado es positivo ($R > V$), negativo ($R < V$) o cero ($R = V$). \\
+  \hline
+  24              & \texttt{APILA R}     & 011000                          & Decrementa (la pila crece hacía abajo en la memoria) el registro SP (R1) y hace push del registro R en la pila (lo guarda)                                                                    & $R1 (SP) \leftarrow R1 - 1$ y guarda en la dirección que contiene SP a R:  $*SP \leftarrow R$                       \\
+  \hline
+  25              & \texttt{DESAPILA R}  & 011001                          & Guarda el contenido de la dirección que está en SP en el registro R, y luego incrementa SP (R1). (la pila crece hacía abajo, esto es un pop)                                                  & $R \leftarrow *SP(R1)$, luego incrementa SP: $R1(SP) \leftarrow  R1 + 1 $                                           \\
+  \hline
+  26              & \texttt{PROCRASTINA} & 011010                          & No hace nada (instrucción vacía), sirve para no hacer nada por un ciclo de reloj, se usa para temas de sincronización, o simplemente para que el PC se parezca un poco más a sus diseñadores. & Si quieres ver un anime en vez de hacer la tarea o irte a jugar r6 en vez de adelantar un trabajo.                  \\
+  \hline
+\end{longtable}
 
 \subsubsection{Tipo J: \textbf{salto}}
 
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|p{1.3cm}|p{3cm}|p{1.6cm}|p{5cm}|p{4cm}|}
-    \hline
-    \textbf{Número} & \textbf{Código} & \textbf{Código Máquina Binario} & \textbf{Instrucción} & \textbf{Descripción} \\
-    \hline
-    27 & \texttt{SALTA M} & 011011 & Salto incondicional a dirección & \\
-    \hline
-    28 & & 011100 & Llama a subrutina (guarda PC en la pila y salta) & \\
-    \hline
-    29 & & 011101 & Vuelve de subrutina (recupera PC desde pila) & \\
-    \hline
-    30 & & 011110 & Salta si el resultado fue cero (C=1) & \\
-    \hline
-    31 & & 011111 & Salta si no fue cero (C=0) & \\
-    \hline
-    32 & & 100000 & Salta si positivo (P=1) & \\
-    \hline
-    33 & & 100001 & Salta si negativo (N=1) & \\
-    \hline
-    34 & & 100010 & Salta si overflow (D=1) & \\
-    \hline
-    35 & & 100011 & Salta si un registro == 0 & \\
-    \hline
-    36 & & 100100 & Salta si un $\text{registro} \neq 0$ & \\
-    \hline
-    37 & & 100101 & Salta si mayor $(P = 1 \land C = 0)$ & \\
-    \hline
-    38 & & 100110 & Salta si menor (N=1) & \\
-    \hline
-    39 & & 100111 & Detiene la ejecución del programa & \\
-    \hline
-    40 & & 101000 & Dispara una interrupción por software & \\
-    \hline
-    \end{tabular}
-\end{table}
+\begin{longtable}{|p{0.1\textwidth}|p{0.2\textwidth}|p{0.1\textwidth}|p{0.3\textwidth}|p{0.3\textwidth}|}
+  \hline
+  \textbf{Número}    & \textbf{Código}                                  & \textbf{Código Máquina Binario} & \textbf{Instrucción}                                                                                                                                                                                                          & \textbf{Descripción}                                                                                                   \\
+  \hline
+  27                 & \texttt{SALTA M}                                 & 011011                          & Salta incondicionalmente a la dirección M, es decir, guarda la dirección M en el R0 (PC) program counter para que en el siguiente ciclo continue desde ahí.                                                                   & $PC(R0) \leftarrow M$                                                                                                  \\
+  \hline
+  28                 & \texttt{LLAMA M}                                 & 011100                          & Llama a la subrutina en la dirección M, primero guarda el PC(R0) en la pila al hacer un APILA, luego pone en el PC (R0) el valor de M, donde empieza la subrutina.                                                            & APILA PC(R0) y luego: $PC \leftarrow M$                                                                                \\
+  \hline
+  29                 & \texttt{VUELVE}                                  & 011101                          & Vuelve desde la subrutina desde la que se encuentre, esto al hacer DESAPILA y guardar el resultado desapilado en el PC.                                                                                                       & DESAPILA R y luego: $PC \leftarrow R$                                                                                  \\
+  \hline
+  30                 & \texttt{SICERO M}                                & 011110                          & Salta si el resultado de la ultima comparación fue cero (C=1), al verificar el bit
+  C del R3 (estado). & Verifica si C=1 y al confirmarlo hace un SALTA M                                                                                                                                                                                                                                                                                                                                                                                            \\
+  \hline
+  31                 & \texttt{SINCERO M}                               & 011111                          & Salta a M si el resultado de la última comparación no fue cero (C=0)                                                                                                                                                          & Verifica si C=0 en el R3 (estado) y al confirmarlo hace un SALTA M                                                     \\
+  \hline
+  32                 & \texttt{SIPOS M}                                 & 100000                          & Salta si el resultado de la última comparación fue positivo (P=1)                                                                                                                                                             & Verifica si P=1 y al confirmarlo hace un SALTA M                                                                       \\
+  \hline
+  33                 & \texttt{SINEG M}                                 & 100001                          & Salta si el resultado de la última comparación fue negativo (N=1)                                                                                                                                                             & Verifica si N=1 en el R3 (estado) y al confirmarlo hace un SALTA M                                                     \\
+  \hline
+  34                 & \texttt{SIOVERFL M}                              & 100010                          & Salta si el resultado de la última comparación u operación tuvo overflow (D=1)                                                                                                                                                & Verifica si (D=1) en R3 (estado) y al confirmarlo hace un SALTA M.                                                     \\
+  \hline
+  35                 & \texttt{SIREGCERO R M}                           & 100011                          & Salta a M si el registro R es igual a 0.                                                                                                                                                                                      & Verifica si R == 0 y al confirmarlo hace un SALTA M.                                                                   \\
+  \hline
+  36                 & \texttt{SIREGNCERO R M}                          & 100100                          & Salta a M si un registro R no es igual a cero.                                                                                                                                                                                & Verifica si R no es igual a cero y al confirmarlo, hace un SALTA M.                                                    \\
+  \hline
+  37                 & \texttt{SIMAYOR M}                               & 100101                          & Salta si el resultado de la ultima operación es de mayor que, es decir, al comparar, el resultado fue positivo y no fue igual a cero. $(P = 1 \land C = 0)$                                                                   & Verifica si los flags P y C cumplen las condiciones y al confirmarlo, hace un SALTA M.                                 \\
+  \hline
+  38                 & \texttt{SIMENOR}                                 & 100110                          & Salta si el resultado de la última operación es de menor que, es decir, al comparar, el resultado fue negativo.  (N=1)                                                                                                        & Verifica si el flag N en R3 (estado) está activado, al confirmarlo, hace un SALTA M.                                   \\
+  \hline
+  39                 & \texttt{PARA}                                    & 100111                          & Detiene la ejecución del programa                                                                                                                                                                                             & Se detiene el ciclo de instrucciones, ya sea deteniendo completamente la CPU o entrando en un estado de espera. (IDLE) \\
+  \hline
+  40                 & \texttt{INTERRUP M}                              & 101000                          & Dispara una interrupción por software, guardando el estado actual del program counter en la pila junto con los flags o registros relevantes, guarda el estado actual del sistema y luego salta a la rutina de interrupción M. & Primero se guardan los estados del sistema, como los registros especiales, se hace un APILA PC y se SALTA M.           \\
+  \hline
+\end{longtable}
+
 
 %---------------------------------------------------------------------------------
 % Enlazador Caragador  -----------------------------------------------------------
 %---------------------------------------------------------------------------------
 
 
-\section{Módulo Enlazador-Cargador}
+\section{Módulo Enlazador–Cargador}
 
-\section*{Objetivo del módulo}
+El Módulo Enlazador–Cargador se encarga de preparar y montar en la memoria RAM un programa en código máquina generado por el ensamblador. A continuación se detallan las responsabilidades específicas de cada parte:
+\subsection{Enlazador}
 
-El módulo {Cargador} es responsable de tomar un programa en código máquina relocalizable y cargarlo en una posición específica de la memoria RAM. Esta tarea forma parte del módulo \texttt{Enlazador-Cargador} y permite ubicar programas en distintas regiones de la memoria sin necesidad de recompilarlos.
-
-\section*{Entradas y salidas}
-
-\begin{itemize}
-  \item \textbf{Entradas}:
-  \begin{itemize}
-    \item \texttt{ProgramaBinario[]} : Arreglo de palabras de 64 bits (código máquina).
-    \item \texttt{DirecciónBase} : Dirección de inicio en RAM donde se debe cargar el programa.
-  \end{itemize}
-  \item \textbf{Salidas}:
-  \begin{itemize}
-    \item Contenido de la RAM actualizado desde la \texttt{DirecciónBase}.
-  \end{itemize}
-\end{itemize}
-
-\section*{Formato del código relocalizable}
-
-Cada palabra del programa es de 64 bits. El bit más significativo (bit 63) indica si contiene una dirección relativa:
-
-\begin{itemize}
-  \item \texttt{0}: Dirección absoluta (no se modifica).
-  \item \texttt{1}: Dirección relativa (se suma la \texttt{DirecciónBase}).
-\end{itemize}
-
-\section*{Algoritmo del cargador}
+El módulo Enlazador se encarga de combinar varios módulos objeto y bibliotecas para generar un único programa ejecutable. Sus tareas principales incluyen:
 
 \begin{enumerate}
-  \item Inicializar: \texttt{PC} $\leftarrow$ \texttt{DirecciónBase}
-  \item Para cada palabra $W$ en \texttt{ProgramaBinario[]}:
-  \begin{enumerate}
-    \item Si el bit 63 de $W$ es 1:
-    \begin{enumerate}
-      \item Extraer dirección relativa $D$ de los bits 0--31
-      \item Calcular $D' \leftarrow D + \texttt{DirecciónBase}$
-      \item Reemplazar bits 0--31 de $W$ por $D'$
-      \item Poner el bit 63 de $W$ a 0
-    \end{enumerate}
-    \item Escribir $W$ en \texttt{RAM[PC]}
-    \item Incrementar \texttt{PC} $\leftarrow$ \texttt{PC} + 1
-  \end{enumerate}
+\item \textbf{Análisis de dependencias:}\\
+Examina las referencias a símbolos externos en cada módulo objeto y determina la secuencia de enlace adecuada.
+
+\item \textbf{Construcción de la tabla de símbolos global:}\\
+Fusiona las tablas de símbolos de todos los módulos, asignando direcciones provisionales a los símbolos definidos y marcando los externos no resueltos.
+
+\item \textbf{Resolución de referencias cruzadas:}\\
+Para cada símbolo externo referenciado, busca su definición en la tabla global y actualiza las referencias en el código objeto con direcciones relativas o absolutas según convenga.
+
+\item \textbf{Gestión de bibliotecas:}\\
+Incluye en el ejecutable sólo los módulos necesarios de las bibliotecas estáticas, minimizando el tamaño final.
+
+\item \textbf{Generación del fichero ejecutable:}\\
+Ensambla los segmentos relocados en un único fichero de salida con formato ejecutable, incluyendo una cabecera que especifica:
+\begin{itemize}
+\item Dirección de carga predeterminada.
+\item Punto de entrada (símbolo \texttt{main}).
+\item Tamaños y ubicaciones de segmentos de código, datos y pila.
+\end{itemize}
+
+\item \textbf{Producción de información de depuración (opcional):}\\
+Incorpora en el ejecutable tablas de símbolos y mapas de segmentos para facilitar el debugging y análisis de rendimiento.
 \end{enumerate}
 
-\section*{Ejemplo ilustrativo}
+\subsection{Cargador}
 
+\begin{enumerate}
+\item \textbf{Lectura de cabecera del programa:}\\
+El cargador extrae del fichero de objeto la tabla de segmentos (código, datos, pila) y la tabla de símbolos relocables, incluyendo:
 \begin{itemize}
-  \item Programa de entrada (hexadecimal simplificado):\\
-  \texttt{[0x80000010\_00000000, 0x00000000\_FFFFFFFF, 0x80000020\_00000001]}
-  \item \texttt{DirecciónBase = 0x0040}
+\item Dirección de carga propuesta por el usuario.
+\item Tamaños de cada segmento.
+\item Entradas relocables (instrucciones o datos con direcciones relativas).
 \end{itemize}
 
-\textbf{Resultado:}
+\item \textbf{Relocalización de direcciones:}\\
+Para cada entrada relocable, modifica el campo de dirección sumándole la \emph{dirección de carga base}:
+$       \text{dirección\_absoluta} = \text{dirección\_relativa} + \text{base\_carga}
+    $
+De esta forma convierte todas las referencias relativas a direcciones absolutas en el espacio de memoria.
+
+\item \textbf{Resolución de símbolos externos:}\\
+Si el programa referenció símbolos definidos en otros módulos, busca en la tabla de símbolos del enlazador las direcciones finales y parchea las instrucciones correspondientes con sus direcciones absolutas.
+
+\item \textbf{Escritura en memoria RAM:}\\
 \begin{itemize}
-  \item Primera palabra: dirección relativa $0x10$ $\rightarrow$ $0x0050$
-  \item Segunda palabra: sin cambios
-  \item Tercera palabra: dirección relativa $0x20$ $\rightarrow$ $0x0060$
+\item Copia el segmento de código (instrucciones de 64 bits) en las celdas de memoria a partir de la dirección de carga base.
+\item Copia el segmento de datos inicializados en las celdas posteriores.
+\item Ajusta el puntero de pila (\texttt{SP}) al espacio reservado para la pila, calculado en función de la dirección de carga.
 \end{itemize}
 
-\section*{Diseño lógico del módulo}
+\item \textbf{Inicialización de registros de control:}\\
+\begin{itemize}
+\item Carga el registro \texttt{PC} (contador de programa) con la dirección de entrada especificada en la cabecera.
+\item Borra o inicializa el registro \texttt{ESTADO} (banderas) a cero.
+\end{itemize}
 
-\begin{center}
-\begin{tikzpicture}[node distance=1cm and 1.5cm, every node/.style={draw, minimum height=1cm}]
-  \node (prog) {ProgramaBinario[]};
-  \node[right=of prog] (temp) {Registro Temporal};
-  \node[below=of temp] (testbit) {Comparador Bit 63};
-  \node[below=of testbit] (sumador) {Sumador Relocalización};
-  \node[below=of sumador] (memoria) {Memoria RAM};
-  \node[left=of memoria] (pc) {Contador PC};
-  \node[below=of memoria] (salida) {RAM[DirecciónBase .. +n]};
-  \draw[->] (prog) -- (temp);
-  \draw[->] (temp) -- (testbit);
-  \draw[->] (testbit) -- (sumador);
-  \draw[->] (sumador) -- (memoria);
-  \draw[->] (pc) -- (memoria);
-  \draw[->] (memoria) -- (salida);
-\end{tikzpicture}
-\end{center}
+\item \textbf{Verificación y chequeo de errores:}\\
+Comprueba que ninguna dirección de carga exceda los límites de la memoria disponible y que no haya solapamiento entre segmentos. En caso de error, devuelve un código de fallo.
 
-\section*{Microinstrucciones requeridas (nivel bajo)}
+\item \textbf{Transferencia de control:}\\
+Una vez completada la carga, transfiere el control de la ejecución al \texttt{PC}, iniciando el ciclo de fetch–decode–execute de la CPU.
+\end{enumerate}
 
-\begin{lstlisting}[language={[x86masm]Assembler}, basicstyle=\ttfamily\small]
-CARGAR TMP, PROG[I]
-TESTEARBIT TMP, 63
-IF 1 THEN GOTO RELOCALIZAR
-ESCRIBIR RAM[PC], TMP
-INCREMENTAR PC
-GOTO SIGUIENTE
-
-RELOCALIZAR:
-  EXTRAER DIRREL, TMP[0..31]
-  ANADIR DIRABS, DIRREL, DirecciónBase
-  REEMPLAZAR TMP[0..31] ← DIRABS
-  LIMPIAR BIT TMP, 63
-  ESCRIBIR RAM[PC], TMP
-  INCREMENTAR PC
-
-SIGUIENTE:
-\end{lstlisting}
-
-%---------------------------------------------------------------------------------
-% Algoritmos de Prueba -----------------------------------------------------------
-%---------------------------------------------------------------------------------
 
 \section{Algoritmos de Prueba}
 
 \subsection{Suma de N enteros consecutivos}
 
-Un algoritmo de tipo iterativo que ....
+Un algoritmo de tipo iterativo que suma los primeros N enteros
+consecutivos usando un ciclo \texttt{for} y una variable acumuladora:
+
+\begin{verbatim}
+  int suma(int n) {
+    int i, suma = 0;
+    for (i = 1; i <= n; i++) {
+      suma += i;
+    }
+    return suma;
+  }
+\end{verbatim}
+
+Ahora, lo escribiremos en terminos del lenguaje ensamblador para nuestro computador ORISC-I:
+
+\begin{verbatim}
+  // Suma de N enteros consecutivos
+  // ORISC-I
+  // Entradas: R4 = N >= 1
+  // Salidas: R5 = Suma
+  // Variables: R6 = i, R5 = Suma
+
+  // Inicializar variables en 0
+  LIMP R5
+  LIMP R6
+  ICARGA R6, 0
+  COPIA R5, R6
+  // Inicio del loop
+  LOOP_START:
+    COMP R4, R6
+    SICERO LOOP_END
+    // Incrementar i
+    INCRE R6
+    // Sumar i al resultado (suma)
+    SUMA R5, R6
+    // Volver al inicio del loop
+    SALTA LOOP_START
+  LOOP_END:
+  // Fin del loop
+  // El resultado está en R5
+\end{verbatim}
 
 \subsection{Conteo de ceros en un arreglo}
 
 Un algoritmo de secuencial que....
 
 \subsection{Factorial de un número}
-
 \begin{verbatim}
 
 int factorial(int n) {
@@ -681,6 +680,7 @@ BASE_CASE:
 \end{verbatim}
 
 
+
 %---------------------------------------------------------------------------------
 % Referencias -----------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -691,10 +691,10 @@ BASE_CASE:
 
 \begin{thebibliography}{9}
 
-\bibitem{ref} \label{ref:BPS} M. Bichler, S. Merting, and A. Uzunoglu, 
-“Assigning Course Schedules: About Preference Elicitation, Fairness, and Truthfulness,” 
-arXiv preprint arXiv:1812.02630, 2018. [En línea]. Disponible en: 
-\url{https://arxiv.org/abs/1812.02630}
+  \bibitem{ref} \label{ref:BPS} M. Bichler, S. Merting, and A. Uzunoglu,
+  “Assigning Course Schedules: About Preference Elicitation, Fairness, and Truthfulness,”
+  arXiv preprint arXiv:1812.02630, 2018. [En línea]. Disponible en:
+  \url{https://arxiv.org/abs/1812.02630}
 
 
 \end{thebibliography}
