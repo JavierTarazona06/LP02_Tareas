@@ -631,7 +631,44 @@ Ahora, lo escribiremos en terminos del lenguaje ensamblador para nuestro computa
 
 \subsection{Conteo de ceros en un arreglo}
 
-Un algoritmo de secuencial que....
+Un algoritmo iterativo que recorre un arreglo y cuenta cuántas celdas contienen el valor cero:
+
+\begin{verbatim}
+// Conteo de ceros en un arreglo
+// ORISC-I
+// Entradas: R3 = dirección base del arreglo; R4 = longitud N >= 1
+// Salidas: R5 = Cantidad de ceros
+// Variables: R6 = índice i, R7 = valor actual, R8 = registro auxiliar, R9 = cero
+
+// Inicializar contadores y registros
+LIMP R5          // R5 = 0 (contador de ceros)
+LIMP R6          // R6 = 0 (índice)
+ICARGA R6, 0     // Asegura R6 = 0
+COPIA R5, R6     // R5 = 0
+LIMP R9          // R9 = 0 (valor cero para comparación)
+
+// Inicio del loop
+LOOP_START:
+  COMP R6, R4
+  SICERO LOOP_END      // Si i == N, terminar
+  // Calcular dirección del elemento: R8 = R3 + R6
+  COPIA R8, R3
+  SUMA R8, R6
+  // Cargar elemento en R7
+  CARGA R7, R8
+  // Comparar elemento con 0
+  COMP R7, R9
+  SICERO INCREMENT_COUNT
+  SALTA CHECK_END
+  INCREMENT_COUNT:
+    INCRE R5            // count++
+  CHECK_END:
+    INCRE R6            // i++
+    SALTA LOOP_START
+LOOP_END:
+// Resultado: R5 contiene el número de ceros
+\end{verbatim}
+
 
 \subsection{Factorial de un número}
 
