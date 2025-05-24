@@ -387,9 +387,9 @@ instrucciones que modifican el puntero de pila,
 y solo existen mientras la subrutina 
 correspondiente está en ejecución.
 
-\subsection{Tipos de datos}
+\subsubsection{Tipos de datos}
 
-\subsubsection{Representación de enteros}
+\textbf{Representación de enteros}
 
 En el computador \textbf{ORISC-I}, los números enteros se representan en formato de \textit{complemento a dos} sobre \textbf{64 bits}. 
 
@@ -402,7 +402,7 @@ El \textit{bit más significativo} (MSB, por sus siglas en inglés) indica el si
     \item Si el MSB es \textbf{1}, el número es \textbf{negativo} (en complemento a dos).
 \end{itemize}
 
-\subsubsection{Representación de números en punto flotante}
+\textbf{Representación de números en punto flotante}
 
 Para representar números en punto flotante, el computador \textbf{ORISC-I} adopta el estándar \textbf{IEEE 754 de doble precisión} (\textit{64 bits}).
 
@@ -417,6 +417,24 @@ Cada palabra puede codificar un número real con la siguiente estructura:
 En versiones futuras, se planea implementar instrucciones especializadas para operaciones aritméticas en coma flotante, tales como:
 
 \texttt{FADD}, \texttt{FSUB}, \texttt{FMUL}, \texttt{FDIV}.
+
+\subsubsection{Manejar valores inmediatos grandes}
+
+Las instrucciones de tipo \textbf{I} permiten cargar \textit{inmediatos} de hasta \textbf{24 bits}.  
+Para valores negativos, se realiza automáticamente una \textit{extensión de signo} 
+a 64 bits utilizando el formato de \textit{complemento a dos}.
+
+Si se desea cargar valores inmediatos mayores a 24 bits, se propone una 
+estrategia extendida basada en dos instrucciones secuenciales:
+
+\begin{itemize}
+    \item Una instrucción tipo \texttt{LUI} (\textit{Load Upper Immediate}) carga los bits superiores.
+    \item Una instrucción tipo \texttt{ORI} (\textit{OR Immediate}) combina los bits inferiores.
+\end{itemize}
+
+Pero en un diseño posterior o si se requiere para extender funcionalidades.
+
+
 
 \subsection{Microinstrucciones}
 

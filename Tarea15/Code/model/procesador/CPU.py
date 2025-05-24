@@ -11,6 +11,11 @@ def set_up():
 
 
 def leer_reg(direccion: int, mode: str) -> int | list[int]:
+    """
+    Devuelve contenido del registro en la dirección especificado
+    Y lo devuelve según el mode
+    mode = ["bin","natural","int"]
+    """
     palabra_bin = ALU.registros[direccion]
 
     modo_funcion = {
@@ -26,6 +31,11 @@ def leer_reg(direccion: int, mode: str) -> int | list[int]:
 
 
 def escribir_reg(direccion: int, palabra: int | list[int], mode: str) -> None:
+    """
+    Escribe en el registro de la dirección especificada
+    la palabra según el mode.
+    mode= ["bin","natural","int"]
+    """
     modo_funcion = {
         "bin": lambda: palabra.copy(),
         "natural": lambda: NC.natural2binary_list(palabra, fix_bits=constants.WORDS_SIZE_BITS),
@@ -201,38 +211,51 @@ class UC:
             word_binary[16:40],
             word_binary[40:64]
         ]
-        # TODO
-        # SI el registro destino o base esta entre 0 y 3, mande error. Porque son los registros reservados
+        if (0 <= UC.get_reg_des() <= 3) or (0 <= UC.get_reg_bas() <= 3):
+            raise ValueError(
+                "Los registros PC, SP, IR y ESTADO no se pueden modificar con"
+                "instrucciones"
+            )
 
     @staticmethod
     def get_opcode() -> int:
+        """
+        Devuelve el número del opcode
+        """
         return NC.binary_list2natural(
             UC.instruction_segmented_bin[UC.OPCODE]
         )
 
     @staticmethod
     def get_reg_des() -> int:
-        return NC.binary_list2entero(
+        """
+        Devuelve el número del registro destino.
+        """
+        return NC.binary_list2natural(
             UC.instruction_segmented_bin[UC.REG_DES]
         )
 
     @staticmethod
     def get_reg_bas() -> int:
-        return NC.binary_list2entero(
+        """
+        Devuelve el número del registro base.
+        """
+        return NC.binary_list2natural(
             UC.instruction_segmented_bin[UC.REG_BAS]
         )
 
     @staticmethod
     def get_address() -> int:
+        """
+        Devuelve el número de la dirección de memoria
+        """
         return NC.binary_list2natural(
             UC.instruction_segmented_bin[UC.ADDRESS]
         )
 
     @staticmethod
-    def get_extra() -> int:
-        return NC.binary_list2entero(
-            UC.instruction_segmented_bin[UC.EXTRA]
-        )
+    def get_extra() -> list[int]:
+        return UC.instruction_segmented_bin[UC.EXTRA]
 
 
 class ISA:
@@ -344,40 +367,54 @@ class ISA:
 
         @staticmethod
         def cargar():
+            """
+            Dirección a registro
+            """
             bus.Direccion.escribir(UC.get_address())
             bus.Control.escribir(bus.Control.LEER_MEMORIA)
             bus.action()
             word_bin = bus.Datos.leer(mode="bin")
+
+            ALU.modify_state(word_bin, mode="bin")
+
             escribir_reg(UC.get_reg_des(), word_bin, mode="bin")
 
         @staticmethod
         def guardar():
+            """
+            Registro a dirección
+            """
             word_bin: list[int] = leer_reg(UC.get_reg_des(), mode="bin")
             bus.Datos.escribir(word_bin, bin=True)
             bus.Direccion.escribir(UC.get_address())
             bus.Control.escribir(bus.Control.ESCRIBIR_MEMORIA)
             bus.action()
 
+            ALU.modify_state(word_bin, mode="bin")
+
         # TODO: Funciona si se hace doble carga para tener un valor mas grande?
         @staticmethod
         def carga_inm():
             """
-            Entero
+            Cargar un entero inmediato (32 bits) al registro
             """
             escribir_reg(
                 UC.get_reg_des(),
                 UC.get_extra(),
-                mode="int"
+                mode="bin"
             )
+            ALU.modify_state(UC.get_extra(), mode="bin")
 
         @staticmethod
         def suma_inm():
             """
-            Entero
+            Suma el registro destino con un entero inmediato
             """
             v1 = leer_reg(UC.get_reg_des(), mode="int")
-            v2 = UC.get_extra()
+            v2 = NC.binary_list2entero(UC.get_extra())
             value_result:int = v1 + v2
+
+            ALU.modify_state(value_result, mode="int")
 
             escribir_reg(
                 UC.get_reg_des(),
