@@ -43,6 +43,7 @@ def escribir_reg(direccion: int, palabra: int | list[int], mode: str) -> None:
 
     ALU.registros[direccion] = palabra_bin
 
+
 def fetch():
     # Leer PC
     pc_word_natural = leer_reg(ALU.PC, mode="natural")
@@ -87,6 +88,8 @@ def execute():
         if inicio <= opcode_int <= fin:
             if tipo == "R":
                 ALU.execute_r(opcode_int)
+            elif tipo == "I":
+                ALU.execute_i(opcode_int)
             break
     else:
         raise ValueError("Invalid Type for instruction. It might be not defined.")
@@ -118,7 +121,7 @@ class ALU:
         """
         mode = ["bin", "int"]
         """
-        value_bin:list[int] = []
+        value_bin: list[int] = []
 
         if mode == "bin":
             value_bin = value_result.copy()
@@ -162,6 +165,21 @@ class ALU:
             raise ValueError(f"Opcode {opcode_int} no definido para "
                              f"instrucciones tipo R.")
 
+    @staticmethod
+    def execute_i(opcode_int: int) -> None:
+        i_operations: dict[int, Callable[[], None]] = {
+            13: ISA.I_.cargar,
+            14: ISA.I_.guardar,
+            15: ISA.I_.carga_inm,
+            16: ISA.I_.suma_inm
+        }
+
+        try:
+            i_operations[opcode_int]()
+        except KeyError:
+            raise ValueError(f"Opcode {opcode_int} no definido para "
+                             f"instrucciones tipo I.")
+
 
 class UC:
     # Convenciones de segmentos de instrucción
@@ -183,6 +201,8 @@ class UC:
             word_binary[16:40],
             word_binary[40:64]
         ]
+        # TODO
+        # SI el registro destino o base esta entre 0 y 3, mande error. Porque son los registros reservados
 
     @staticmethod
     def get_opcode() -> int:
@@ -216,7 +236,6 @@ class UC:
 
 
 class ISA:
-
     # ------------------
     # Type R
     # ------------------
@@ -225,8 +244,8 @@ class ISA:
         @staticmethod
         def suma():
             value: int = (
-                leer_reg(UC.get_reg_des(), mode="int") +
-                leer_reg(UC.get_reg_bas(), mode="int")
+                    leer_reg(UC.get_reg_des(), mode="int") +
+                    leer_reg(UC.get_reg_bas(), mode="int")
             )
             ALU.modify_state(value, mode="int")
             escribir_reg(UC.get_reg_des(), value, mode="int")
@@ -288,7 +307,7 @@ class ISA:
         @staticmethod
         def not_bit_bit():
             value: int = ~ (
-                    leer_reg(UC.get_reg_des(), mode="int")
+                leer_reg(UC.get_reg_des(), mode="int")
             )
             ALU.modify_state(value, mode="int")
             escribir_reg(UC.get_reg_des(), value, mode="int")
@@ -317,10 +336,54 @@ class ISA:
             ALU.modify_state(value, mode="int")
             escribir_reg(UC.get_reg_des(), value, mode="int")
 
-
     # ------------------
     # Type I
     # ------------------
+
+    class I_:
+
+        @staticmethod
+        def cargar():
+            bus.Direccion.escribir(UC.get_address())
+            bus.Control.escribir(bus.Control.LEER_MEMORIA)
+            bus.action()
+            word_bin = bus.Datos.leer(mode="bin")
+            escribir_reg(UC.get_reg_des(), word_bin, mode="bin")
+
+        @staticmethod
+        def guardar():
+            word_bin: list[int] = leer_reg(UC.get_reg_des(), mode="bin")
+            bus.Datos.escribir(word_bin, bin=True)
+            bus.Direccion.escribir(UC.get_address())
+            bus.Control.escribir(bus.Control.ESCRIBIR_MEMORIA)
+            bus.action()
+
+        # TODO: Funciona si se hace doble carga para tener un valor mas grande?
+        @staticmethod
+        def carga_inm():
+            """
+            Entero
+            """
+            escribir_reg(
+                UC.get_reg_des(),
+                UC.get_extra(),
+                mode="int"
+            )
+
+        @staticmethod
+        def suma_inm():
+            """
+            Entero
+            """
+            v1 = leer_reg(UC.get_reg_des(), mode="int")
+            v2 = UC.get_extra()
+            value_result:int = v1 + v2
+
+            escribir_reg(
+                UC.get_reg_des(),
+                value_result,
+                mode="int"
+            )
 
     # ------------------
     # Type J
