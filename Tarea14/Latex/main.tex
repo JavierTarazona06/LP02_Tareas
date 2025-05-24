@@ -55,7 +55,7 @@
   \vspace{0.5cm}
   \begin{tabular}{ll}
     Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
-    Eder                           & -@unal.edu.co          \\
+    Eder  José Hernández Buelvas   & ehernandezbu@unal.edu.co \\
     Sebastián                      & -@unal.edu.co          \\
     David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
   \end{tabular}
@@ -510,11 +510,78 @@ correspondiente está en ejecución.
 %---------------------------------------------------------------------------------
 
 
-\section{Módulo Enlazador-Cargador}
+\section{Módulo Enlazador–Cargador}
 
-%---------------------------------------------------------------------------------
-% Algoritmos de Prueba -----------------------------------------------------------
-%---------------------------------------------------------------------------------
+El Módulo Enlazador–Cargador se encarga de preparar y montar en la memoria RAM un programa en código máquina generado por el ensamblador. A continuación se detallan las responsabilidades específicas de cada parte:
+\subsection{Enlazador}
+
+El módulo Enlazador se encarga de combinar varios módulos objeto y bibliotecas para generar un único programa ejecutable. Sus tareas principales incluyen:
+
+\begin{enumerate}
+\item \textbf{Análisis de dependencias:}\\
+Examina las referencias a símbolos externos en cada módulo objeto y determina la secuencia de enlace adecuada.
+
+\item \textbf{Construcción de la tabla de símbolos global:}\\
+Fusiona las tablas de símbolos de todos los módulos, asignando direcciones provisionales a los símbolos definidos y marcando los externos no resueltos.
+
+\item \textbf{Resolución de referencias cruzadas:}\\
+Para cada símbolo externo referenciado, busca su definición en la tabla global y actualiza las referencias en el código objeto con direcciones relativas o absolutas según convenga.
+
+\item \textbf{Gestión de bibliotecas:}\\
+Incluye en el ejecutable sólo los módulos necesarios de las bibliotecas estáticas, minimizando el tamaño final.
+
+\item \textbf{Generación del fichero ejecutable:}\\
+Ensambla los segmentos relocados en un único fichero de salida con formato ejecutable, incluyendo una cabecera que especifica:
+\begin{itemize}
+\item Dirección de carga predeterminada.
+\item Punto de entrada (símbolo \texttt{main}).
+\item Tamaños y ubicaciones de segmentos de código, datos y pila.
+\end{itemize}
+
+\item \textbf{Producción de información de depuración (opcional):}\\
+Incorpora en el ejecutable tablas de símbolos y mapas de segmentos para facilitar el debugging y análisis de rendimiento.
+\end{enumerate}
+
+\subsection{Cargador}
+
+\begin{enumerate}
+\item \textbf{Lectura de cabecera del programa:}\\
+El cargador extrae del fichero de objeto la tabla de segmentos (código, datos, pila) y la tabla de símbolos relocables, incluyendo:
+\begin{itemize}
+\item Dirección de carga propuesta por el usuario.
+\item Tamaños de cada segmento.
+\item Entradas relocables (instrucciones o datos con direcciones relativas).
+\end{itemize}
+
+\item \textbf{Relocalización de direcciones:}\\
+Para cada entrada relocable, modifica el campo de dirección sumándole la \emph{dirección de carga base}:
+$       \text{dirección\_absoluta} = \text{dirección\_relativa} + \text{base\_carga}
+    $
+De esta forma convierte todas las referencias relativas a direcciones absolutas en el espacio de memoria.
+
+\item \textbf{Resolución de símbolos externos:}\\
+Si el programa referenció símbolos definidos en otros módulos, busca en la tabla de símbolos del enlazador las direcciones finales y parchea las instrucciones correspondientes con sus direcciones absolutas.
+
+\item \textbf{Escritura en memoria RAM:}\\
+\begin{itemize}
+\item Copia el segmento de código (instrucciones de 64 bits) en las celdas de memoria a partir de la dirección de carga base.
+\item Copia el segmento de datos inicializados en las celdas posteriores.
+\item Ajusta el puntero de pila (\texttt{SP}) al espacio reservado para la pila, calculado en función de la dirección de carga.
+\end{itemize}
+
+\item \textbf{Inicialización de registros de control:}\\
+\begin{itemize}
+\item Carga el registro \texttt{PC} (contador de programa) con la dirección de entrada especificada en la cabecera.
+\item Borra o inicializa el registro \texttt{ESTADO} (banderas) a cero.
+\end{itemize}
+
+\item \textbf{Verificación y chequeo de errores:}\\
+Comprueba que ninguna dirección de carga exceda los límites de la memoria disponible y que no haya solapamiento entre segmentos. En caso de error, devuelve un código de fallo.
+
+\item \textbf{Transferencia de control:}\\
+Una vez completada la carga, transfiere el control de la ejecución al \texttt{PC}, iniciando el ciclo de fetch–decode–execute de la CPU.
+\end{enumerate}
+
 
 \section{Algoritmos de Prueba}
 
