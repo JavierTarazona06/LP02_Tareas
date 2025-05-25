@@ -9,7 +9,7 @@ def get_huffman_for_instructions():
     for length, ISA_list in dict_isa.items():
         huff_list.append((int(length), len(ISA_list)))
 
-    huffman_dict = Math.huffman_set(huff_list)
+    huffman_dict:dict[int, list[list[int]]] = Math.huffman_set(huff_list)
 
     for key, value in huffman_dict.items():
         huffman_dict[key] = []
