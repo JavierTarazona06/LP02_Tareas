@@ -150,80 +150,6 @@ Este bus es unidireccional, va desde la CPU hacia la memoria o
 dispositivos de E/S, y es usado durante operaciones de lectura o
 escritura para indicar la dirección objetivo.
 
-
-\subsection{Unidad Central de Proceso (CPU)}
-
-La CPU está compuesta por los dos módulos esenciales en un procesador clásico:
-
-\begin{itemize}
-  \item \textbf{Unidad Aritmético-Lógica (ALU):}
-        \begin{itemize}
-          \item Ejecuta operaciones matemáticas y lógicas.
-          \item Contiene los \textbf{registros de propósito general}, además de los registros PC, SP, IR, ESTADO. Ver detalle del campo \texttt{ESTADO} más adelante.
-        \end{itemize}
-  \item \textbf{Unidad de Control (UC):}
-        \begin{itemize}
-          \item Incluye el \textbf{decodificador de instrucciones}, el \textbf{program counter (PC)} y el \textbf{registro de instrucciones (IR)}.
-          \item Interpreta el \texttt{opcode} de cada palabra de instrucción y coordina el flujo de datos en el sistema.
-        \end{itemize}
-\end{itemize}
-
-Ambas unidades están en \textbf{comunicación constante} para avanzar en la ejecución del programa, decodificando y ejecutando instrucciones de 64 bits mediante los buses conectados de datos, direcciones y control.
-
-\subsubsection{Registros}
-
-\begin{itemize}
-  \item Codificados en 5 bits $\rightarrow$ \textbf{32 registros disponibles}.
-  \item Se incluyen registros de propósito general (\texttt{R0} a \texttt{R31}), además de registros especiales:
-        \begin{itemize}
-          \item \textbf{\texttt{R0: PC}}: Program Counter: Apunta a la dirección de la próxima instrucción.
-          \item \textbf{\texttt{R1: SP}}: Stack Pointer.
-          \item \textbf{\texttt{R2: IR}}: Instruction Register: Almacena la instrucción actual que está siendo ejecutada.
-          \item \textbf{\texttt{R3: ESTADO}}: Banderas que permiten obtener información sobre los resultados.
-        \end{itemize}
-\end{itemize}
-
-\begin{table}[H]
-  \centering
-  \begin{tabular}{|c|c|c|}
-    \hline
-    \textbf{Bit} & \textbf{Nombre} & \textbf{Significado}                                                \\
-    \hline
-    0            & \texttt{C}      & Resultado igual a cero (\texttt{== 0})                              \\
-    1            & \texttt{P}      & Resultado estrictamente positivo (\texttt{> 0})                     \\
-    2            & \texttt{N}      & Resultado estrictamente negativo (\texttt{< 0})                     \\
-    3            & \texttt{D}      & \textbf{Desbordamiento (Overflow)}: el resultado no cabe en 64 bits \\
-    4            & —               & \textbf{Reservado}                                                  \\
-    5            & —               & \textbf{Reservado}                                                  \\
-    6            & —               & \textbf{Reservado}                                                  \\
-    7            & —               & \textbf{Reservado}                                                  \\
-    \hline
-  \end{tabular}
-  \caption{Banderas del registro ESTADO}
-\end{table}
-
-\begin{itemize}
-  \item \textbf{\texttt{R4} a \texttt{R31}}: Propósito general.
-\end{itemize}
-
-\begin{table}[H]
-  \centering
-  \begin{tabular}{|c|c|}
-    \hline
-    \textbf{Registro}   & \textbf{Codificación} \\
-    \hline
-    \texttt{R0: PC}     & 00000                 \\
-    \texttt{R1: SP}     & 00001                 \\
-    \texttt{R2: IR}     & 00010                 \\
-    \texttt{R3: ESTADO} & 00011                 \\
-    \texttt{R4}         & 00100                 \\
-    \vdots              & \vdots                \\
-    \texttt{R31}        & 11111                 \\
-    \hline
-  \end{tabular}
-  \caption{Tabla de registros}
-\end{table}
-
 \subsection{Memoria Principal (RAM)}
 
 \begin{itemize}
@@ -303,43 +229,79 @@ La pila \textbf{crece hacia direcciones de memoria menores}, es decir, cada oper
 \end{itemize}
 
 
-\subsection{Instrucciones}
 
-Las instrucciones del procesador están codificadas en palabras de 64 bits, siguiendo el formato:
+\subsection{Unidad Central de Proceso (CPU)}
 
-\begin{table}[h!]
+La CPU está compuesta por los dos módulos esenciales en un procesador clásico:
+
+\begin{itemize}
+  \item \textbf{Unidad Aritmético-Lógica (ALU):}
+        \begin{itemize}
+          \item Ejecuta operaciones matemáticas y lógicas.
+          \item Contiene los \textbf{registros de propósito general}, además de los registros PC, SP, IR, ESTADO. Ver detalle del campo \texttt{ESTADO} más adelante.
+        \end{itemize}
+  \item \textbf{Unidad de Control (UC):}
+        \begin{itemize}
+          \item Incluye el \textbf{decodificador de instrucciones}, el \textbf{program counter (PC)} y el \textbf{registro de instrucciones (IR)}.
+          \item Interpreta el \texttt{opcode} de cada palabra de instrucción y coordina el flujo de datos en el sistema.
+        \end{itemize}
+\end{itemize}
+
+Ambas unidades están en \textbf{comunicación constante} para avanzar en la ejecución del programa, decodificando y ejecutando instrucciones de 64 bits mediante los buses conectados de datos, direcciones y control.
+
+\subsubsection{Registros}
+
+\begin{itemize}
+  \item Codificados en 5 bits $\rightarrow$ \textbf{32 registros disponibles}.
+  \item Se incluyen registros de propósito general (\texttt{R0} a \texttt{R31}), además de registros especiales:
+        \begin{itemize}
+          \item \textbf{\texttt{R0: PC}}: Program Counter: Apunta a la dirección de la próxima instrucción.
+          \item \textbf{\texttt{R1: SP}}: Stack Pointer.
+          \item \textbf{\texttt{R2: IR}}: Instruction Register: Almacena la instrucción actual que está siendo ejecutada.
+          \item \textbf{\texttt{R3: ESTADO}}: Banderas que permiten obtener información sobre los resultados.
+        \end{itemize}
+\end{itemize}
+
+\begin{table}[H]
   \centering
   \begin{tabular}{|c|c|c|}
     \hline
-    \textbf{Campo}                                     & \textbf{Bits} & \textbf{Descripción}                           \\
+    \textbf{Bit} & \textbf{Nombre} & \textbf{Significado}                                                \\
     \hline
-    \texttt{Opcode}                                    & 6             & Código que determina la operación a ejecutar   \\
-    \texttt{Registro destino}                          & 5             & Registro donde se almacenará el resultado      \\
-    \texttt{Registro base}                             & 5             & Registro utilizado para direccionamiento base  \\
-    \texttt{Memoria o Desplazamiento de registro base} & 24            & Offset o dirección absoluta en memoria         \\
-    \texttt{Extra o valor Inmediato}                   & 24            & Reservado para ampliación o valores inmediatos \\
+    0            & \texttt{C}      & Resultado igual a cero (\texttt{== 0})                              \\
+    1            & \texttt{P}      & Resultado estrictamente positivo (\texttt{> 0})                     \\
+    2            & \texttt{N}      & Resultado estrictamente negativo (\texttt{< 0})                     \\
+    3            & \texttt{D}      & \textbf{Desbordamiento (Overflow)}: el resultado no cabe en 64 bits \\
+    4            & —               & \textbf{Reservado}                                                  \\
+    5            & —               & \textbf{Reservado}                                                  \\
+    6            & —               & \textbf{Reservado}                                                  \\
+    7            & —               & \textbf{Reservado}                                                  \\
     \hline
   \end{tabular}
+  \caption{Banderas del registro ESTADO}
 \end{table}
 
-Este formato se \textbf{reutiliza} para los tres tipos de instrucciones:
-
 \begin{itemize}
-  \item \textbf{Tipo I (inmediato / memoria)}: todos los campos son relevantes.
-  \item \textbf{Tipo R (entre registros)}: el campo \texttt{Memoria} puede representar un segundo registro o dejarse en cero.
-  \item \textbf{Tipo J (salto)}: se usa el campo \texttt{Memoria} como dirección absoluta, y los demás campos se ignoran o se rellenan con ceros.
+  \item \textbf{\texttt{R4} a \texttt{R31}}: Propósito general.
 \end{itemize}
 
-Esta salvedad aplica para todos los casos a no ser que se especifique lo contrario en una instrucción específica.
-
-\subsubsection{Opcodes}
-
-\begin{itemize}
-  \item Codificados en 6 bits.
-  \item Capacidad para definir \textbf{hasta 64 instrucciones distintas}.
-  \item Instrucciones divididas en categorías: aritméticas, lógicas, control de flujo, memoria, E/S.
-\end{itemize}
-
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|c|c|}
+    \hline
+    \textbf{Registro}   & \textbf{Codificación} \\
+    \hline
+    \texttt{R0: PC}     & 00000                 \\
+    \texttt{R1: SP}     & 00001                 \\
+    \texttt{R2: IR}     & 00010                 \\
+    \texttt{R3: ESTADO} & 00011                 \\
+    \texttt{R4}         & 00100                 \\
+    \vdots              & \vdots                \\
+    \texttt{R31}        & 11111                 \\
+    \hline
+  \end{tabular}
+  \caption{Tabla de registros}
+\end{table}
 
 \subsection{Ciclos del Computador}
 
@@ -372,6 +334,239 @@ El ordenador va a pasar por los ciclos de \texttt{fetch-decode-execute}:
   \item Si aplica, se actualiza el registro \textbf{ESTADO (\texttt{R3})} con los indicadores del resultado.
 \end{itemize}
 
+
+
+\subsection{Instrucciones}
+
+Las instrucciones del procesador están codificadas 
+en palabras de 64 bits.
+
+Se aplcian las siguientes convenciones:
+\begin{itemize}
+  \item \textbf{R}: es para registros.
+  \item \textbf{M}: es para dirección de memoria.
+  \item \textbf{V}*: es para valores inmediatos. 
+        Ocupa los 32 bits menos significativos de la instrucción. 
+        A no ser
+        de que se especifique lo contrario.
+\end{itemize}
+
+\subsubsection{Formatos de instrucción}
+
+Dado que la longitud del opcode
+es variable dependiendo de la instrucción,
+Se han diseñado los siguientes tipos:\\
+
+\textbf{De Código completo}
+
+Instrucciones que realizan acciones de control
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+ & \textbf{Opcode} \\ \hline
+\textbf{Bits} & 63 a 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Intrucciones tipo R:}
+
+Operaciones entre registros.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+ & \textbf{Opcode} & \textbf{R}  \\ \hline
+\textbf{Bits} &63 a 5 & 4 a 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+ & \textbf{Opcode} & \textbf{R} & \textbf{R'} \\ \hline
+\textbf{Bits} &63 a 10 & 9 a 5 & 4 a 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\textbf{Intrucciones tipo I:}
+
+Operaciones con valores inmediatos o memoria.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+ & \textbf{Opcode} & \textbf{R} & \textbf{M} \\ \hline
+\textbf{Bits} &63 a 29 & 28 a 24 & 23 a 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+ & \textbf{Opcode} & \textbf{R} & \textbf{V} \\ \hline
+\textbf{Bits} &63 a 37 & 36 a 32 & 31 a 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Intrucciones tipo J:}
+
+Operaciones que saltan a una dirección de memoria o la manejan.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+ & \textbf{Opcode} & \textbf{M} \\ \hline
+\textbf{Bits} &63 a 24 & 23 a 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Tablas de instrucciones}
+
+\textbf{De Código completo}
+
+\begin{longtable}{|p{0.2\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|p{0.3\textwidth}|}
+  \hline
+  \textbf{Código Ensamblador} & \textbf{Código Máquina Hexadecimal} & \textbf{Instrucción}                                               & \textbf{Descripción}                       \\
+  \hline
+  \texttt{PROCRASTINA}         &     & 
+    No hace nada (instrucción vacía), sirve para no hacer nada por un ciclo de reloj, 
+        se usa para temas de sincronización, o simplemente para que el PC se parezca un poco más 
+        a sus diseñadores. & 
+    Si quieres ver un anime en vez de hacer la tarea o irte a jugar r6 en vez de adelantar 
+        un trabajo.\\
+  \hline
+  \texttt{VUELVE} &  & 
+    Vuelve desde la subrutina desde la que se encuentre, esto al hacer DESAPILA y guardar 
+        el resultado desapilado en el PC. & 
+    DESAPILA R y luego: $PC \leftarrow R$                                                                                  \\
+  \hline
+  \texttt{PARA} &  & Detiene la ejecución del programa & 
+    Se detiene el ciclo de instrucciones, ya sea deteniendo completamente la CPU o 
+        entrando en un estado de espera (IDLE) \\
+  \hline
+\end{longtable}
+
+
+\textbf{Intrucciones tipo R:}
+
+\begin{longtable}{|p{0.2\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|p{0.3\textwidth}|}
+  \hline
+  \textbf{Código Ensamblador} & \textbf{Código Máquina Hexadecimal} & \textbf{Instrucción}                                               & \textbf{Descripción}                       \\
+  \hline
+  \texttt{SUMA R, R'}  &     & Suma dos registros R y R'                                          & $R \leftarrow  R + R'$                     \\
+  \hline
+  \texttt{RESTA R, R'} &     & Resta dos registros                                                & $R \leftarrow R - R'$                      \\
+  \hline
+  \texttt{MULT R, R'}  &     & Multiplica dos registros                                           & $R \leftarrow R \times R'$                 \\
+  \hline
+  \texttt{DIVI R, R'}  &     & Realiza la división entera entre dos registros                     & $\lfloor R \leftarrow R / R' \rfloor$      \\
+  \hline
+  \texttt{AND R, R'}   &     & Conjunción bit a bit                                               & $R \leftarrow R \wedge R'$                 \\
+  \hline
+  \texttt{OR R, R'}    &     & Disyunción bit a bit                                               & $R \leftarrow R \vee R'$                   \\
+  \hline
+  \texttt{XOR R, R'}   &     & XOR bit a bit                                                      & $R \leftarrow R \oplus R'$                 \\
+  \hline
+  \texttt{COMP R, R'}  &     & Compara dos registros                                              & Actualiza el registro ESTADO \\
+  \hline
+  \texttt{COPIA R, R'} &     & Copia el valor de un registro a otro                               & R ← R'                                     \\
+  \hline
+  \texttt{NOT R}       &     & Negación bit a bit                                                 & R ← $\sim$R (inversión de bits)            \\
+  \hline
+  \texttt{LIMP R}    &     & Limpia (pone en cero) el contenido de un registro & R ← 0                                      \\
+  \hline
+  \texttt{INCRE R}     &     & Incrementa un registro en 1                                        & $R \leftarrow R + 1$                       \\
+  \hline
+  \texttt{DECRE R}     &     & Decrementa un registro en 1                                        & $R \leftarrow R - 1$                       \\
+  \hline
+  \texttt{APILA R}     &     & Decrementa (la pila crece hacia abajo en la memoria) el registro SP (R1) y hace push del registro R en la pila (lo guarda)                                                                    & $R1 (SP) \leftarrow R1 - 1$ y guarda en la dirección que contiene SP a R:  $*SP \leftarrow R$                       \\
+  \hline
+  \texttt{DESAPILA R}  &     & Guarda el contenido de la dirección que está en SP en el registro R, y luego incrementa SP (R1). (la pila crece hacia abajo, esto es un pop)                                                  & $R \leftarrow *SP(R1)$, luego incrementa SP: $R1(SP) \leftarrow  R1 + 1 $                                           \\
+  \hline
+\end{longtable}
+
+\textbf{Intrucciones tipo I:}
+
+\begin{longtable}{|p{0.2\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|p{0.3\textwidth}|}
+  \hline
+  \textbf{Código Ensamblador} & \textbf{Código Máquina Hexadecimal} & \textbf{Instrucción}                                               & \textbf{Descripción}                       \\
+  \hline
+  \texttt{CARGA R, M}  &  & Carga desde el espacio de memoria M al registro R                                                                                                                                             & $R \leftarrow M$                                                                                                    \\
+  \hline
+  \texttt{GUARD R, M}  &  & Guarda el contenido del registro R en el espacio de memoria M                                                                                                                                 & $M \leftarrow R$                                                                                                    \\
+  \hline
+  \texttt{SIREGCERO R M}   &  & Salta a M si el registro R es igual a 0.                                                                                                                                                    & Verifica si R == 0 y al confirmarlo hace un SALTA M.                                                                   \\
+  \hline
+  \texttt{SIREGNCERO R M}  &  & Salta a M si un registro R no es igual a cero.                                                                                                                                              & Verifica si R $\neq$ 0 y al confirmarlo hace un SALTA M.                                                                    \\
+  \hline
+  \texttt{ICARGA R, V} &  & Carga un valor inmediato V a un registro R. V se guarda en los 32 bits menos significativos del registro.                                                                                     & $R \leftarrow V$                                                                                                    \\
+  \hline
+  \texttt{ISCARGA R, V}&  & Carga un valor inmediato V a un registro R.  V se guarda en los 32 bits más significativos del registro.                                                                                      & $R \leftarrow V$                                                                                                    \\
+  \hline
+  \texttt{ISUMA R, V}  &  & Suma inmediata de un valor V a un registro R                                                                                                                                                  & $R \leftarrow R + V$                                                                                                \\
+  \hline
+  \texttt{IRESTA R, V} &  & Resta inmediata de un valor V a un registro R                                                                                                                                                 & $R \leftarrow R - V$                                                                                                \\
+  \hline
+  \texttt{IMULT R, V}  &  & Multiplica un registro por un inmediato                                                                                                                                                       & $R \leftarrow R \times V$                                                                                           \\
+  \hline
+  \texttt{IDIVI R, V}  &  & Realiza la división entera de un registro R entre un valor inmediato V                                                                                                                        & $R \Leftarrow \lfloor R / V \rfloor $                                                                               \\
+  \hline
+  \texttt{IAND R, V}   &  & Conjunción AND entre un registro R y un valor inmediato V                                                                                                                                     & $ R \leftarrow R \wedge R'$                                                                                         \\
+  \hline
+  \texttt{IOR R, V}    &  & Disyunción OR entre un registro R y un valor inmediato V                                                                                                                                      & $R \leftarrow R \vee R'$                                                                                            \\
+  \hline
+  \texttt{IXOR R, V}   &  & XOR bit a bit entre un registro R y un valor inmediato V                                                                                                                                      & $R \leftarrow R \oplus R'$                                                                                          \\
+  \hline
+  \texttt{ICOMP R, V}  &  & Compara un registro R con un valor inmediato V y guarda el resultado en R3 (Registro de estado)                                                                                               & Se realiza la resta $R - V$ y se indica si el resultado es positivo ($R > V$), negativo ($R < V$) o cero ($R = V$). \\
+  \hline
+\end{longtable}
+
+\textbf{Intrucciones tipo J:}
+
+\begin{longtable}{|p{0.2\textwidth}|p{0.25\textwidth}|p{0.25\textwidth}|p{0.3\textwidth}|}
+  \hline
+  \textbf{Código Ensamblador} & \textbf{Código Máquina Hexadecimal} & \textbf{Instrucción}                                               & \textbf{Descripción}                       \\
+  \hline
+  \texttt{SALTA M}     &  & Salta incondicionalmente a la dirección M, es decir, guarda la dirección M en el R0 (PC) program counter para que en el siguiente ciclo continúe desde ahí.                              & $PC(R0) \leftarrow M$                                                                                                  \\
+  \hline
+  \texttt{LLAMA M}     &  & Llama a la subrutina en la dirección M, primero guarda el PC(R0) en la pila al hacer un APILA, luego pone en el PC (R0) el valor de M, donde empieza la subrutina.                        & APILA PC(R0) y luego: $PC \leftarrow M$                                                                                \\
+  \hline
+  \texttt{SICERO M}    &  & Salta si el resultado de la última comparación fue cero (C=1), al verificar el bit C del R3 (estado).                                                                                    & Verifica si C=1 y al confirmarlo hace un SALTA M                                                                       \\
+  \hline
+  \texttt{SINCERO M}   &  & Salta a M si el resultado de la última comparación no fue cero (C=0)                                                                                                                       & Verifica si C=0 en el R3 (estado) y al confirmarlo hace un SALTA M                                                     \\
+  \hline
+  \texttt{SIPOS M}     &  & Salta si el resultado de la última comparación fue positivo (P=1)                                                                                                                          & Verifica si P=1 y al confirmarlo hace un SALTA M                                                                       \\
+  \hline
+  \texttt{SINEG M}     &  & Salta si el resultado de la última comparación fue negativo (N=1)                                                                                                                          & Verifica si N=1 en el R3 (estado) y al confirmarlo hace un SALTA M                                                     \\
+  \hline
+  \texttt{SIOVERFL M}  &  & Salta si el resultado de la última comparación u operación tuvo overflow (D=1)                                                                                                            & Verifica si D=1 en R3 (estado) y al confirmarlo hace un SALTA M.                                                       \\
+  \hline
+  \texttt{SIMAYOR M}   &  & Salta si el resultado de la última operación es de mayor que, es decir, al comparar, el resultado fue positivo y no fue igual a cero. $(P = 1 \land C = 0)$                              & Verifica si los flags P y C cumplen las condiciones y al confirmarlo hace un SALTA M.                                 \\
+  \hline
+  \texttt{SIMENOR M}   &  & Salta si el resultado de la última operación es de menor que, es decir, al comparar, el resultado fue negativo. (N=1)                                                                    & Verifica si el flag N en R3 (estado) está activado, al confirmarlo hace un SALTA M.                                   \\
+  \hline
+  \texttt{INTERRUP M}  &  & Dispara una interrupción por software, guardando el estado actual del program counter en la pila junto con los flags o registros relevantes, luego salta a la rutina de interrupción M.  & Se guardan los estados del sistema, se hace un APILA PC y se SALTA M.                                                  \\
+  \hline
+\end{longtable}
+
+
+%---------------------------------------------------------------------------------
+% Detalles  -----------------------------------------------------------
+%---------------------------------------------------------------------------------
 
 \subsection{Detalles}
 
@@ -420,7 +615,7 @@ En versiones futuras, se planea implementar instrucciones especializadas para op
 
 \texttt{FADD}, \texttt{FSUB}, \texttt{FMUL}, \texttt{FDIV}.
 
-\subsubsection{Manejar valores inmediatos grandes}
+\textbf{Manejar valores inmediatos grandes}
 
 Las instrucciones de tipo \textbf{I} permiten cargar \textit{inmediatos} de hasta \textbf{24 bits}.  
 Para valores negativos, se realiza automáticamente una \textit{extensión de signo} 
@@ -435,128 +630,6 @@ estrategia extendida basada en dos instrucciones secuenciales:
 \end{itemize}
 
 Pero en un diseño posterior o si se requiere para extender funcionalidades.
-
-
-
-\subsection{Microinstrucciones}
-
-\begin{itemize}
-  \item Cada una de 6 bits: Posibilidad de 64 instrucciones
-  \item \textbf{R}: es para registros.
-  \item \textbf{M}: es para dirección de memoria.
-  \item \textbf{V}*: es para valores inmediatos. Ocupa los 32 bits menos significativos de la instrucción. A no ser
-        de que se especifique lo contrario.
-  \item Para diferenciar entre los contenidos de los registros y sus direcciones usamos la notación de punteros de C, donde \texttt{\&R} es la dirección del registro \texttt{R} y si R contiene una dirección, entonces .\texttt{*R} es el contenido de la dirección que contiene \texttt{R}.
-\end{itemize}
-
-\subsubsection{Tipo R: \textbf{entre registros}}
-
-\begin{longtable}{|p{0.1\textwidth}|p{0.2\textwidth}|p{0.1\textwidth}|p{0.3\textwidth}|p{0.3\textwidth}|}
-  \hline
-  \textbf{Número} & \textbf{Código Ensamblador} & \textbf{Código Máquina Binario} & \textbf{Instrucción}                                               & \textbf{Descripción}                       \\
-  \hline
-  1               & \texttt{SUMA R, R'}         & 000001                          & Suma dos registros R y R'                                          & $R \leftarrow  R + R'$                     \\
-  \hline
-  2               & \texttt{RESTA R, R'}        & 000010                          & Resta dos registros                                                & $R \leftarrow R - R'$                      \\
-  \hline
-  3               & \texttt{MULT R, R'}         & 000011                          & Multiplica dos registros                                           & $R \leftarrow R \times R'$                 \\
-  \hline
-  4               & \texttt{DIVI R, R'}         & 000100                          & Realiza la división entera entre dos registros                     & $\lfloor R \leftarrow R / R' \rfloor$      \\
-  \hline
-  5               & \texttt{AND R, R'}          & 000101                          & Conjunción bit a bit                                               & $R \leftarrow R \wedge R'$                 \\
-  \hline
-  6               & \texttt{OR R, R'}           & 000110                          & Disyunción bit a bit                                               & $R \leftarrow R \vee R'$                   \\
-  \hline
-  7               & \texttt{XOR R, R'}          & 000111                          & XOR bit a bit                                                      & $R \leftarrow R \oplus R'$                 \\
-  \hline
-  8               & \texttt{NOT R}              & 001000                          & Negación bit a bit                                                 & R ← $\sim$R (inversión de bits)            \\
-  \hline
-  9               & \texttt{COMP R, R'}         & 001001                          & Compara dos registros                                              & Actualiza el registro ESTADO (\texttt{R3}) \\
-  \hline
-  10              & \texttt{COPIA R, R'}        & 001010                          & Copia el valor de un registro a otro                               & R ← R'                                     \\
-  \hline
-  11              & \texttt{LIMP \&R}           & 001011                          & Limpia (pone en cero) un registro usando su dirección \texttt{\&R} & R ← 0                                      \\
-  \hline
-  12              & \texttt{INCRE R}            & 001100                          & Incrementa un registro en 1                                        & $R \leftarrow R + 1$                       \\
-  \hline
-  13              & \texttt{DECRE R}            & 001101                          & Decrementa un registro en 1                                        & $R \leftarrow R + 1$                       \\
-  \hline
-\end{longtable}
-
-\subsubsection{Tipo I: \textbf{inmediato / memoria}}
-
-\begin{longtable}{|p{0.1\textwidth}|p{0.2\textwidth}|p{0.1\textwidth}|p{0.3\textwidth}|p{0.3\textwidth}|}
-  \hline
-  \textbf{Número} & \textbf{Código}      & \textbf{Código Máquina Binario} & \textbf{Instrucción}                                                                                                                                                                          & \textbf{Descripción}                                                                                                \\
-  \hline
-  14              & \texttt{CARGA R, M}  & \texttt{001110} & Carga desde el espacio de memoria M al registro R                                                                                                                                             & $R \leftarrow M$                                                                                                    \\
-  \hline
-  15              & \texttt{GUARD M, R}  & \texttt{001111} & Guarda el contenido del registro R en el espacio de memoria M                                                                                                                                 & $M \leftarrow R$                                                                                                    \\
-  \hline
-  *16             & \texttt{ICARGA R, V} & \texttt{010000} & Carga un valor inmediato V a un registro R. V se guarda en los 32 bits menos significativos del registro.                                                                                     & $R \leftarrow V$                                                                                                    \\
-  \hline
-  *17             & \texttt{ISCARGA R, V}& \texttt{010001} & Carga un valor inmediato V a un registro R.  V se guarda en los 32 bits más significativos del registro.                                                                                      & $R \leftarrow V$                                                                                                    \\
-  \hline
-  18              & \texttt{ISUMA R, V}  & \texttt{010010} & Suma inmediata de un valor V a un registro R                                                                                                                                                  & $R \leftarrow R + V$                                                                                                \\
-  \hline
-  19              & \texttt{IRESTA R, V} & \texttt{010011} & Resta inmediata de un valor V a un registro R                                                                                                                                                 & $R \leftarrow R - V$                                                                                                \\
-  \hline
-  20              & \texttt{IMULT R, V}  & \texttt{010100} & Multiplica un registro por un inmediato                                                                                                                                                       & $R \leftarrow R \times V$                                                                                           \\
-  \hline
-  21              & \texttt{IDIVI R, V}  & \texttt{010101} & Realiza la división entera de un registro R entre un valor inmediato V                                                                                                                        & $R \Leftarrow \lfloor R / V \rfloor $                                                                               \\
-  \hline
-  22              & \texttt{IAND R, V}   & \texttt{010110} & Conjunción AND entre un registro R y un valor inmediato V                                                                                                                                     & $ R \leftarrow R \wedge R'$                                                                                         \\
-  \hline
-  23              & \texttt{IOR R, V}    & \texttt{010111} & Disyunción OR entre un registro R y un valor inmediato V                                                                                                                                      & $R \leftarrow R \vee R'$                                                                                            \\
-  \hline
-  24              & \texttt{IXOR R, V}   & \texttt{011000} & XOR bit a bit entre un registro R y un valor inmediato V                                                                                                                                      & $R \leftarrow R \oplus R'$                                                                                          \\
-  \hline
-  25              & \texttt{ICOMP R, V}  & \texttt{011001} & Compara un registro R con un valor inmediato V y guarda el resultado en R3 (Registro de estado)                                                                                               & Se realiza la resta $R - V$ y se indica si el resultado es positivo ($R > V$), negativo ($R < V$) o cero ($R = V$). \\
-  \hline
-  26              & \texttt{APILA R}     & \texttt{011010} & Decrementa (la pila crece hacia abajo en la memoria) el registro SP (R1) y hace push del registro R en la pila (lo guarda)                                                                    & $R1 (SP) \leftarrow R1 - 1$ y guarda en la dirección que contiene SP a R:  $*SP \leftarrow R$                       \\
-  \hline
-  27              & \texttt{DESAPILA R}  & \texttt{011011} & Guarda el contenido de la dirección que está en SP en el registro R, y luego incrementa SP (R1). (la pila crece hacia abajo, esto es un pop)                                                  & $R \leftarrow *SP(R1)$, luego incrementa SP: $R1(SP) \leftarrow  R1 + 1 $                                           \\
-  \hline
-  28              & \texttt{PROCRASTINA} & \texttt{011100} & No hace nada (instrucción vacía), sirve para no hacer nada por un ciclo de reloj, se usa para temas de sincronización, o simplemente para que el PC se parezca un poco más a sus diseñadores. & Si quieres ver un anime en vez de hacer la tarea o irte a jugar r6 en vez de adelantar un trabajo.                  \\
-  \hline
-\end{longtable}
-
-\subsubsection{Tipo J: \textbf{salto}}
-
-\begin{longtable}{|p{0.1\textwidth}|p{0.2\textwidth}|p{0.1\textwidth}|p{0.3\textwidth}|p{0.3\textwidth}|}
-  \hline
-  \textbf{Número}    & \textbf{Código}                                  & \textbf{Código Máquina Binario} & \textbf{Instrucción}                                                                                                                                                                                                          & \textbf{Descripción}                                                                                                   \\
-  \hline
-  29                 & \texttt{SALTA M}                                 & \texttt{011101} & Salta incondicionalmente a la dirección M, es decir, guarda la dirección M en el R0 (PC) program counter para que en el siguiente ciclo continúe desde ahí.                              & $PC(R0) \leftarrow M$                                                                                                  \\
-  \hline
-  30                 & \texttt{LLAMA M}                                 & \texttt{011110} & Llama a la subrutina en la dirección M, primero guarda el PC(R0) en la pila al hacer un APILA, luego pone en el PC (R0) el valor de M, donde empieza la subrutina.                        & APILA PC(R0) y luego: $PC \leftarrow M$                                                                                \\
-  \hline
-  31                 & \texttt{VUELVE}                                  & \texttt{011111} & Vuelve desde la subrutina desde la que se encuentre, esto al hacer DESAPILA y guardar el resultado desapilado en el PC.                                                                                                       & DESAPILA R y luego: $PC \leftarrow R$                                                                                  \\
-  \hline
-  32                 & \texttt{SICERO M}                                & \texttt{100000} & Salta si el resultado de la última comparación fue cero (C=1), al verificar el bit C del R3 (estado).                                                                                    & Verifica si C=1 y al confirmarlo hace un SALTA M                                                                       \\
-  \hline
-  33                 & \texttt{SINCERO M}                               & \texttt{100001} & Salta a M si el resultado de la última comparación no fue cero (C=0)                                                                                                                       & Verifica si C=0 en el R3 (estado) y al confirmarlo hace un SALTA M                                                     \\
-  \hline
-  34                 & \texttt{SIPOS M}                                 & \texttt{100010} & Salta si el resultado de la última comparación fue positivo (P=1)                                                                                                                          & Verifica si P=1 y al confirmarlo hace un SALTA M                                                                       \\
-  \hline
-  35                 & \texttt{SINEG M}                                 & \texttt{100011} & Salta si el resultado de la última comparación fue negativo (N=1)                                                                                                                          & Verifica si N=1 en el R3 (estado) y al confirmarlo hace un SALTA M                                                     \\
-  \hline
-  36                 & \texttt{SIOVERFL M}                              & \texttt{100100} & Salta si el resultado de la última comparación u operación tuvo overflow (D=1)                                                                                                            & Verifica si D=1 en R3 (estado) y al confirmarlo hace un SALTA M.                                                       \\
-  \hline
-  37                 & \texttt{SIREGCERO R M}                           & \texttt{100101} & Salta a M si el registro R es igual a 0.                                                                                                                                                    & Verifica si R == 0 y al confirmarlo hace un SALTA M.                                                                   \\
-  \hline
-  38                 & \texttt{SIREGNCERO R M}                          & \texttt{100110} & Salta a M si un registro R no es igual a cero.                                                                                                                                              & Verifica si R $\neq$ 0 y al confirmarlo hace un SALTA M.                                                                    \\
-  \hline
-  39                 & \texttt{SIMAYOR M}                               & \texttt{100111} & Salta si el resultado de la última operación es de mayor que, es decir, al comparar, el resultado fue positivo y no fue igual a cero. $(P = 1 \land C = 0)$                              & Verifica si los flags P y C cumplen las condiciones y al confirmarlo hace un SALTA M.                                 \\
-  \hline
-  40                 & \texttt{SIMENOR}                                 & \texttt{101000} & Salta si el resultado de la última operación es de menor que, es decir, al comparar, el resultado fue negativo. (N=1)                                                                    & Verifica si el flag N en R3 (estado) está activado, al confirmarlo hace un SALTA M.                                   \\
-  \hline
-  41                 & \texttt{PARA}                                    & \texttt{101001} & Detiene la ejecución del programa                                                                                                                                                           & Se detiene el ciclo de instrucciones, ya sea deteniendo completamente la CPU o entrando en un estado de espera (IDLE) \\
-  \hline
-  42                 & \texttt{INTERRUP M}                              & \texttt{101010} & Dispara una interrupción por software, guardando el estado actual del program counter en la pila junto con los flags o registros relevantes, luego salta a la rutina de interrupción M.  & Se guardan los estados del sistema, se hace un APILA PC y se SALTA M.                                                  \\
-  \hline
-\end{longtable}
-
 
 
 %---------------------------------------------------------------------------------

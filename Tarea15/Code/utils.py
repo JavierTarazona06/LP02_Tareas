@@ -1,10 +1,24 @@
+import json
 import struct
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import constants
 
 
 class NumberConversion:
+
+    @staticmethod
+    def binary_list2str(binary_list: list[int]) -> str:
+        return "".join(str(bit) for bit in binary_list)
+
+    @staticmethod
+    def str2binary_list(binary_str: str) -> list[int]:
+        if not all(c in ('0', '1') for c in binary_str):
+            raise ValueError(
+                "La cadena debe contener solo "
+                "caracteres '0' o '1'."
+            )
+        return [int(bit) for bit in binary_str]
 
     @staticmethod
     def binary_list2entero(binary_list: list[int]) -> int:
@@ -80,12 +94,16 @@ class NumberConversion:
         """
         Sin complemento a 2
         """
+        if n < 0:
+            raise ValueError("No se admiten valores negativos")
+
         if fix_bits:
             bin_list:list[int] = NumberConversion.entero2binary_list(n, fix_bits + 1)
         else:
             bin_list:list[int] = NumberConversion.entero2binary_list(n, None)
         # Le quito el signo
-        bin_list = bin_list[1:]
+        if len(bin_list) > 1:
+            bin_list = bin_list[1:]
         return bin_list
 
     @staticmethod
@@ -133,3 +151,70 @@ def check_address_operation(operator: str, direccion: int) -> bool:
         raise ValueError("Operador invalido")
 
     return range[0] <= direccion <= range[1]
+
+class Math:
+
+    @staticmethod
+    def build_huffman_with_lengths(lengths: list[int]) -> list[list[int]]:
+        """
+        List of binary numbers of size len(lengths) where
+        the length of code at i is the specified at lengths[i]
+        """
+        codes = []
+        current_code = 0
+        current_length = lengths[0]
+        for length in lengths:
+            # Si el nuevo length es mayor que el anterior, se
+            # le agregan ceros a la derecha
+            # (<<= es desplazamiento a la izquierda).
+            current_code <<= (length - current_length)
+            code = format(current_code, f'0{length}b')
+            codes.append(code)
+            current_code += 1
+            current_length = length
+
+        codes_bin_list = []
+        for code in codes:
+            code_bin = [0 if l=='0' else 1 for l in code]
+            codes_bin_list.append(code_bin)
+        return codes_bin_list
+
+    @staticmethod
+    def huffman_set(lenghts_quan: list[tuple]) -> dict[int, list[list[int]]]:
+        """
+        lenghts_quan: [(length, quantity), ....]
+        """
+        lenghts_quan = sorted(lenghts_quan, key=lambda x: x[0])
+
+        lengths_sep = []
+        for length, quantity in lenghts_quan:
+            for i in range(quantity):
+                lengths_sep.append(length)
+
+        codes_bin_list = Math.build_huffman_with_lengths(lengths_sep)
+
+        codes_bin_grouped = {}
+        for code_bin in codes_bin_list:
+            index = len(code_bin)
+            if index in codes_bin_grouped:
+                codes_bin_grouped[index].append(code_bin)
+            else:
+                codes_bin_grouped[index] = [code_bin]
+
+        return codes_bin_grouped
+
+class FileManager:
+    @staticmethod
+    def dict2JSON(path_JSON:str, data: Dict):
+        if ".json" not in path_JSON:
+            path_JSON += ".json"
+        with open(path_JSON, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+
+    @staticmethod
+    def JSON2dict(path_JSON: str) -> Dict[str, Any]:
+        if not path_JSON.endswith(".json"):
+            path_JSON += ".json"
+
+        with open(path_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)

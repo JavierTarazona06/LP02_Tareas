@@ -142,7 +142,7 @@ class Control:
 
         @staticmethod
         def escribir_memoria():
-            word_bin = Datos.leer(mode="bin")
+            word_bin: list[int] = Datos.leer(mode="bin")
             memory.escribir(
                 Direccion.leer(bin=False),
                 word_bin,

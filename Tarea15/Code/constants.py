@@ -17,7 +17,6 @@ STACK_RANGE = (2031616, MEMORY_SIZE-1)
 
 CONTROL_SIZE = 5
 
-
 # ----------------------------------
 # CPU
 # ----------------------------------
@@ -27,3 +26,10 @@ REGISTERS_SIZE = 32
 INS_TYPE_R = (1, 12)
 INS_TYPE_I = (13, 26)
 INS_TYPE_J = (27, 40)
+
+# ----------------------------------
+# Instructions
+# ----------------------------------
+
+ISA_PATH = "ISA.json"
+OPCODES_PATH = "opcodes.json"
