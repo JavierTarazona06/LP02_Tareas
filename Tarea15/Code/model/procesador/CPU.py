@@ -13,7 +13,7 @@ EN_EJECUCION = False
 
 def fetch():
     # Leer PC
-    pc_word_natural = leer_reg(ALU.PC, mode="natural")
+    curr_pc_word = ALU.registers[ALU.PC]
 
     # Traer instrucción a la que apunta el PC
     bus.Control.escribir(bus.Control.LEER_MEMORIA)
@@ -37,19 +37,32 @@ def fetch():
 
 def decode():
     IR_word_bin: list[int] = leer_reg(ALU.IR, mode="bin")
-    UC.decode(IR_word_bin)
+    CU.decode(IR_word_bin)
 
 
 def execute():
     try:
-        operations[UC.opcode_length][UC.opcode_offset]()
+        operations[CU.opcode_length][CU.opcode_offset]()
     except KeyError:
-        raise ValueError(f"Instrucción {UC.instruction_asm} no definida.")
+        raise ValueError(f"Instrucción {CU.instruction_asm} no definida.")
 
 
 class ALU:
     """ Unidad Aritmético Lógica (ALU) del procesador.
     Contiene los registros del procesador y metodos para manipularlos."""
+
+    # Indice de los registros especiales
+    PC = 0
+    SP = 1
+    IR = 2
+    STATE = 3
+
+    # Indice de los flags dentro del registro ESTADO
+    C = 0
+    P = 1
+    N = 2
+    D = 3
+    registers: np.ndarray = None
 
     @staticmethod
     def set_up():
@@ -108,7 +121,11 @@ class ALU:
         return False
 
 
-class UC:
+class CU:
+    """
+    Unidad de Control (CU) del procesador.
+    Contiene la lógica para decodificar instrucciones y determinar su tipo.
+    """
     # Convenciones de segmentos de instrucción
     instruction_word: list[int] = None
     opcode_length: int = None
@@ -120,12 +137,12 @@ class UC:
     def decode(word_binary: list[int]) -> None:
         if len(word_binary) != constants.WORDS_SIZE_BITS:
             raise ValueError(f"Instruction must be of 64 bits")
-        UC.instruction_word = word_binary
+        CU.instruction_word = word_binary
 
         # Encontrar de qué tipo es la instrucción y cuál es
         opcodes_dict = utils.FileManager.JSON2dict(constants.OPCODES_PATH)
         length, offset = None, None
-        instr_str = NC.binary_list2str(UC.instruction_word)
+        instr_str = NC.binary_list2str(CU.instruction_word)
 
         for length_i, opcodes_list in opcodes_dict.items():
             for idx, opcode in enumerate(opcodes_list):
@@ -139,35 +156,35 @@ class UC:
         if length is None:
             raise ValueError(
                 "No existe opcode con el que inicie la instrucción.")
-        UC.opcode_length = length
-        UC.opcode_offset = offset
+        CU.opcode_length = length
+        CU.opcode_offset = offset
 
         # Obtener la instrucción exacta
         instr_asm_dict = utils.FileManager.JSON2dict(constants.ISA_PATH)
-        UC.instruction_asm = instr_asm_dict[UC.opcode_length][UC.opcode_offset]
+        CU.instruction_asm = instr_asm_dict[CU.opcode_length][CU.opcode_offset]
 
         # Extract args depending on length type
-        UC.instruction_args = []
+        CU.instruction_args = []
         if length == 64:
-            UC.instruction_args.append(UC.instruction_word)  # Code instruction
+            CU.instruction_args.append(CU.instruction_word)  # Code instruction
         elif length == 54:
-            UC.instruction_args.append(UC.instruction_word[0:54])  # Opcode
-            UC.instruction_args.append(UC.instruction_word[54:59])  # R
-            UC.instruction_args.append(UC.instruction_word[59:64])  # R'
+            CU.instruction_args.append(CU.instruction_word[0:54])  # Opcode
+            CU.instruction_args.append(CU.instruction_word[54:59])  # R
+            CU.instruction_args.append(CU.instruction_word[59:64])  # R'
         elif length == 59:
-            UC.instruction_args.append(UC.instruction_word[0:59])  # Opcode
-            UC.instruction_args.append(UC.instruction_word[59:64])  # R
+            CU.instruction_args.append(CU.instruction_word[0:59])  # Opcode
+            CU.instruction_args.append(CU.instruction_word[59:64])  # R
         elif length == 35:
-            UC.instruction_args.append(UC.instruction_word[0:35])  # Opcode
-            UC.instruction_args.append(UC.instruction_word[35:40])  # R
-            UC.instruction_args.append(UC.instruction_word[40:64])  # M
+            CU.instruction_args.append(CU.instruction_word[0:35])  # Opcode
+            CU.instruction_args.append(CU.instruction_word[35:40])  # R
+            CU.instruction_args.append(CU.instruction_word[40:64])  # M
         elif length == 27:
-            UC.instruction_args.append(UC.instruction_word[0:27])  # Opcode
-            UC.instruction_args.append(UC.instruction_word[27:32])  # R
-            UC.instruction_args.append(UC.instruction_word[32:64])  # V
+            CU.instruction_args.append(CU.instruction_word[0:27])  # Opcode
+            CU.instruction_args.append(CU.instruction_word[27:32])  # R
+            CU.instruction_args.append(CU.instruction_word[32:64])  # V
         elif length == 40:
-            UC.instruction_args.append(UC.instruction_word[0:40])  # Opcode
-            UC.instruction_args.append(UC.instruction_word[40:64])  # M
+            CU.instruction_args.append(CU.instruction_word[0:40])  # Opcode
+            CU.instruction_args.append(CU.instruction_word[40:64])  # M
 
 
 class ISA:
@@ -178,8 +195,8 @@ class ISA:
     class R:
         @staticmethod
         def suma():
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            r_p = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            r_p = NC.binary_list2natural(CU.instruction_args[2])
             value: int = (
                 leer_reg(r, mode="int") +
                 leer_reg(r_p, mode="int")
@@ -189,8 +206,8 @@ class ISA:
 
         @staticmethod
         def resta():
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            r_p = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            r_p = NC.binary_list2natural(CU.instruction_args[2])
             value: int = (
                 leer_reg(r, mode="int") -
                 leer_reg(r_p, mode="int")
@@ -200,8 +217,8 @@ class ISA:
 
         @staticmethod
         def mult():
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            r_p = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            r_p = NC.binary_list2natural(CU.instruction_args[2])
             value: int = (
                 leer_reg(r, mode="int") *
                 leer_reg(r_p, mode="int")
@@ -211,8 +228,8 @@ class ISA:
 
         @staticmethod
         def divi():
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            r_p = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            r_p = NC.binary_list2natural(CU.instruction_args[2])
             value: int = (
                 leer_reg(r, mode="int") //
                 leer_reg(r_p, mode="int")
@@ -222,8 +239,8 @@ class ISA:
 
         @staticmethod
         def y_bit_bit():
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            r_p = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            r_p = NC.binary_list2natural(CU.instruction_args[2])
             value: int = (
                 leer_reg(r, mode="int") &
                 leer_reg(r_p, mode="int")
@@ -233,8 +250,8 @@ class ISA:
 
         @staticmethod
         def o_bit_bit():
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            r_p = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            r_p = NC.binary_list2natural(CU.instruction_args[2])
             value: int = (
                 leer_reg(r, mode="int") |
                 leer_reg(r_p, mode="int")
@@ -244,8 +261,8 @@ class ISA:
 
         @staticmethod
         def xor_bit_bit():
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            r_p = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            r_p = NC.binary_list2natural(CU.instruction_args[2])
             value: int = (
                 leer_reg(r, mode="int") ^
                 leer_reg(r_p, mode="int")
@@ -255,8 +272,8 @@ class ISA:
 
         @staticmethod
         def comp():
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            r_p = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            r_p = NC.binary_list2natural(CU.instruction_args[2])
             value: int = (
                 leer_reg(r, mode="int") -
                 leer_reg(r_p, mode="int")
@@ -268,35 +285,35 @@ class ISA:
             """
             Mueve de registro base a destino
             """
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            r_p = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            r_p = NC.binary_list2natural(CU.instruction_args[2])
             value: int = leer_reg(r_p, mode="int")
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
 
         @staticmethod
         def not_bit_bit():
-            r = NC.binary_list2natural(UC.instruction_args[1])
+            r = NC.binary_list2natural(CU.instruction_args[1])
             value: int = ~ leer_reg(r, mode="int")
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
 
         @staticmethod
         def limpia():
-            r = NC.binary_list2natural(UC.instruction_args[1])
+            r = NC.binary_list2natural(CU.instruction_args[1])
             ALU.modify_state(0, mode="int")
             escribir_reg(r, 0, mode="int")
 
         @staticmethod
         def incr():
-            r = NC.binary_list2natural(UC.instruction_args[1])
+            r = NC.binary_list2natural(CU.instruction_args[1])
             value: int = leer_reg(r, mode="int") + 1
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
 
         @staticmethod
         def decr():
-            r = NC.binary_list2natural(UC.instruction_args[1])
+            r = NC.binary_list2natural(CU.instruction_args[1])
             value: int = leer_reg(r, mode="int") - 1
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
@@ -312,8 +329,8 @@ class ISA:
             """
             Contenido dirección de memoria a registro
             """
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            m = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            m = NC.binary_list2natural(CU.instruction_args[2])
 
             bus.Direccion.escribir(m)
             bus.Control.escribir(bus.Control.LEER_MEMORIA)
@@ -329,8 +346,8 @@ class ISA:
             """
             Contenido de un registro en una dirección de memoria
             """
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            m = NC.binary_list2natural(UC.instruction_args[2])
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            m = NC.binary_list2natural(CU.instruction_args[2])
 
             word_bin: list[int] = leer_reg(r, mode="bin")
             bus.Datos.escribir(word_bin, bin=True)
@@ -347,8 +364,8 @@ class ISA:
             los bits menos significativos.
             Hace una limpieza antes de cargar para dejarlo como nuevo.
             """
-            r = NC.binary_list2natural(UC.instruction_args[1])
-            v: list[int] = UC.instruction_args[2]
+            r = NC.binary_list2natural(CU.instruction_args[1])
+            v: list[int] = CU.instruction_args[2]
 
             # val_rec: list[int] = leer_reg(r, mode="bin")
             val_rec: list[int] = [0 for _ in range(constants.WORDS_SIZE_BITS)]
@@ -367,8 +384,8 @@ class ISA:
             Cargar un entero inmediato (32 bits) al registro en
             los bits más significativos
             """
-            r: int = NC.binary_list2natural(UC.instruction_args[1])
-            v: list[int] = UC.instruction_args[2]
+            r: int = NC.binary_list2natural(CU.instruction_args[1])
+            v: list[int] = CU.instruction_args[2]
 
             # Leer lo que ya hay
             val_rec: list[int] = leer_reg(r, mode="bin")
@@ -386,8 +403,8 @@ class ISA:
             """
             Suma el registro destino con un entero inmediato
             """
-            r: int = NC.binary_list2natural(UC.instruction_args[1])
-            v: int = NC.binary_list2natural(UC.instruction_args[2])
+            r: int = NC.binary_list2natural(CU.instruction_args[1])
+            v: int = NC.binary_list2natural(CU.instruction_args[2])
 
             v1 = leer_reg(r, mode="int")
             v2 = v
