@@ -2,58 +2,13 @@ from typing import Callable
 
 import constants
 import utils
+import numpy as np
+from bitarray import bitarray
 from utils import NumberConversion as NC
 
 from model.procesador import bus
 
 EN_EJECUCION = False
-
-def set_up():
-    ALU.set_up()
-
-
-def leer_reg(direccion: int, mode: str) -> int | list[int]:
-    """
-    Devuelve contenido del registro en la dirección especificado
-    Y lo devuelve según el mode
-    mode = ["bin","natural","int"]
-    """
-    palabra_bin = ALU.registros[direccion]
-
-    modo_funcion = {
-        "bin": lambda: palabra_bin,
-        "natural": lambda: NC.binary_list2natural(palabra_bin),
-        "int": lambda: NC.binary_list2entero(palabra_bin)
-    }
-
-    if mode not in modo_funcion:
-        raise ValueError(f"Modo '{mode}' no válido. Opciones: {list(modo_funcion)}")
-
-    return modo_funcion[mode]()
-
-
-def escribir_reg(direccion: int, palabra: int | list[int], mode: str) -> None:
-    """
-    Escribe en el registro de la dirección especificada
-    la palabra según el mode.
-    mode= ["bin","natural","int"]
-    """
-    modo_funcion = {
-        "bin": lambda: palabra.copy(),
-        "natural": lambda: NC.natural2binary_list(palabra, fix_bits=constants.WORDS_SIZE_BITS),
-        "int": lambda: NC.entero2binary_list(palabra, fix_bits=constants.WORDS_SIZE_BITS)
-    }
-
-    if mode not in modo_funcion:
-        raise ValueError(f"Modo '{mode}' no válido. Opciones: {list(modo_funcion)}")
-
-    palabra_bin = modo_funcion[mode]()
-
-    if len(palabra_bin) != constants.WORDS_SIZE_BITS:
-        raise ValueError(
-            f"La palabra debe tener {constants.WORDS_SIZE_BITS} bits.")
-
-    ALU.registros[direccion] = palabra_bin
 
 
 def fetch():
@@ -92,64 +47,65 @@ def execute():
         raise ValueError(f"Instrucción {UC.instruction_asm} no definida.")
 
 
-def check_register_notspecial(register_num: list[int] | int, bin=True, msg: str = None):
-    if bin:
-        register_num = NC.binary_list2natural(register_num)
-    if 0 <= register_num <= 3:
-        if msg:
-            raise ValueError(msg)
-        raise ValueError(
-            "Los registros PC, SP, IR y ESTADO no se pueden modificar con"
-            "instrucciones."
-        )
-
-
 class ALU:
-    # Convenciones de registros
-    registros: list[list[int]] = []
-    PC = 0
-    SP = 1
-    IR = 2
-    ESTADO = 3
-
-    # Flags
-    C = 0
-    P = 1
-    N = 2
-    D = 3
+    """ Unidad Aritmético Lógica (ALU) del procesador.
+    Contiene los registros del procesador y metodos para manipularlos."""
 
     @staticmethod
     def set_up():
-        # Creación de registros
-        word_null = [0 for k in range(constants.WORDS_SIZE_BITS)]
-        for i in range(constants.REGISTERS_SIZE):
-            ALU.registros.append(word_null.copy())
+        """ 
+        Inicializa los registros de la ALU en 0, hay 32 registros donde los primeros 4 son reservados para el PC, SP, IR y ESTADO (0-3). De ahí en adelante, son registros generales (4-31).
+        Cada registro es un objeto bitarray de 64 bits.
+
+        En pocas palabras, inicializa una matriz bidimensional de 32 registros, cada uno con un bitarray de 64 bits.
+        """
+        # 32 registros donde cada uno es un objeto
+        ALU.registers = np.empty(32, dtype=object)
+        for i in range(32):
+            # Cada objeto apunta a un bitarray de 64 bits
+            ALU.registers[i] = bitarray(
+                '0' * constants.WORDS_SIZE_BITS, endian='big')
 
     @staticmethod
-    def modify_state(value_result: int | list[int], mode: str):
+    def read_register(register_id: int) -> bitarray[64]:
         """
-        mode = ["bin", "int"]
+        Lee el registro especificado por register_id y devuelve su contenido como un bitarray de 64 bits.
         """
-        value_bin: list[int] = []
 
-        if mode == "bin":
-            value_bin = value_result.copy()
-            value_result: int = NC.binary_list2entero(value_result)
-        elif mode == "int":
-            value_bin: list[int] = NC.entero2binary_list(value_result)
+        if ALU.is_register_special(register_id):
+            raise ValueError(
+                f"Registro {register_id} es especial y no se puede leer directamente.")
 
-        estado = [0 for _ in range(constants.WORDS_SIZE_BITS)]
+        return ALU.registers[register_id]
 
-        if value_result == 0:
-            estado[constants.WORDS_SIZE_BITS - ALU.C] = 1
-        if value_result > 0:
-            estado[constants.WORDS_SIZE_BITS - ALU.P] = 1
-        if value_result < 0:
-            estado[constants.WORDS_SIZE_BITS - ALU.N] = 1
-        if len(value_bin) > 64:
-            estado[constants.WORDS_SIZE_BITS - ALU.D] = 1
+    @staticmethod
+    def write_register(register_id: int, value: bitarray[64]) -> None:
+        """
+        Escribe el valor en el registro especificado por register_id.
+        El valor debe ser un bitarray de 64 bits.
+        Si el registro es especial, se lanza una excepción.
+        """
 
-        escribir_reg(ALU.ESTADO, estado, mode="bin")
+        if ALU.is_register_special(register_id):
+            raise ValueError(
+                f"Registro {register_id} es especial y no se puede escribir directamente.")
+
+        if len(value) != constants.WORDS_SIZE_BITS:
+            raise ValueError(
+                f"El valor debe tener {constants.WORDS_SIZE_BITS} bits.")
+
+        ALU.registers[register_id] = value.copy()
+
+    @staticmethod
+    def is_register_special(register_id: int):
+        """
+        Verifica si el registro es uno de los registros especiales (PC, SP, IR, ESTADO).
+        Los registros especiales son los primeros 4 registros (0-3).
+        :param register_id: ID del registro a verificar.
+        :return: True si es un registro especial, False en caso contrario."""
+        if 0 <= register_id < 4:
+            return True
+        return False
 
 
 class UC:
@@ -181,7 +137,8 @@ class UC:
                 break  # Salir del ciclo exterior si ya se encontró
 
         if length is None:
-            raise ValueError("No existe opcode con el que inicie la instrucción.")
+            raise ValueError(
+                "No existe opcode con el que inicie la instrucción.")
         UC.opcode_length = length
         UC.opcode_offset = offset
 
@@ -224,8 +181,8 @@ class ISA:
             r = NC.binary_list2natural(UC.instruction_args[1])
             r_p = NC.binary_list2natural(UC.instruction_args[2])
             value: int = (
-                    leer_reg(r, mode="int") +
-                    leer_reg(r_p, mode="int")
+                leer_reg(r, mode="int") +
+                leer_reg(r_p, mode="int")
             )
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
@@ -235,8 +192,8 @@ class ISA:
             r = NC.binary_list2natural(UC.instruction_args[1])
             r_p = NC.binary_list2natural(UC.instruction_args[2])
             value: int = (
-                    leer_reg(r, mode="int") -
-                    leer_reg(r_p, mode="int")
+                leer_reg(r, mode="int") -
+                leer_reg(r_p, mode="int")
             )
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
@@ -246,8 +203,8 @@ class ISA:
             r = NC.binary_list2natural(UC.instruction_args[1])
             r_p = NC.binary_list2natural(UC.instruction_args[2])
             value: int = (
-                    leer_reg(r, mode="int") *
-                    leer_reg(r_p, mode="int")
+                leer_reg(r, mode="int") *
+                leer_reg(r_p, mode="int")
             )
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
@@ -257,8 +214,8 @@ class ISA:
             r = NC.binary_list2natural(UC.instruction_args[1])
             r_p = NC.binary_list2natural(UC.instruction_args[2])
             value: int = (
-                    leer_reg(r, mode="int") //
-                    leer_reg(r_p, mode="int")
+                leer_reg(r, mode="int") //
+                leer_reg(r_p, mode="int")
             )
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
@@ -268,8 +225,8 @@ class ISA:
             r = NC.binary_list2natural(UC.instruction_args[1])
             r_p = NC.binary_list2natural(UC.instruction_args[2])
             value: int = (
-                    leer_reg(r, mode="int") &
-                    leer_reg(r_p, mode="int")
+                leer_reg(r, mode="int") &
+                leer_reg(r_p, mode="int")
             )
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
@@ -279,8 +236,8 @@ class ISA:
             r = NC.binary_list2natural(UC.instruction_args[1])
             r_p = NC.binary_list2natural(UC.instruction_args[2])
             value: int = (
-                    leer_reg(r, mode="int") |
-                    leer_reg(r_p, mode="int")
+                leer_reg(r, mode="int") |
+                leer_reg(r_p, mode="int")
             )
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
@@ -290,8 +247,8 @@ class ISA:
             r = NC.binary_list2natural(UC.instruction_args[1])
             r_p = NC.binary_list2natural(UC.instruction_args[2])
             value: int = (
-                    leer_reg(r, mode="int") ^
-                    leer_reg(r_p, mode="int")
+                leer_reg(r, mode="int") ^
+                leer_reg(r_p, mode="int")
             )
             ALU.modify_state(value, mode="int")
             escribir_reg(r, value, mode="int")
@@ -301,8 +258,8 @@ class ISA:
             r = NC.binary_list2natural(UC.instruction_args[1])
             r_p = NC.binary_list2natural(UC.instruction_args[2])
             value: int = (
-                    leer_reg(r, mode="int") -
-                    leer_reg(r_p, mode="int")
+                leer_reg(r, mode="int") -
+                leer_reg(r_p, mode="int")
             )
             ALU.modify_state(value, mode="int")
 
@@ -410,7 +367,7 @@ class ISA:
             Cargar un entero inmediato (32 bits) al registro en
             los bits más significativos
             """
-            r:int = NC.binary_list2natural(UC.instruction_args[1])
+            r: int = NC.binary_list2natural(UC.instruction_args[1])
             v: list[int] = UC.instruction_args[2]
 
             # Leer lo que ya hay
@@ -449,27 +406,26 @@ class ISA:
     # ------------------
 
 
-
-operations:dict[int, list[Callable[[], None]]] = {
-  64: [
-    "PROCRASTINA", "VUELVE", "PARA"
-  ],
-  54: [
-    ISA.R.suma, ISA.R.resta, ISA.R.mult, ISA.R.divi, ISA.R.y_bit_bit,
-    ISA.R.o_bit_bit, ISA.R.xor_bit_bit, ISA.R.comp, ISA.R.copia
-  ],
-  59: [
-    ISA.R.not_bit_bit, ISA.R.limpia, ISA.R.incr, ISA.R.decr, "APILA", "DESAPILA"
-  ],
-  35: [
-    ISA.I_.cargar, ISA.I_.guardar, "SIREGCERO", "SIREGNCERO"
-  ],
-  27: [
-    ISA.I_.carga_inm, ISA.I_.carga_inm_superior, ISA.I_.suma_inm, "IRESTA", "IMULT",
-    "IDIVI", "IAND", "IOR", "IXOR", "ICOMP"
-  ],
-  40: [
-    "SALTA", "LLAMA", "SICERO", "SINCERO", "SIPOS", "SINEG",
-    "SIOVERFL", "SIMAYOR", "SIMENOR", "INTERRUP"
-  ]
+operations: dict[int, list[Callable[[], None]]] = {
+    64: [
+        "PROCRASTINA", "VUELVE", "PARA"
+    ],
+    54: [
+        ISA.R.suma, ISA.R.resta, ISA.R.mult, ISA.R.divi, ISA.R.y_bit_bit,
+        ISA.R.o_bit_bit, ISA.R.xor_bit_bit, ISA.R.comp, ISA.R.copia
+    ],
+    59: [
+        ISA.R.not_bit_bit, ISA.R.limpia, ISA.R.incr, ISA.R.decr, "APILA", "DESAPILA"
+    ],
+    35: [
+        ISA.I_.cargar, ISA.I_.guardar, "SIREGCERO", "SIREGNCERO"
+    ],
+    27: [
+        ISA.I_.carga_inm, ISA.I_.carga_inm_superior, ISA.I_.suma_inm, "IRESTA", "IMULT",
+        "IDIVI", "IAND", "IOR", "IXOR", "ICOMP"
+    ],
+    40: [
+        "SALTA", "LLAMA", "SICERO", "SINCERO", "SIPOS", "SINEG",
+        "SIOVERFL", "SIMAYOR", "SIMENOR", "INTERRUP"
+    ]
 }

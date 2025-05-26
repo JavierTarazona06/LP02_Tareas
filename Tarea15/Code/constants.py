@@ -27,6 +27,18 @@ INS_TYPE_R = (1, 12)
 INS_TYPE_I = (13, 26)
 INS_TYPE_J = (27, 40)
 
+# Indice de los registros especiales
+PC = 0
+SP = 1
+IR = 2
+STATE = 3
+
+# Indice de los flags dentro del registro ESTADO
+C = 0
+P = 1
+N = 2
+D = 3
+
 # ----------------------------------
 # Instructions
 # ----------------------------------
