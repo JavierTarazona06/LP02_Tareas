@@ -29,34 +29,34 @@
 \begin{document}
 
 \begin{titlepage}
-    \centering
-    % Logo de la Universidad
-    \includegraphics[width=0.48\textwidth]{logo_universidad.png}
-    \par\vspace{2cm}
+  \centering
+  % Logo de la Universidad
+  \includegraphics[width=0.48\textwidth]{logo_universidad.png}
+  \par\vspace{2cm}
 
-    % Nombre de la Universidad y detalles del curso
-    {\Large \textbf{Universidad Nacional de Colombia} \par}
-    \vspace{0.5cm}
-    {\large Ingeniería de Sistemas y Computación \par}
-    {\large 2025966 Lenguajes de Programación (02)\par}
-    \vspace{3cm}
+  % Nombre de la Universidad y detalles del curso
+  {\Large \textbf{Universidad Nacional de Colombia} \par}
+  \vspace{0.5cm}
+  {\large Ingeniería de Sistemas y Computación \par}
+  {\large 2025966 Lenguajes de Programación (02)\par}
+  \vspace{3cm}
 
-    % Detalles del laboratorio y actividad
-    {\large \textbf{Tarea 15} \par}
-    {\large Emulación de su computador\par}
-    \vspace{3cm}
+  % Detalles del laboratorio y actividad
+  {\large \textbf{Tarea 15} \par}
+  {\large Emulación del computador diseñado\par}
+  \vspace{3cm}
 
-    % Lista de integrantes
-    {\large \textbf{Integrantes:} \par}
-    \vspace{0.5cm}
-    \begin{tabular}{ll}
+  % Lista de integrantes
+  {\large \textbf{Integrantes:} \par}
+  \vspace{0.5cm}
+  \begin{tabular}{ll}
     Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
-    - & -@unal.edu.co \\
-    \end{tabular}
-    \par\vspace{3cm}
+    David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
+  \end{tabular}
+  \par\vspace{3cm}
 
-    % Fecha
-    {\large Mayo 7 de 2025 \par}
+  % Fecha
+  {\large Mayo 7 de 2025 \par}
 \end{titlepage}
 
 \tableofcontents % Inserta la tabla de contenidos
@@ -71,14 +71,61 @@
 
 \section{Introducción}\label{sec:intr}
 
+El presente documento tiene como objetivo presentar el diseño e implementación de un emulador
+del computador \textbf{ORISC-I}, cuyo diseño presentamos en la tarea 14. Este emulador permite simular el funcionamiento del computador, ejecutando instrucciones en un entorno controlado y visualizando el estado de los registros, memoria y otros componentes internos.
+
+Como mencionamos en la tarea 14, el computador ORISC-I es un computador de arquitectura Von Neumann, lo que quiere decir que la memoria rom es compartida para almacenar tanto instrucciones como datos, además el computador cuenta con una serie de registros ram que se usan para almacenar datos temporales durante la ejecución de las instrucciones. El emulador también implementa el ciclo operativo de \textbf{fetch-decode-execute}, que es el ciclo básico de operación de cualquier computador, permitiendo la ejecución secuencial de instrucciones.
+
 %---------------------------------------------------------------------------------
 % Marco Teórico ------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 
 \section{Marco Teórico}\label{sec:marc}
 
+El emulador del computador ORISC-I se basa en la arquitectura Von Neumann, que define una estructura de computador donde la memoria es un espacio único para almacenar tanto instrucciones como datos. Esta arquitectura permite que el computador ejecute un conjunto de instrucciones definidas por su \textbf{Instruction Set Architecture (ISA)}, que especifica cómo se deben codificar y ejecutar las instrucciones.
+
+El ciclo operativo de un computador se compone de tres fases principales:
+\begin{itemize}
+  \item \textbf{Fetch}: Recupera la instrucción desde la memoria utilizando el contador de programa (PC).
+  \item \textbf{Decode}: Decodifica la instrucción para identificar su operación y operandos.
+  \item \textbf{Execute}: Ejecuta la operación especificada por la instrucción, utilizando la unidad aritmético-lógica (ALU) y los registros.
+\end{itemize}
+
+En la arquitectura Von Neumann aplicada a nuestro computador ORISC-I, se cuenta con tres tipos de buses:
+\begin{itemize}
+  \item \textbf{Bus de datos}: Transporta los datos entre la memoria y los registros.
+  \item \textbf{Bus de direcciones}: Transporta las direcciones de memoria para acceder a los datos.
+  \item \textbf{Bus de control}: Transporta señales de control que coordinan las operaciones del computador.
+\end{itemize}
+
+Cuenta con una CPU compuesta por dos modulos principales:
+\begin{itemize}
+  \item \textbf{Unidad de Control (UC)}: Decodifica las instrucciones y genera las señales de control necesarias para la ejecución.
+  \item \textbf{Unidad Aritmético-Lógica (ALU)}: Realiza operaciones aritméticas y lógicas sobre los datos almacenados en los registros.
+\end{itemize}
+
+Cuenta con 32 registros de 64 bits cada uno en la memoria del procesador, cuyas direcciones están codificadas en 5 bits, además se dispone de 4 registros especiales, ubicados en las direcciones 0 a 3:
+\begin{itemize}
+  \item \textbf{PC (Program Counter)}: Contador de programa, almacena la dirección de la siguiente instrucción a ejecutar.
+  \item \textbf{SP (Stack Pointer)}: Puntero de pila, apunta a la parte superior de la pila en memoria.
+  \item \textbf{IR (Instruction Register)}: Registro de instrucción, almacena la instrucción actualmente en ejecución.
+  \item \textbf{ESTADO}: Registro de estado, contiene indicadores de condición (C, N, P, D).
+\end{itemize}
+Donde el resto de los registros, de la dirección 4 a la 31, son registros de propósito general.
+
+La memoria RAM a su vez es una memoria de 24 bits de dirección, lo que permite acceder a $2^{24}$ direcciones diferentes, cada una con una palabra de 64 bits. Así, las direcciones de memoria van desde 0 hasta $2^{24}-1$ o en hexadecimal desde 0x000000 a 0xFFFFFF. La memoria se organiza en segmentos:
+\begin{itemize}
+  \item \textbf{Segmento de código}: Almacena las instrucciones del programa.
+  \item \textbf{Segmento de datos estáticos/globales}: Almacena variables globales y datos estáticos.
+  \item \textbf{Segmento de pila}: Utilizado para almacenar datos temporales y gestionar llamadas a funciones.
+  \item \textbf{Segmento de entrada/salida}: Utilizado para interactuar con dispositivos externos.
+\end{itemize}
+
+Las instrucciones del ORISC-I se codifican en un formato de 64 bits, donde los primeros 6 bits representan el \textbf{opcode} (código de operación) y los siguientes 58 bits se dividen en campos que especifican los operandos y otros parámetros necesarios para la ejecución de la instrucción. El emulador implementa un conjunto de instrucciones básicas, como suma, movimiento de datos, saltos condicionales, entre otras.
+
 \subsection{Contextualización del problema}
 
+El emulador del computador ORISC-I se desarrolla en el contexto de la asignatura de Lenguajes de Programación, con el objetivo de proporcionar a los estudiantes una herramienta práctica para comprender los conceptos fundamentales de la arquitectura de computadores y la ejecución de instrucciones. La emulación permite experimentar con el funcionamiento interno del computador sin necesidad de hardware físico, facilitando el aprendizaje y la experimentación.
 
 %---------------------------------------------------------------------------------
 % Descripción y Justificación del Problema a Resolver ----------------------------
@@ -97,28 +144,28 @@
 
 \section{Diseño de la solución}\label{sec:dis}
 
-Para la implementación del emulador del computador diseñado por el grupo de trabajo, se propone 
-utilizar el paradigma de \textbf{programación orientada a objetos}, aplicando la arquitectura de 
-desarrollo \textbf{Modelo-Vista-Controlador (MVC)}. Esto permite separar la lógica funcional 
-(modelo), la interfaz de interacción (vista) y la gestión del flujo de ejecución (controlador), 
+Para la implementación del emulador del computador diseñado por el grupo de trabajo, se propone
+utilizar el paradigma de \textbf{programación orientada a objetos}, aplicando la arquitectura de
+desarrollo \textbf{Modelo-Vista-Controlador (MVC)}. Esto permite separar la lógica funcional
+(modelo), la interfaz de interacción (vista) y la gestión del flujo de ejecución (controlador),
 facilitando la mantenibilidad y escalabilidad del sistema.
 
 \subsection{Modelo}
 
 \subsubsection*{Registros}
 
-Esta clase representa la abstracción de los registros del sistema, incluyendo registros de 
+Esta clase representa la abstracción de los registros del sistema, incluyendo registros de
 propósito general y registros especiales (PC, SP, IR, ESTADO).
 
 \textbf{Atributos:}
 \begin{itemize}
-  \item \texttt{memoria} (\texttt{bool[32][64]}): Matriz que representa los 32 registros 
-  de 64 bits. Cada fila corresponde a un registro, y cada columna a un bit.
+  \item \texttt{memoria} (\texttt{bool[32][64]}): Matriz que representa los 32 registros
+        de 64 bits. Cada fila corresponde a un registro, y cada columna a un bit.
 \end{itemize}
 
 \subsubsection*{CPU}
 
-Clase que modela la Unidad Central de Proceso. Coordina la ejecución del ciclo 
+Clase que modela la Unidad Central de Proceso. Coordina la ejecución del ciclo
 \texttt{fetch-decode-execute} y comunica las unidades internas.
 
 \textbf{Atributos:}
@@ -133,16 +180,16 @@ Clase que modela la Unidad Central de Proceso. Coordina la ejecución del ciclo
 \begin{itemize}
   \item \texttt{\_\_init\_\_(alu, uc)}: Constructor que vincula las unidades de la CPU.
   \item \texttt{fetch()}: Carga en el registro \texttt{IR} la instrucción ubicada en la
-      dirección del \texttt{PC}, y actualiza el contador de programa.
-  \item \texttt{decode()}: Extrae el \texttt{opcode} y los campos relevantes de 
+        dirección del \texttt{PC}, y actualiza el contador de programa.
+  \item \texttt{decode()}: Extrae el \texttt{opcode} y los campos relevantes de
         la instrucción para preparar su ejecución.
-  \item \texttt{execute()}: Llama al método correspondiente definido en la ISA 
+  \item \texttt{execute()}: Llama al método correspondiente definido en la ISA
         según el \texttt{opcode} decodificado.
 \end{itemize}
 
 \subsubsection*{UC (Unidad de Control)}
 
-Esta clase decodifica instrucciones y genera las señales necesarias para su ejecución. 
+Esta clase decodifica instrucciones y genera las señales necesarias para su ejecución.
 
 \textbf{Métodos:}
 \begin{itemize}
@@ -156,9 +203,9 @@ Ejecuta operaciones aritméticas y lógicas entre registros o con valores inmedi
 
 \textbf{Métodos:}
 \begin{itemize}
-  \item \texttt{operar(op: str, op1: int, op2: int)}: Devuelve el resultado de aplicar 
+  \item \texttt{operar(op: str, op1: int, op2: int)}: Devuelve el resultado de aplicar
         la operación \texttt{op} a los operandos.
-  \item \texttt{actualizar\_estado(resultado: int)}: Actualiza los bits del 
+  \item \texttt{actualizar\_estado(resultado: int)}: Actualiza los bits del
         registro \texttt{ESTADO} (C, N, P, D).
 \end{itemize}
 
@@ -174,33 +221,33 @@ Clase que abstrae la memoria principal, organizada en $2^{24}$ direcciones de 64
 \textbf{Métodos:}
 \begin{itemize}
   \item \texttt{leer(direccion: int) → int}: Retorna la palabra almacenada en la dirección dada.
-  \item \texttt{escribir(direccion: int, palabra: int)}: Guarda una palabra de 64 bits en 
+  \item \texttt{escribir(direccion: int, palabra: int)}: Guarda una palabra de 64 bits en
         la dirección dada.
-  \item \texttt{check\_structure(operator: str, direccion: int)}: Verifica si la operación es válida 
+  \item \texttt{check\_structure(operator: str, direccion: int)}: Verifica si la operación es válida
         según el segmento de memoria:
-    \begin{itemize}
-      \item 0: Código
-      \item 1: Entrada/Salida
-      \item 2: Datos estáticos/globales
-      \item 3: Pila
-    \end{itemize}
+        \begin{itemize}
+          \item 0: Código
+          \item 1: Entrada/Salida
+          \item 2: Datos estáticos/globales
+          \item 3: Pila
+        \end{itemize}
 \end{itemize}
 
 \subsubsection*{UnidadES (Entrada/Salida)}
 
-Abstracción de la unidad de E/S. Interactúa con dispositivos externos a través de direcciones 
+Abstracción de la unidad de E/S. Interactúa con dispositivos externos a través de direcciones
 mapeadas en memoria.
 
 \textbf{Métodos:}
 \begin{itemize}
   \item \texttt{leer\_dispositivo(direccion: int)}: Simula lectura desde un periférico.
-  \item \texttt{escribir\_dispositivo(direccion: int, valor: int)}: Simula salida de datos hacia 
-  un periférico.
+  \item \texttt{escribir\_dispositivo(direccion: int, valor: int)}: Simula salida de datos hacia
+        un periférico.
 \end{itemize}
 
 \subsubsection*{ISA (Instruction Set Architecture)}
 
-Define el conjunto de instrucciones que puede ejecutar el procesador. Cada instrucción tiene 
+Define el conjunto de instrucciones que puede ejecutar el procesador. Cada instrucción tiene
 su propia función que es invocada por la CPU durante la fase de ejecución.
 
 \textbf{Métodos:}
@@ -214,9 +261,9 @@ su propia función que es invocada por la CPU durante la fase de ejecución.
 
 \subsection{Controlador}
 
-El controlador actúa como intermediario entre la vista y el modelo. 
-Es responsable de recibir las acciones del usuario, traducirlas en comandos válidos y 
-enviarlas a las clases del modelo, así como actualizar la vista con los cambios 
+El controlador actúa como intermediario entre la vista y el modelo.
+Es responsable de recibir las acciones del usuario, traducirlas en comandos válidos y
+enviarlas a las clases del modelo, así como actualizar la vista con los cambios
 de estado del sistema.
 
 \textbf{Responsabilidades:}
@@ -228,8 +275,8 @@ de estado del sistema.
 
 \textbf{Métodos pensados:}
 \begin{itemize}
-  \item \texttt{cargar\_programa(ruta)}: Traduce el programa en código máquina y lo 
-      almacena en memoria.
+  \item \texttt{cargar\_programa(ruta)}: Traduce el programa en código máquina y lo
+        almacena en memoria.
   \item \texttt{ejecutar\_paso()}: Ejecuta una instrucción y actualiza la vista.
   \item \texttt{ejecutar\_todo()}: Ejecuta hasta la instrucción \texttt{HALT}.
   \item \texttt{resetear()}: Inicializa todos los componentes del modelo.
@@ -240,10 +287,10 @@ de estado del sistema.
 
 \subsection{Vista}
 
-La vista representa la interfaz de interacción entre el usuario y el sistema. 
+La vista representa la interfaz de interacción entre el usuario y el sistema.
 Es implementada como una interfaz gráfica (GUI),
-Su propósito es presentar visualmente el estado interno 
-del computador (registros, memoria, instrucciones) y permitir la carga de programas, 
+Su propósito es presentar visualmente el estado interno
+del computador (registros, memoria, instrucciones) y permitir la carga de programas,
 control de ejecución y visualización de resultados.
 
 \textbf{Responsabilidades:}
@@ -251,18 +298,18 @@ control de ejecución y visualización de resultados.
   \item Mostrar en tiempo real el contenido de los registros y de la memoria.
   \item Representar gráficamente en tablas las instrucciones cargadas y el puntero de programa.
   \item Permitir al usuario:
-    \begin{itemize}
-      \item Cargar un programa ensamblador o en binario.
-      \item Iniciar, pausar y reiniciar la ejecución.
-      \item Observar los resultados de entrada/salida.
-    \end{itemize}
+        \begin{itemize}
+          \item Cargar un programa ensamblador o en binario.
+          \item Iniciar, pausar y reiniciar la ejecución.
+          \item Observar los resultados de entrada/salida.
+        \end{itemize}
 \end{itemize}
 
 \textbf{Ejemplo de componentes de GUI:}
 \begin{itemize}
   \item Tabla de registros (R0–R31).
   \item Área de memoria con resaltado por segmento (código, datos, E/S, pila).
-  \item Área de código de máquina 
+  \item Área de código de máquina
   \item Área de código de máquina relocalizable
   \item Área de código ensamblador
   \item Área de código alto nivel
@@ -277,19 +324,19 @@ control de ejecución y visualización de resultados.
 
 \section{Código Fuente}\label{sec:cod}
 
-El código fuente completo de este modelo se encuentra adjunto en el buzón 
+El código fuente completo de este modelo se encuentra adjunto en el buzón
 (11 Tarazona Jimenez Javier Andres 02.zip)
 y disponible en el repositorio GitHub del proyecto:
 
 \begin{center}
-\url{URL}
+  \url{URL}
 \end{center}
 
 El repositorio contiene:
 \begin{itemize}
-\item A
-\item B
-\item C
+  \item A
+  \item B
+  \item C
 \end{itemize}
 
 %---------------------------------------------------------------------------------
@@ -300,45 +347,45 @@ El repositorio contiene:
 
 El primer paso es descargar el archivo \texttt{11 Tarazona Jimenez Javier Andres 02.zip}.
 
-Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un 
-entorno virtual utilizando Python 3.12. o superior. Para ello, ejecute el siguiente 
-comando en 
+Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un
+entorno virtual utilizando Python 3.12. o superior. Para ello, ejecute el siguiente
+comando en
 la terminal o línea de comandos:
 
 \begin{itemize}
   \item En Windows:
-  \begin{verbatim}
+        \begin{verbatim}
     python3.12 -m venv nombre_del_entorno
   \end{verbatim}
   \item En macOS o Linux:
-  \begin{verbatim}
+        \begin{verbatim}
     python3.12 -m venv nombre_del_entorno
   \end{verbatim}
 \end{itemize}
 
-Donde \texttt{nombre\_del\_entorno} es el nombre que desea asignar a su entorno virtual. 
+Donde \texttt{nombre\_del\_entorno} es el nombre que desea asignar a su entorno virtual.
 A continuación, active el entorno virtual:
 
 \begin{itemize}
   \item En Windows:
-  \begin{verbatim}
+        \begin{verbatim}
     .\nombre_del_entorno\Scripts\activate
   \end{verbatim}
   \item En macOS o Linux:
-  \begin{verbatim}
+        \begin{verbatim}
     source nombre_del_entorno/bin/activate
   \end{verbatim}
 \end{itemize}
 
-En el archivo \texttt{constants/program.py} encontrará las constantes del programa. 
+En el archivo \texttt{constants/program.py} encontrará las constantes del programa.
 En ese archivo, podrá modificar los parámetros de entrada que se detallan más abajo.\\
 
-Después de configurar los parámetros, asegúrese de tener el entorno virtual activado. 
+Después de configurar los parámetros, asegúrese de tener el entorno virtual activado.
 Una vez activo, puede ejecutar el archivo principal con el siguiente comando:
 
 \begin{center}
   \begin{adjustbox}{minipage=\linewidth, center}
-  \begin{verbatim}
+    \begin{verbatim}
     python main.py
   \end{verbatim}
   \end{adjustbox}
@@ -371,7 +418,7 @@ Una vez activo, puede ejecutar el archivo principal con el siguiente comando:
 \subsubsection{Escenario 1: }
 
 \subsubsection{Escenario 2: }
- 
+
 \subsubsection{Escenario 3: }
 
 
@@ -380,10 +427,10 @@ Una vez activo, puede ejecutar el archivo principal con el siguiente comando:
 
 \begin{thebibliography}{9}
 
-\bibitem{ref} \label{ref:BPS} M. Bichler, S. Merting, and A. Uzunoglu, 
-“Assigning Course Schedules: About Preference Elicitation, Fairness, and Truthfulness,” 
-arXiv preprint arXiv:1812.02630, 2018. [En línea]. Disponible en: 
-\url{https://arxiv.org/abs/1812.02630}
+  \bibitem{ref} \label{ref:BPS} M. Bichler, S. Merting, and A. Uzunoglu,
+  “Assigning Course Schedules: About Preference Elicitation, Fairness, and Truthfulness,”
+  arXiv preprint arXiv:1812.02630, 2018. [En línea]. Disponible en:
+  \url{https://arxiv.org/abs/1812.02630}
 
 
 \end{thebibliography}
