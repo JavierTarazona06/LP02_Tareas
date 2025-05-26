@@ -1,49 +1,47 @@
 import constants
 from utils import NumberConversion as NC
 
+import numpy as np
+
 array: list[list[int]] = []
 
 
-def set_up():
-    cur_address = [0 for j in range(constants.WORDS_SIZE_BITS)]
-    for i in range(constants.MEMORY_SIZE):
-        array.append(cur_address.copy())
-
-
-def leer(direccion: int, mode: str) -> int | list[int]:
+class Memory:
     """
-    Devuelve la palabra almacenada en una dirección
-    mode = ["bit", "natural", "int"]
+    Clase que representa la memoria del procesador.
+    Almacena un array de palabras de tamaño WORDS_SIZE_BITS.
+    Cada palabra es una lista de bits (0 o 1).
+    La memoria tiene un tamaño de MEMORY_SIZE palabras.
     """
-    word_bin = array[direccion]
+    array: np.ndarray = None
 
-    modo_funcion = {
-        "bin": lambda: word_bin,
-        "natural": lambda: NC.binary_list2natural(word_bin),
-        "int": lambda: NC.binary_list2entero(word_bin)
-    }
+    @staticmethod
+    def set_up():
+        """
+        Inicializa la memoria con un array de ceros.
+        Cada palabra tiene WORDS_SIZE_BITS bits.
+        La memoria tiene MEMORY_SIZE palabras.
+        """
+        Memory.array = np.zeros(
+            (constants.MEMORY_SIZE, constants.WORDS_SIZE_BITS), dtype=np.uint64)
 
-    if mode not in modo_funcion:
-        raise ValueError(f"Modo '{mode}' no válido. Opciones: {list(modo_funcion)}")
+    @staticmethod
+    def read(direction: np.uint64) -> np.uint64:
+        """
+        Devuelve la palabra almacenada en una dirección.
+        :param direction: Dirección de memoria a leer.
+        :return: Palabra almacenada en la dirección.
+        """
+        return Memory.array[direction]
 
-    return modo_funcion[mode]()
-
-
-def escribir(direccion: int, palabra: int | list[int], mode: str) -> None:
-    """
-    mode = ["bit", "natural", "int"]
-    """
-    modo_funcion = {
-        "bin": lambda: palabra.copy(),
-        "natural": lambda: NC.natural2binary_list(palabra, fix_bits=constants.WORDS_SIZE_BITS),
-        "int": lambda: NC.entero2binary_list(palabra, fix_bits=constants.WORDS_SIZE_BITS)
-    }
-
-    if mode not in modo_funcion:
-        raise ValueError(f"Modo '{mode}' no válido. Opciones: {list(modo_funcion)}")
-
-    palabra_bin: list[int] = modo_funcion[mode]()
-    if len(palabra_bin) != constants.WORDS_SIZE_BITS:
-        raise ValueError(f"La palabra no tiene {constants.WORDS_SIZE_BITS} bits.")
-
-    array[direccion] = palabra_bin
+    @staticmethod
+    def write(direction: np.uint64, word: np.uint64) -> None:
+        """
+        Escribe una palabra en una dirección de memoria.
+        :param direction: Dirección de memoria a escribir.
+        :param word: Palabra a escribir en la dirección.
+        """
+        if len(word) != constants.WORDS_SIZE_BITS:
+            raise ValueError(
+                f"La palabra debe tener {constants.WORDS_SIZE_BITS} bits.")
+        Memory.array[direction] = word

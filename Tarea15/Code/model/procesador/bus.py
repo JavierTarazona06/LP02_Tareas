@@ -1,4 +1,5 @@
 from typing import Callable
+from bitarray import bitarray
 
 import constants
 from model.procesador import memory
@@ -6,21 +7,22 @@ from utils import NumberConversion as NC
 
 
 def set_up():
-    Datos.set_up()
-    Direccion.set_up()
-    Control.set_up()
+    DataBus.set_up()
+    DirectionBus.set_up()
+    ControlBus.set_up()
 
 
 def action():
     # Lee la instrucción de control y ejecuta su acción respectiva
-    instruction: int = Control.leer(bin=False)
-    call_instruccion(instruction)
+    instruction: bitarray = ControlBus.read()
+    # TODO: Revisar que si esté usando el bit correcto dentro del bus de control
+    call_instruccion(instruction[0])
 
 
 def call_instruccion(instr: int):
     c_operations: dict[int, Callable[[], None]] = {
-        Control.LEER_MEMORIA: Control.Instructions.leer_memoria,
-        Control.ESCRIBIR_MEMORIA: Control.Instructions.escribir_memoria
+        ControlBus.READ_MEMORY: ControlBus.Instructions.read_memory,
+        ControlBus.WRITE_MEMORY: ControlBus.Instructions.write_memory
     }
 
     try:
@@ -30,121 +32,117 @@ def call_instruccion(instr: int):
                          f"instrucciones de control.")
 
 
-class Datos:
-    array: list[int] = None
+class DataBus:
+    """
+    Bus de datos del procesador.
+    Almacena la palabra de datos que se está procesando.
+    Se usa para transferencia de datos entre memoria y registros.
+    """
+    array: bitarray = None
 
     @staticmethod
     def set_up():
-        Datos.array = [0 for _ in range(constants.WORDS_SIZE_BITS)]
+        """
+        Inicializa el bus de datos con una palabra de ceros.
+        Un bit array de tamaño WORDS_SIZE_BITS de ceros.
+        Se usa bitarray para optimizar el uso de memoria.
+        Se usa endian='big' para que el primer bit sea el más significativo.
+        """
+        DataBus.array = bitarray(
+            '0' * constants.WORDS_SIZE_BITS, endian='big')
 
     @staticmethod
-    def leer(mode: str) -> int | list[int]:
+    def read() -> bitarray[constants.WORDS_SIZE_BITS]:
         """
         Devuelve la palabra almacenada en el bus de datos
-        mode = ["bin","natural","int"]
         """
-        word_bin = Datos.array.copy()
-
-        modo_funcion = {
-            "bin": lambda: word_bin,
-            "natural": lambda: NC.binary_list2natural(word_bin),
-            "int": lambda: NC.binary_list2entero(word_bin)
-        }
-
-        if mode not in modo_funcion:
-            raise ValueError(f"Modo '{mode}' no válido. Opciones: {list(modo_funcion)}")
-
-        return modo_funcion[mode]()
+        return DataBus.array
 
     @staticmethod
-    def escribir(palabra: int | list[int], bin=False) -> None:
-        if not bin:
-            palabra = NC.entero2binary_list(palabra, fix_bits=constants.WORDS_SIZE_BITS)
-        else:
-            if len(palabra) != constants.WORDS_SIZE_BITS:
-                raise ValueError(f"La palabra debe ser de {constants.WORDS_SIZE_BITS} bits")
-        Datos.array = palabra.copy()
+    def write(word: bitarray[constants.WORDS_SIZE_BITS]) -> None:
+        "Escribe una palabra en el bus de datos"
+        if len(word) != constants.WORDS_SIZE_BITS:
+            raise ValueError(
+                f"La palabra debe tener {constants.WORDS_SIZE_BITS} bits.")
+        DataBus.array = word.copy()
 
 
-class Direccion:
-    array: list[int] = None
+class DirectionBus:
+    """
+    Bus de dirección del procesador.
+    Almacena la dirección de memoria que se está accediendo.
+    """
+    array: bitarray = None
 
     @staticmethod
     def set_up():
-        Direccion.array = [0 for _ in range(constants.MEMORY_BITS)]
+        DirectionBus.array = bitarray(
+            '0' * constants.WORDS_SIZE_BITS, endian='big')
 
     @staticmethod
-    def leer(bin=False) -> int | list[int]:
+    def read() -> bitarray[constants.WORDS_SIZE_BITS]:
         """
         Devuelve la dirección almacenada en el bus de dirección
         """
-        addr_bin: list[int] = Direccion.array
-        if bin:
-            return addr_bin.copy()
-        decimal_value = NC.binary_list2natural(addr_bin)
-        return decimal_value
+        return DirectionBus.array
 
     @staticmethod
-    def escribir(direccion: int | list[int], bin=False) -> None:
-        if not bin:
-            addr = NC.natural2binary_list(direccion, fix_bits=constants.MEMORY_BITS)
-        else:
-            if len(direccion) != constants.MEMORY_BITS:
-                raise ValueError(
-                    f"El tamaño de la dirección es "
-                    f"diferente al esperado: {constants.MEMORY_BITS}")
-            else:
-                addr = direccion
-        Direccion.array = addr.copy()
+    def write(word: bitarray[constants.WORDS_SIZE_BITS]) -> None:
+        """
+        Escribe una dirección en el bus de dirección
+        """
+        if len(word) != constants.WORDS_SIZE_BITS:
+            raise ValueError(
+                f"La dirección debe tener {constants.WORDS_SIZE_BITS} bits.")
+        DirectionBus.array = word.copy()
 
 
-class Control:
-    array: list[int] = None
-    LEER_MEMORIA = 1
-    ESCRIBIR_MEMORIA = 2
+class ControlBus:
+    """
+    Bus de control del procesador.
+    Almacena la instrucción de control que se está ejecutando.
+    """
+    array: bitarray = None
+    READ_MEMORY = 0
+    WRITE_MEMORY = 1
 
     @staticmethod
     def set_up():
-        Control.array = [0 for _ in range(constants.CONTROL_SIZE)]
+        ControlBus.array = bitarray(
+            '0' * constants.CONTROL_SIZE, endian='big')
 
     @staticmethod
-    def leer(bin=False) -> int | list[int]:
+    def read() -> bitarray[64]:
         """
         Devuelve la instrucción de control almacenada en el bus de control
         """
-        ctrl_bin: list[int] = Control.array
-        if bin:
-            return ctrl_bin.copy()
-        decimal_value = NC.binary_list2natural(ctrl_bin)
-        return decimal_value
+        return ControlBus.array
 
     @staticmethod
-    def escribir(ctrl: int | list[int], bin=False) -> None:
-        if not bin:
-            ctrl_i = NC.natural2binary_list(ctrl, fix_bits=constants.CONTROL_SIZE)
-        else:
-            if len(ctrl) != constants.CONTROL_SIZE:
-                raise ValueError(
-                    f"El tamaño de la instrucción de control "
-                    f"es diferente al esperado: {constants.CONTROL_SIZE}")
-            else:
-                ctrl_i = ctrl
-        Control.array = ctrl_i.copy()
+    def write(word: bitarray[constants.WORDS_SIZE_BITS]) -> None:
+        """
+        Escribe una instrucción de control en el bus de control
+        """
+        if len(word) != constants.CONTROL_SIZE:
+            raise ValueError(
+                f"La instrucción de control debe tener {constants.CONTROL_SIZE} bits.")
+        ControlBus.array = word.copy()
 
     class Instructions:
+        """
+        Instrucciones de control del bus.
+        Contiene las operaciones que se pueden realizar con el bus de control.
+        """
         @staticmethod
-        def leer_memoria():
-            word_bin: list[int] = memory.leer(
-                Direccion.leer(bin=False),
-                mode="bin"
-            )
-            Datos.escribir(word_bin, bin=True)
+        def read_memory():
+            word: bitarray = memory.read(
+                DirectionBus.read()).copy()
+            DataBus.write(word)
 
         @staticmethod
-        def escribir_memoria():
-            word_bin: list[int] = Datos.leer(mode="bin")
-            memory.escribir(
-                Direccion.leer(bin=False),
-                word_bin,
-                mode="bin"
+        def write_memory():
+            word: bitarray = DataBus.read().copy()
+            memory.write(
+                DirectionBus.read(),
+                word
             )

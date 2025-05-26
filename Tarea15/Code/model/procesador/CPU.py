@@ -4,6 +4,7 @@ import constants
 import utils
 import numpy as np
 from bitarray import bitarray
+from bitarray.util import int2ba, ba2int
 from utils import NumberConversion as NC
 
 from model.procesador import bus
@@ -12,35 +13,53 @@ EN_EJECUCION = False
 
 
 def fetch():
-    # Leer PC
-    curr_pc_word = ALU.registers[ALU.PC]
+    """
+    Lee la siguiente instrucción de memoria y la guarda en el registro IR.
+    Incrementa el PC para apuntar a la siguiente instrucción.
+    """
+    # Leer PC para ver a qué palabra apunta
+    curr_pc_word_dir = ALU.registers[ALU.PC]
 
-    # Traer instrucción a la que apunta el PC
-    bus.Control.escribir(bus.Control.LEER_MEMORIA)
-    bus.Direccion.escribir(pc_word_natural, bin=False)
+    # Indicarle al bus de control que lea memoria
+    control_instruction = bitarray(
+        '0' * constants.WORDS_SIZE_BITS, endian='big')
+    control_instruction[0] = bus.ControlBus.READ_MEMORY
+    bus.ControlBus.write(control_instruction)
+
+    # Escribir PC en el bus de dirección
+    bus.DirectionBus.write(curr_pc_word_dir)
+
+    # Leer la palabra de memoria
     bus.action()
-    instruction_bin: list[int] = bus.Datos.leer(mode="bin")
+    curr_instruction = bus.DataBus.read()
 
     # Guardar instrucción en la ALU
-    escribir_reg(ALU.IR, instruction_bin, mode="bin")
+    ALU.registers[ALU.IR] = curr_instruction.copy()
 
     # Incrementar PC
+    pc_word_natural = ba2int(curr_pc_word_dir, signed=False)
     if pc_word_natural == constants.CODE_RANGE[1]:
         pc_word_natural = 0
     else:
         pc_word_natural += 1
 
     # Guardar PC incrementado
-    escribir_reg(ALU.PC, pc_word_natural, mode="natural")
+    ALU.registers[ALU.PC] = int2ba(
+        pc_word_natural, length=constants.WORDS_SIZE_BITS, endian='big')
     return 0
 
 
 def decode():
-    IR_word_bin: list[int] = leer_reg(ALU.IR, mode="bin")
+    """
+    Decodifica la instrucción almacenada en el registro IR.
+    Utiliza la Unidad de Control (CU) para identificar el tipo de instrucción y su opcode.
+    """
+    IR_word_bin: bitarray[constants.WORDS_SIZE_BITS] = ALU.registers[ALU.IR]
     CU.decode(IR_word_bin)
 
 
 def execute():
+    # TODO: Refactorizar según los cambios de bitarray
     try:
         operations[CU.opcode_length][CU.opcode_offset]()
     except KeyError:
@@ -121,22 +140,29 @@ class ALU:
         return False
 
 
+# TODO: Implementar la CU con los cambios de todo lo demás
 class CU:
     """
     Unidad de Control (CU) del procesador.
     Contiene la lógica para decodificar instrucciones y determinar su tipo.
     """
     # Convenciones de segmentos de instrucción
-    instruction_word: list[int] = None
+    instruction_word: bitarray[constants.WORDS_SIZE_BITS] = None
     opcode_length: int = None
     opcode_offset: int = None
     instruction_asm: str = None
-    instruction_args: list[list[int]] = None
+    instruction_args: list[bitarray] = None
 
     @staticmethod
-    def decode(word_binary: list[int]) -> None:
+    def decode(word_binary: bitarray[constants.WORDS_SIZE_BITS]) -> None:
+        """
+        Decodifica la instrucción binaria y determina su tipo y opcode.
+        :param word_binary: Instrucción binaria de 64 bits.
+        :raises ValueError: Si la instrucción no es de 64 bits o no se encuentra el opcode.
+        """
         if len(word_binary) != constants.WORDS_SIZE_BITS:
             raise ValueError(f"Instruction must be of 64 bits")
+
         CU.instruction_word = word_binary
 
         # Encontrar de qué tipo es la instrucción y cuál es
@@ -188,6 +214,7 @@ class CU:
 
 
 class ISA:
+    # TODO: Refactorizar la ISA para que use bitarray y no listas de enteros
     # ------------------
     # Type R
     # ------------------
