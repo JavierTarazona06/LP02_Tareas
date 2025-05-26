@@ -74,8 +74,6 @@ class SimuladorComputador(tk.Tk):
             # Synchronize scroll between code and line numbers
             txt['yscrollcommand'] = lambda *args, idx=col: self._sync_scroll(
                 idx, *args)
-            ln['yscrollcommand'] = lambda *args, idx=col: self._sync_scroll(
-                idx, *args)
 
         self._update_all_line_numbers()
 
@@ -108,12 +106,21 @@ class SimuladorComputador(tk.Tk):
     def _sync_scroll(self, idx, *args):
         # Synchronize yview for all code and line number widgets
         for i, (txt, ln) in enumerate(zip(self.code_texts, self.line_numbers)):
-            if i == idx:
+            if len(args) == 2 and all(self._is_float(a) for a in args):
+                # Called from yscrollcommand, use yview_moveto
+                txt.yview_moveto(float(args[0]))
+                ln.yview_moveto(float(args[0]))
+            else:
+                # Called from scroll events, use yview
                 txt.yview(*args)
                 ln.yview(*args)
-            else:
-                txt.yview_moveto(self.code_texts[idx].yview()[0])
-                ln.yview_moveto(self.line_numbers[idx].yview()[0])
+
+    def _is_float(self, value):
+        try:
+            float(value)
+            return True
+        except Exception:
+            return False
 
     def _crear_area_memoria(self):
         frame = ttk.LabelFrame(
