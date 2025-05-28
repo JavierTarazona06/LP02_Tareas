@@ -3,12 +3,13 @@ import struct
 from typing import Optional, Dict, Any
 
 import constants
+import bitarray
 
 
 class NumberConversion:
 
     @staticmethod
-    def binary_list2str(binary_list: list[int]) -> str:
+    def binary_list2str(binary_list: bitarray[constants.WORDS_SIZE_BITS]) -> str:
         return "".join(str(bit) for bit in binary_list)
 
     @staticmethod
@@ -38,7 +39,8 @@ class NumberConversion:
         # Análisis del complemento a 2
         if binary_list[0] == 1:
             # Complemento a 2
-            return int(bit_string, 2) - (1 << n_bits) # 2^n_bits para obtener negativo
+            # 2^n_bits para obtener negativo
+            return int(bit_string, 2) - (1 << n_bits)
         else:
             return int(bit_string, 2)
 
@@ -75,7 +77,8 @@ class NumberConversion:
         if n >= 0:
             bin_str = bin(n)[2:].zfill(bits)
         else:
-            bin_str = bin((1 << bits) + n)[2:]  # complemento a dos de `n` negativo
+            # complemento a dos de `n` negativo
+            bin_str = bin((1 << bits) + n)[2:]
 
         return [int(bit) for bit in bin_str.zfill(bits)]
 
@@ -98,9 +101,10 @@ class NumberConversion:
             raise ValueError("No se admiten valores negativos")
 
         if fix_bits:
-            bin_list:list[int] = NumberConversion.entero2binary_list(n, fix_bits + 1)
+            bin_list: list[int] = NumberConversion.entero2binary_list(
+                n, fix_bits + 1)
         else:
-            bin_list:list[int] = NumberConversion.entero2binary_list(n, None)
+            bin_list: list[int] = NumberConversion.entero2binary_list(n, None)
         # Le quito el signo
         if len(bin_list) > 1:
             bin_list = bin_list[1:]
@@ -117,7 +121,8 @@ class NumberConversion:
                              "número de punto flotante (float).")
 
         # Empaquetar en formato IEEE 754 de doble precisión y convertir a bits
-        packed = struct.pack('>d', value)  # big-endian double, byte mas significativo primero
+        # big-endian double, byte mas significativo primero
+        packed = struct.pack('>d', value)
         bits = ''.join(f'{byte:08b}' for byte in packed)
         return [int(b) for b in bits]
 
@@ -152,6 +157,7 @@ def check_address_operation(operator: str, direccion: int) -> bool:
 
     return range[0] <= direccion <= range[1]
 
+
 class Math:
 
     @staticmethod
@@ -175,7 +181,7 @@ class Math:
 
         codes_bin_list = []
         for code in codes:
-            code_bin = [0 if l=='0' else 1 for l in code]
+            code_bin = [0 if l == '0' else 1 for l in code]
             codes_bin_list.append(code_bin)
         return codes_bin_list
 
@@ -203,9 +209,10 @@ class Math:
 
         return codes_bin_grouped
 
+
 class FileManager:
     @staticmethod
-    def dict2JSON(path_JSON:str, data: Dict):
+    def dict2JSON(path_JSON: str, data: Dict):
         if ".json" not in path_JSON:
             path_JSON += ".json"
         with open(path_JSON, "w", encoding="utf-8") as f:
