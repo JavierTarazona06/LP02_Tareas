@@ -70,7 +70,6 @@ def decode():
 
 
 def execute():
-    # TODO: Refactorizar según los cambios de bitarray
     try:
         operations[CU.opcode_length][CU.opcode_offset]()
     except KeyError:
@@ -177,7 +176,6 @@ class ALU:
         ALU.write_register(ALU.STATE, state)
 
 
-# TODO: Implementar la CU con los cambios de todo lo demás
 class CU:
     """
     Unidad de Control (CU) del procesador.
@@ -202,10 +200,10 @@ class CU:
 
         CU.instruction_word = word_binary
 
-        # Encontrar de qué tipo es la instrucción y cuál es
+        # Encontrar de qué tipo es la instrucción y cuál es su opcode.
         opcodes_dict = utils.FileManager.JSON2dict(constants.OPCODES_PATH)
         length, offset = None, None
-        instr_str = str(CU.instruction_word.to01())
+        instr_str = str(CU.instruction_word.to01()) # Convertir a string la cadena de bits
 
         for length_i, opcodes_list in opcodes_dict.items():
             for idx, opcode in enumerate(opcodes_list):
@@ -251,7 +249,7 @@ class CU:
 
 
 class ISA:
-    # TODO: Refactorizar la ISA para que use bitarray y no listas de enteros
+    # TODO: Refactorizar la ISA para que use bitarray y no listas de enteros, además use los metodos de después de la refactorización.
     # ------------------
     # Type Code
     # ------------------

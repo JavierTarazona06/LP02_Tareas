@@ -6,6 +6,7 @@ import numpy as np
 from bitarray import bitarray
 
 import constants
+import bitarray
 
 
 class NumberConversion:
@@ -76,7 +77,7 @@ class NumberConversion:
         return bitarray(bitstr)
 
     @staticmethod
-    def binary_list2str(binary_list: list[int]) -> str:
+    def binary_list2str(binary_list: bitarray[constants.WORDS_SIZE_BITS]) -> str:
         return "".join(str(bit) for bit in binary_list)
 
     @staticmethod
@@ -143,7 +144,8 @@ class NumberConversion:
         if n >= 0:
             bin_str = bin(n)[2:].zfill(bits)
         else:
-            bin_str = bin((1 << bits) + n)[2:]  # complemento a dos de `n` negativo
+            # complemento a dos de `n` negativo
+            bin_str = bin((1 << bits) + n)[2:]
 
         return [int(bit) for bit in bin_str.zfill(bits)]
 
@@ -166,7 +168,8 @@ class NumberConversion:
             raise ValueError("No se admiten valores negativos")
 
         if fix_bits:
-            bin_list: list[int] = NumberConversion.entero2binary_list(n, fix_bits + 1)
+            bin_list: list[int] = NumberConversion.entero2binary_list(
+                n, fix_bits + 1)
         else:
             bin_list: list[int] = NumberConversion.entero2binary_list(n, None)
         # Le quito el signo
@@ -185,7 +188,8 @@ class NumberConversion:
                              "número de punto flotante (float).")
 
         # Empaquetar en formato IEEE 754 de doble precisión y convertir a bits
-        packed = struct.pack('>d', value)  # big-endian double, byte mas significativo primero
+        # big-endian double, byte mas significativo primero
+        packed = struct.pack('>d', value)
         bits = ''.join(f'{byte:08b}' for byte in packed)
         return [int(b) for b in bits]
 
