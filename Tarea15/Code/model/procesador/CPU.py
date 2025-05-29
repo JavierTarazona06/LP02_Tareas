@@ -1,16 +1,27 @@
-from typing import Callable
-
-import constants
-import utils
 import numpy as np
+from typing import Callable
 from bitarray import bitarray
-from bitarray.util import int2ba, ba2int
-from utils import NumberConversion as NC
+
+import utils
+import constants
 
 from model.procesador import bus
+from utils import NumberConversion as NC
+
+# -----------------------
+# Public Global Variables
+# -----------------------
 
 EN_EJECUCION = False
+PARA_INSTRUCTION = False
 
+# -----------------------
+# Methods
+# -----------------------
+
+def refresh():
+    EN_EJECUCION = False
+    PARA_INSTRUCTION = False
 
 def fetch():
     """
@@ -18,34 +29,34 @@ def fetch():
     Incrementa el PC para apuntar a la siguiente instrucción.
     """
     # Leer PC para ver a qué palabra apunta
-    curr_pc_word_dir = ALU.registers[ALU.PC]
+    curr_pc_word_dir: bitarray = ALU.read_register(ALU.PC).copy()
 
     # Indicarle al bus de control que lea memoria
-    control_instruction = bitarray(
-        '0' * constants.WORDS_SIZE_BITS, endian='big')
-    control_instruction[0] = bus.ControlBus.READ_MEMORY
-    bus.ControlBus.write(control_instruction)
+    bus.ControlBus.write(bus.ControlBus.READ_MEMORY_BIN)
 
     # Escribir PC en el bus de dirección
     bus.DirectionBus.write(curr_pc_word_dir)
 
     # Leer la palabra de memoria
     bus.action()
-    curr_instruction = bus.DataBus.read()
+    curr_instruction: bitarray = bus.DataBus.read().copy()
 
     # Guardar instrucción en la ALU
-    ALU.registers[ALU.IR] = curr_instruction.copy()
+    ALU.write_register(ALU.IR, curr_instruction)
 
     # Incrementar PC
-    pc_word_natural = ba2int(curr_pc_word_dir, signed=False)
-    if pc_word_natural == constants.CODE_RANGE[1]:
-        pc_word_natural = 0
+    pc_content: int = NC.bitarray2natural(curr_pc_word_dir)
+    if pc_content == constants.CODE_RANGE[1]:
+        pc_content = 0
     else:
-        pc_word_natural += 1
+        pc_content += 1
 
     # Guardar PC incrementado
-    ALU.registers[ALU.PC] = int2ba(
-        pc_word_natural, length=constants.WORDS_SIZE_BITS, endian='big')
+    ALU.write_register(
+        ALU.PC, NC.natural2bitarray(
+            pc_content, constants.WORDS_SIZE_BITS
+        )
+    )
     return 0
 
 
@@ -54,7 +65,7 @@ def decode():
     Decodifica la instrucción almacenada en el registro IR.
     Utiliza la Unidad de Control (CU) para identificar el tipo de instrucción y su opcode.
     """
-    IR_word_bin: bitarray[constants.WORDS_SIZE_BITS] = ALU.registers[ALU.IR]
+    IR_word_bin: bitarray= ALU.read_register(ALU.IR).copy()
     CU.decode(IR_word_bin)
 
 
@@ -64,6 +75,9 @@ def execute():
     except KeyError:
         raise ValueError(f"Instrucción {CU.instruction_asm} no definida.")
 
+# -----------------------
+# Classes
+# -----------------------
 
 class ALU:
     """ Unidad Aritmético Lógica (ALU) del procesador.
@@ -80,7 +94,7 @@ class ALU:
     P = 1
     N = 2
     D = 3
-    registers: np.ndarray = None
+    registers: np.ndarray[bitarray] = None
 
     @staticmethod
     def set_up():
@@ -98,7 +112,18 @@ class ALU:
                 '0' * constants.WORDS_SIZE_BITS, endian='big')
 
     @staticmethod
-    def read_register(register_id: int) -> bitarray[64]:
+    def is_register_special(register_id: int):
+        """
+        Verifica si el registro es uno de los registros especiales (PC, SP, IR, ESTADO).
+        Los registros especiales son los primeros 4 registros (0-3).
+        :param register_id: ID del registro a verificar.
+        :return: True si es un registro especial, False en caso contrario."""
+        if 0 <= register_id < 4:
+            return True
+        return False
+
+    @staticmethod
+    def read_register(register_id: int) -> bitarray:
         """
         Lee el registro especificado por register_id y devuelve su contenido como un bitarray de 64 bits.
         """
@@ -107,10 +132,12 @@ class ALU:
             raise ValueError(
                 f"Registro {register_id} es especial y no se puede leer directamente.")
 
-        return ALU.registers[register_id]
+        content: bitarray = ALU.registers[register_id]
+
+        return content
 
     @staticmethod
-    def write_register(register_id: int, value: bitarray[64]) -> None:
+    def write_register(register_id: int, value: bitarray) -> None:
         """
         Escribe el valor en el registro especificado por register_id.
         El valor debe ser un bitarray de 64 bits.
@@ -128,15 +155,25 @@ class ALU:
         ALU.registers[register_id] = value.copy()
 
     @staticmethod
-    def is_register_special(register_id: int):
-        """
-        Verifica si el registro es uno de los registros especiales (PC, SP, IR, ESTADO).
-        Los registros especiales son los primeros 4 registros (0-3).
-        :param register_id: ID del registro a verificar.
-        :return: True si es un registro especial, False en caso contrario."""
-        if 0 <= register_id < 4:
-            return True
-        return False
+    def modify_state_int(value: int) -> None:
+        state: bitarray = NC.natural2bitarray(0, 64)
+
+        valid_length = True
+        try:
+            _ = NC.int2bitarray(value, constants.WORDS_SIZE_BITS)
+        except ValueError:
+            valid_length = False
+
+        if value == 0:
+            state[constants.WORDS_SIZE_BITS - ALU.C -1] = 1
+        if value > 0:
+            state[constants.WORDS_SIZE_BITS - ALU.P -1] = 1
+        if value < 0:
+            state[constants.WORDS_SIZE_BITS - ALU.N -1] = 1
+        if not valid_length:
+            state[constants.WORDS_SIZE_BITS - ALU.D -1] = 1
+
+        ALU.write_register(ALU.STATE, state)
 
 
 class CU:
@@ -145,14 +182,14 @@ class CU:
     Contiene la lógica para decodificar instrucciones y determinar su tipo.
     """
     # Convenciones de segmentos de instrucción
-    instruction_word: bitarray[constants.WORDS_SIZE_BITS] = None
+    instruction_word: bitarray = None
     opcode_length: int = None
     opcode_offset: int = None
     instruction_asm: str = None
     instruction_args: list[bitarray] = None
 
     @staticmethod
-    def decode(word_binary: bitarray[constants.WORDS_SIZE_BITS]) -> None:
+    def decode(word_binary: bitarray) -> None:
         """
         Decodifica la instrucción binaria y determina su tipo y opcode.
         :param word_binary: Instrucción binaria de 64 bits.
@@ -166,7 +203,7 @@ class CU:
         # Encontrar de qué tipo es la instrucción y cuál es su opcode.
         opcodes_dict = utils.FileManager.JSON2dict(constants.OPCODES_PATH)
         length, offset = None, None
-        instr_str = CU.instruction_word.to01()  # Convertir a string la cadena de bits
+        instr_str = str(CU.instruction_word.to01()) # Convertir a string la cadena de bits
 
         for length_i, opcodes_list in opcodes_dict.items():
             for idx, opcode in enumerate(opcodes_list):
@@ -184,7 +221,7 @@ class CU:
         CU.opcode_offset = offset
 
         # Obtener la instrucción exacta
-        instr_asm_dict = utils.FileManager.JSON2dict(constants.ISA_PATH)
+        instr_asm_dict: dict = utils.FileManager.JSON2dict(constants.ISA_PATH)
         CU.instruction_asm = instr_asm_dict[CU.opcode_length][CU.opcode_offset]
 
         # Extract args depending on length type
@@ -214,134 +251,162 @@ class CU:
 class ISA:
     # TODO: Refactorizar la ISA para que use bitarray y no listas de enteros, además use los metodos de después de la refactorización.
     # ------------------
+    # Type Code
+    # ------------------
+    class C:
+
+        @staticmethod
+        def para():
+            PARA_INSTRUCTION = True
+
+
+    # ------------------
     # Type R
     # ------------------
 
     class R:
         @staticmethod
         def suma():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            r_p = NC.binary_list2natural(CU.instruction_args[2])
-            value: int = (
-                leer_reg(r, mode="int") +
-                leer_reg(r_p, mode="int")
-            )
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            """ Suma de Enteros. """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            r_p: int = NC.bitarray2natural(CU.instruction_args[2])
+
+            v1: int = NC.bitarray2int(ALU.read_register(r))
+            v2: int = NC.bitarray2int(ALU.read_register(r_p))
+
+            value: int = v1 + v2
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
 
         @staticmethod
         def resta():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            r_p = NC.binary_list2natural(CU.instruction_args[2])
-            value: int = (
-                leer_reg(r, mode="int") -
-                leer_reg(r_p, mode="int")
-            )
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            """ Resta de Enteros. """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            r_p: int = NC.bitarray2natural(CU.instruction_args[2])
+
+            v1: int = NC.bitarray2int(ALU.read_register(r))
+            v2: int = NC.bitarray2int(ALU.read_register(r_p))
+
+            value: int = v1 - v2
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
 
         @staticmethod
         def mult():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            r_p = NC.binary_list2natural(CU.instruction_args[2])
-            value: int = (
-                leer_reg(r, mode="int") *
-                leer_reg(r_p, mode="int")
-            )
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            """ Multiplicación de Enteros. """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            r_p: int = NC.bitarray2natural(CU.instruction_args[2])
+
+            v1: int = NC.bitarray2int(ALU.read_register(r))
+            v2: int = NC.bitarray2int(ALU.read_register(r_p))
+
+            value: int = v1 * v2
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
 
         @staticmethod
         def divi():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            r_p = NC.binary_list2natural(CU.instruction_args[2])
-            value: int = (
-                leer_reg(r, mode="int") //
-                leer_reg(r_p, mode="int")
-            )
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            """ División de Enteros. """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            r_p: int = NC.bitarray2natural(CU.instruction_args[2])
+
+            v1: int = NC.bitarray2int(ALU.read_register(r))
+            v2: int = NC.bitarray2int(ALU.read_register(r_p))
+
+            value: int = v1 // v2
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
 
         @staticmethod
         def y_bit_bit():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            r_p = NC.binary_list2natural(CU.instruction_args[2])
-            value: int = (
-                leer_reg(r, mode="int") &
-                leer_reg(r_p, mode="int")
-            )
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            """ Bitwise and """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            r_p: int = NC.bitarray2natural(CU.instruction_args[2])
+
+            v1: bitarray = ALU.read_register(r)
+            v2: bitarray = ALU.read_register(r_p)
+
+            value: bitarray = v1 & v2
+            ALU.write_register(r, value)
 
         @staticmethod
         def o_bit_bit():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            r_p = NC.binary_list2natural(CU.instruction_args[2])
-            value: int = (
-                leer_reg(r, mode="int") |
-                leer_reg(r_p, mode="int")
-            )
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            """ Bitwise Or """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            r_p: int = NC.bitarray2natural(CU.instruction_args[2])
+
+            v1: bitarray = ALU.read_register(r)
+            v2: bitarray = ALU.read_register(r_p)
+
+            value: bitarray = v1 | v2
+            ALU.write_register(r, value)
 
         @staticmethod
         def xor_bit_bit():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            r_p = NC.binary_list2natural(CU.instruction_args[2])
-            value: int = (
-                leer_reg(r, mode="int") ^
-                leer_reg(r_p, mode="int")
-            )
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            """ Bitwise Xor """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            r_p: int = NC.bitarray2natural(CU.instruction_args[2])
+
+            v1: bitarray = ALU.read_register(r)
+            v2: bitarray = ALU.read_register(r_p)
+
+            value: bitarray = v1 ^ v2
+            ALU.write_register(r, value)
 
         @staticmethod
         def comp():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            r_p = NC.binary_list2natural(CU.instruction_args[2])
-            value: int = (
-                leer_reg(r, mode="int") -
-                leer_reg(r_p, mode="int")
-            )
-            ALU.modify_state(value, mode="int")
+            """Comparar Enteros"""
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            r_p: int = NC.bitarray2natural(CU.instruction_args[2])
+
+            v1: int = NC.bitarray2int(ALU.read_register(r))
+            v2: int = NC.bitarray2int(ALU.read_register(r_p))
+
+            value_cmp: int = v1 - v2
+            ALU.modify_state_int(value_cmp)
 
         @staticmethod
         def copia():
-            """
-            Mueve de registro base a destino
-            """
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            r_p = NC.binary_list2natural(CU.instruction_args[2])
-            value: int = leer_reg(r_p, mode="int")
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            """Copiar contenido de registro"""
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            r_p: int = NC.bitarray2natural(CU.instruction_args[2])
+
+            v1: bitarray = ALU.read_register(r_p).copy()
+
+            ALU.write_register(r, v1)
 
         @staticmethod
         def not_bit_bit():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            value: int = ~ leer_reg(r, mode="int")
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            """Not Bitwise"""
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v1: bitarray = ALU.read_register(r).copy()
+
+            v1 = ~v1
+
+            ALU.write_register(r, v1)
 
         @staticmethod
         def limpia():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            ALU.modify_state(0, mode="int")
-            escribir_reg(r, 0, mode="int")
+            """Limpia un registro"""
+            r:int = NC.bitarray2natural(CU.instruction_args[1])
+
+            ALU.write_register(r, NC.int2bitarray(0, 64))
 
         @staticmethod
         def incr():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            value: int = leer_reg(r, mode="int") + 1
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            value: int = NC.bitarray2int(ALU.read_register(r)) + 1
+
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
 
         @staticmethod
         def decr():
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            value: int = leer_reg(r, mode="int") - 1
-            ALU.modify_state(value, mode="int")
-            escribir_reg(r, value, mode="int")
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            value: int = NC.bitarray2int(ALU.read_register(r)) - 1
+
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
 
     # ------------------
     # Type I
@@ -354,40 +419,38 @@ class ISA:
             """
             Contenido dirección de memoria a registro
             """
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            m = NC.binary_list2natural(CU.instruction_args[2])
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            m_bin: bitarray = CU.instruction_args[2]
 
-            bus.Direccion.escribir(m)
-            bus.Control.escribir(bus.Control.LEER_MEMORIA)
+            bus.DirectionBus.write(m_bin)
+            bus.ControlBus.write(bus.ControlBus.READ_MEMORY_BIN)
             bus.action()
-            word_bin: list[int] = bus.Datos.leer(mode="bin")
+            word: bitarray = bus.DataBus.read().copy()
 
-            ALU.modify_state(word_bin, mode="bin")
-
-            escribir_reg(r, word_bin, mode="bin")
+            ALU.write_register(r, word)
 
         @staticmethod
         def guardar():
             """
             Contenido de un registro en una dirección de memoria
             """
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            m = NC.binary_list2natural(CU.instruction_args[2])
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            m_bin: bitarray = CU.instruction_args[2]
 
-            word_bin: list[int] = leer_reg(r, mode="bin")
-            bus.Datos.escribir(word_bin, bin=True)
-            bus.Direccion.escribir(m)
-            bus.Control.escribir(bus.Control.ESCRIBIR_MEMORIA)
+            word: bitarray = ALU.read_register(r).copy()
+
+            bus.DirectionBus.write(m_bin)
+            bus.ControlBus.write(bus.ControlBus.WRITE_MEMORY_BIN)
+            bus.DataBus.write(word)
             bus.action()
 
-            ALU.modify_state(word_bin, mode="bin")
-
-        @staticmethod
+        """@staticmethod
         def carga_inm():
+            # TODO: Continuar aqui
             """
-            Cargar un entero inmediato (32 bits) al registro en
-            los bits menos significativos.
-            Hace una limpieza antes de cargar para dejarlo como nuevo.
+            #Cargar un entero inmediato (32 bits) al registro en
+            #los bits menos significativos.
+            #Hace una limpieza antes de cargar para dejarlo como nuevo.
             """
             r = NC.binary_list2natural(CU.instruction_args[1])
             v: list[int] = CU.instruction_args[2]
@@ -406,8 +469,8 @@ class ISA:
         @staticmethod
         def carga_inm_superior():
             """
-            Cargar un entero inmediato (32 bits) al registro en
-            los bits más significativos
+            #Cargar un entero inmediato (32 bits) al registro en
+            #los bits más significativos
             """
             r: int = NC.binary_list2natural(CU.instruction_args[1])
             v: list[int] = CU.instruction_args[2]
@@ -426,7 +489,7 @@ class ISA:
         @staticmethod
         def suma_inm():
             """
-            Suma el registro destino con un entero inmediato
+            #Suma el registro destino con un entero inmediato
             """
             r: int = NC.binary_list2natural(CU.instruction_args[1])
             v: int = NC.binary_list2natural(CU.instruction_args[2])
@@ -441,16 +504,20 @@ class ISA:
                 r,
                 value_result,
                 mode="int"
-            )
+            )"""
 
     # ------------------
     # Type J
     # ------------------
 
 
+
+# ------------------------------------
+# ------------------------------------
+
 operations: dict[int, list[Callable[[], None]]] = {
     64: [
-        "PROCRASTINA", "VUELVE", "PARA"
+        "PROCRASTINA", "VUELVE", ISA.C.para
     ],
     54: [
         ISA.R.suma, ISA.R.resta, ISA.R.mult, ISA.R.divi, ISA.R.y_bit_bit,

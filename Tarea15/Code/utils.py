@@ -2,11 +2,79 @@ import json
 import struct
 from typing import Optional, Dict, Any
 
+import numpy as np
+from bitarray import bitarray
+
 import constants
 import bitarray
 
 
 class NumberConversion:
+    @staticmethod
+    def safe_uint64(n: int) -> np.uint64:
+        if not isinstance(n, int):
+            raise TypeError("Se espera un entero.")
+        if not (0 <= n <= (1 << 64) - 1):
+            raise ValueError("El número no cabe en 64 bits sin signo.")
+        return np.uint64(n)
+
+    @staticmethod
+    def bitarray2natural(bitarr: bitarray) -> int:
+        """Bitarray a número natural"""
+        return int(bitarr.to01(), 2)
+
+    @staticmethod
+    def natural2bitarray(natural: int, bits: int = None, truncate: bool = False) -> bitarray:
+        """Número natural a bitarray"""
+        if bits is None:
+            bits = natural.bit_length()
+
+        if natural >= (1 << bits):
+            if truncate:
+                natural = natural % (1 << bits)  # Truncar: quedarse con los `bits` menos significativos
+            else:
+                raise ValueError(f"El número natural {natural} no cabe en {bits} bits.")
+
+        bitstr = format(natural, f'0{bits}b')
+        return bitarray(bitstr)
+
+    @staticmethod
+    def bitarray2int(bitarr: bitarray) -> int:
+        """Bitarray a entero"""
+        if bitarr[0] == 0:
+            return int(bitarr.to01(), 2)
+        else:
+            return int(bitarr[1:].to01(), 2) - (1 << len(bitarr) - 1)
+
+    @staticmethod
+    def int2bitarray(num_int: int, bits: int = None, truncate: bool = False) -> bitarray:
+        """
+        Entero a bit array (Complemento a 2)
+        Convierte un entero con signo a bitarray en complemento a dos de `bits` bits.
+        Si `truncate=True`, trunca el número a los `bits` menos significativos.
+        """
+        if bits is None:
+            # Determinar automáticamente el mínimo de bits necesarios
+            if num_int >= 0:
+                bits = num_int.bit_length() + 1  # +1 para el bit de signo
+            else:
+                bits = (-num_int).bit_length() + 1  # también para negativo
+
+        min_val = -(1 << (bits - 1))
+        max_val = (1 << (bits - 1)) - 1
+
+        if not (min_val <= num_int <= max_val):
+            if truncate:
+                # Truncamos bits menos significativos del C2
+                unsigned = (1 << bits) + num_int if num_int < 0 else num_int
+                unsigned %= (1 << bits)
+            else:
+                raise ValueError(f"{num_int} no cabe en {bits} bits (C2).")
+        else:
+            unsigned = (1 << bits) + num_int if num_int < 0 else num_int
+
+        bitstr = format(unsigned, f'0{bits}b')
+        return bitarray(bitstr)
 
     @staticmethod
     def binary_list2str(binary_list: bitarray[constants.WORDS_SIZE_BITS]) -> str:
@@ -39,8 +107,7 @@ class NumberConversion:
         # Análisis del complemento a 2
         if binary_list[0] == 1:
             # Complemento a 2
-            # 2^n_bits para obtener negativo
-            return int(bit_string, 2) - (1 << n_bits)
+            return int(bit_string, 2) - (1 << n_bits)  # 2^n_bits para obtener negativo
         else:
             return int(bit_string, 2)
 
