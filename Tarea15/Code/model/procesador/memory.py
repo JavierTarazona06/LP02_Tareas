@@ -1,9 +1,6 @@
+
 import constants
-from utils import NumberConversion as NC
-
 import numpy as np
-
-array: list[list[int]] = []
 
 
 class Memory:
@@ -13,7 +10,7 @@ class Memory:
     Cada palabra es una lista de bits (0 o 1).
     La memoria tiene un tamaño de MEMORY_SIZE palabras.
     """
-    array: np.ndarray = None
+    array: np.ndarray[np.uint64] = None
 
     @staticmethod
     def set_up():
@@ -23,25 +20,29 @@ class Memory:
         La memoria tiene MEMORY_SIZE palabras.
         """
         Memory.array = np.zeros(
-            (constants.MEMORY_SIZE, constants.WORDS_SIZE_BITS), dtype=np.uint64)
+            constants.MEMORY_SIZE, dtype=np.uint64)
 
     @staticmethod
-    def read(direction: np.uint64) -> np.uint64:
+    def read(direction: int) -> np.uint64:
         """
         Devuelve la palabra almacenada en una dirección.
         :param direction: Dirección de memoria a leer.
         :return: Palabra almacenada en la dirección.
         """
+        if not (0 <= direction < constants.MEMORY_SIZE):
+            raise ValueError("Dirección de memoria fuera de rango.")
+
         return Memory.array[direction]
 
     @staticmethod
-    def write(direction: np.uint64, word: np.uint64) -> None:
+    def write(direction: int, value: np.uint64):
         """
-        Escribe una palabra en una dirección de memoria.
-        :param direction: Dirección de memoria a escribir.
-        :param word: Palabra a escribir en la dirección.
+        Escribe una palabra en una dirección de memoria
         """
-        if len(word) != constants.WORDS_SIZE_BITS:
-            raise ValueError(
-                f"La palabra debe tener {constants.WORDS_SIZE_BITS} bits.")
-        Memory.array[direction] = word
+        if not (0 <= direction < constants.MEMORY_SIZE):
+            raise ValueError("Dirección de memoria fuera de rango.")
+
+        if not isinstance(value, np.uint64):
+            raise TypeError("El valor debe ser de tipo np.uint64.")
+
+        Memory.array[direction] = value

@@ -4,7 +4,57 @@ from utils import Math
 
 import unittest
 
+
 class TestBinaryConversion(unittest.TestCase):
+
+    def test_positive_values(self):
+        self.assertEqual(
+            NC.int2bitarray(5, bits=4).to01(), "0101"
+        )
+        self.assertEqual(
+            NC.int2bitarray(1, bits=4).to01(), "0001"
+        )
+        self.assertEqual(
+            NC.int2bitarray(0, bits=4).to01(), "0000"
+        )
+
+    def test_negative_values(self):
+        self.assertEqual(
+            NC.int2bitarray(-1, bits=4).to01(), "1111"
+        )
+        self.assertEqual(
+            NC.int2bitarray(-8, bits=4).to01(), "1000"
+        )
+        self.assertEqual(
+            NC.int2bitarray(-5, bits=4).to01(), "1011"
+        )
+
+    def test_automatic_bit_length(self):
+        # 5 in binary is '101', needs 4 bits with sign
+        self.assertEqual(
+            NC.int2bitarray(5).to01(), "0101"
+        )
+        # -1 needs 2 bits minimum (1 bit for sign and 1 bit for value)
+        self.assertEqual(
+            NC.int2bitarray(-1).to01(), "11"
+        )
+
+    def test_truncation(self):
+        # 8 in 4 bits: no cabe, pero truncado da '1000'
+        self.assertEqual(
+            NC.int2bitarray(8, bits=4, truncate=True).to01(), "1000"
+        )
+        # -9 en 4 bits, truncado da '0111' (valor real -7 por overflow)
+        self.assertEqual(
+            NC.int2bitarray(-9, bits=4, truncate=True).to01(), "0111"
+        )
+
+    def test_error_when_out_of_range(self):
+        with self.assertRaises(ValueError):
+            NC.int2bitarray(9, bits=4)  # 9 no cabe en 4 bits C2
+
+        with self.assertRaises(ValueError):
+            NC.int2bitarray(-9, bits=4)  # tampoco cabe sin truncar
 
     def test_binary_list2str_basic(self):
         self.assertEqual(NC.binary_list2str([1, 0, 1, 1]), "1011")
@@ -33,24 +83,24 @@ class TestBinaryConversion(unittest.TestCase):
             NC.str2binary_list("10 01")  # espacio no permitido
 
     def test_entero2binary_list_positive(self):
-        self.assertEqual(NC.entero2binary_list(5, fix_bits=8), [0,0,0,0,0,1,0,1])
-        self.assertEqual(NC.entero2binary_list(0, fix_bits=8), [0]*8)
-        self.assertEqual(NC.entero2binary_list(127, fix_bits=8), [0,1,1,1,1,1,1,1])
+        self.assertEqual(NC.entero2binary_list(5, fix_bits=8), [0, 0, 0, 0, 0, 1, 0, 1])
+        self.assertEqual(NC.entero2binary_list(0, fix_bits=8), [0] * 8)
+        self.assertEqual(NC.entero2binary_list(127, fix_bits=8), [0, 1, 1, 1, 1, 1, 1, 1])
 
     def test_entero2binary_list_negative(self):
-        self.assertEqual(NC.entero2binary_list(-1, fix_bits=8), [1,1,1,1,1,1,1,1])
-        self.assertEqual(NC.entero2binary_list(-128, fix_bits=8), [1,0,0,0,0,0,0,0])
-        self.assertEqual(NC.entero2binary_list(-5, fix_bits=8), [1,1,1,1,1,0,1,1])
+        self.assertEqual(NC.entero2binary_list(-1, fix_bits=8), [1, 1, 1, 1, 1, 1, 1, 1])
+        self.assertEqual(NC.entero2binary_list(-128, fix_bits=8), [1, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(NC.entero2binary_list(-5, fix_bits=8), [1, 1, 1, 1, 1, 0, 1, 1])
 
     def test_binary_list2entero_positive(self):
-        self.assertEqual(NC.binary_list2entero([0,0,0,0,0,1,0,1]), 5)
-        self.assertEqual(NC.binary_list2entero([0]*8), 0)
-        self.assertEqual(NC.binary_list2entero([0,1,1,1,1,1,1,1]), 127)
+        self.assertEqual(NC.binary_list2entero([0, 0, 0, 0, 0, 1, 0, 1]), 5)
+        self.assertEqual(NC.binary_list2entero([0] * 8), 0)
+        self.assertEqual(NC.binary_list2entero([0, 1, 1, 1, 1, 1, 1, 1]), 127)
 
     def test_binary_list2entero_negative(self):
-        self.assertEqual(NC.binary_list2entero([1,1,1,1,1,1,1,1]), -1)
-        self.assertEqual(NC.binary_list2entero([1,0,0,0,0,0,0,0]), -128)
-        self.assertEqual(NC.binary_list2entero([1,1,1,1,1,0,1,1]), -5)
+        self.assertEqual(NC.binary_list2entero([1, 1, 1, 1, 1, 1, 1, 1]), -1)
+        self.assertEqual(NC.binary_list2entero([1, 0, 0, 0, 0, 0, 0, 0]), -128)
+        self.assertEqual(NC.binary_list2entero([1, 1, 1, 1, 1, 0, 1, 1]), -5)
 
     def test_round_trip(self):
         for n in range(-128, 128):
@@ -75,14 +125,14 @@ class TestBinaryConversion(unittest.TestCase):
             NC.entero2binary_list(5, fix_bits=0)
 
     def test_natural2binary_list_basic(self):
-        self.assertEqual(NC.natural2binary_list(0, fix_bits=8), [0]*8)
-        self.assertEqual(NC.natural2binary_list(5, fix_bits=4), [0,1,0,1])
-        self.assertEqual(NC.natural2binary_list(15, fix_bits=4), [1,1,1,1])
+        self.assertEqual(NC.natural2binary_list(0, fix_bits=8), [0] * 8)
+        self.assertEqual(NC.natural2binary_list(5, fix_bits=4), [0, 1, 0, 1])
+        self.assertEqual(NC.natural2binary_list(15, fix_bits=4), [1, 1, 1, 1])
 
     def test_binary_list2natural_basic(self):
-        self.assertEqual(NC.binary_list2natural([0,0,0,0]), 0)
-        self.assertEqual(NC.binary_list2natural([1,0,1]), 5)
-        self.assertEqual(NC.binary_list2natural([1,1,1,1]), 15)
+        self.assertEqual(NC.binary_list2natural([0, 0, 0, 0]), 0)
+        self.assertEqual(NC.binary_list2natural([1, 0, 1]), 5)
+        self.assertEqual(NC.binary_list2natural([1, 1, 1, 1]), 15)
 
     def test_round_trip_fixed_bits(self):
         for n in range(0, 128):
@@ -99,9 +149,8 @@ class TestBinaryConversion(unittest.TestCase):
 
     def test_variable_bits(self):
         # Sin fix_bits
-        self.assertEqual(NC.natural2binary_list(5, fix_bits=None), [1,0,1])
+        self.assertEqual(NC.natural2binary_list(5, fix_bits=None), [1, 0, 1])
         self.assertEqual(NC.natural2binary_list(0, fix_bits=None), [0])
-
 
 
 class TestHuffmanSet(unittest.TestCase):
@@ -133,6 +182,7 @@ class TestHuffmanSet(unittest.TestCase):
             c1 = all_codes_str[i]
             c2 = all_codes_str[i + 1]
             self.assertFalse(c2.startswith(c1), f"Ambigüedad detectada: {c1} es prefijo de {c2}")
+
 
 if __name__ == '__main__':
     unittest.main()

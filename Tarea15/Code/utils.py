@@ -2,10 +2,78 @@ import json
 import struct
 from typing import Optional, Dict, Any
 
+import numpy as np
+from bitarray import bitarray
+
 import constants
 
 
 class NumberConversion:
+    @staticmethod
+    def safe_uint64(n: int) -> np.uint64:
+        if not isinstance(n, int):
+            raise TypeError("Se espera un entero.")
+        if not (0 <= n <= (1 << 64) - 1):
+            raise ValueError("El número no cabe en 64 bits sin signo.")
+        return np.uint64(n)
+
+    @staticmethod
+    def bitarray2natural(bitarr: bitarray) -> int:
+        """Bitarray a número natural"""
+        return int(bitarr.to01(), 2)
+
+    @staticmethod
+    def natural2bitarray(natural: int, bits: int = None, truncate: bool = False) -> bitarray:
+        """Número natural a bitarray"""
+        if bits is None:
+            bits = natural.bit_length()
+
+        if natural >= (1 << bits):
+            if truncate:
+                natural = natural % (1 << bits)  # Truncar: quedarse con los `bits` menos significativos
+            else:
+                raise ValueError(f"El número natural {natural} no cabe en {bits} bits.")
+
+        bitstr = format(natural, f'0{bits}b')
+        return bitarray(bitstr)
+
+    @staticmethod
+    def bitarray2int(bitarr: bitarray) -> int:
+        """Bitarray a entero"""
+        if bitarr[0] == 0:
+            return int(bitarr.to01(), 2)
+        else:
+            return int(bitarr[1:].to01(), 2) - (1 << len(bitarr) - 1)
+
+    @staticmethod
+    def int2bitarray(num_int: int, bits: int = None, truncate: bool = False) -> bitarray:
+        """
+        Entero a bit array (Complemento a 2)
+        Convierte un entero con signo a bitarray en complemento a dos de `bits` bits.
+        Si `truncate=True`, trunca el número a los `bits` menos significativos.
+        """
+        if bits is None:
+            # Determinar automáticamente el mínimo de bits necesarios
+            if num_int >= 0:
+                bits = num_int.bit_length() + 1  # +1 para el bit de signo
+            else:
+                bits = (-num_int).bit_length() + 1  # también para negativo
+
+        min_val = -(1 << (bits - 1))
+        max_val = (1 << (bits - 1)) - 1
+
+        if not (min_val <= num_int <= max_val):
+            if truncate:
+                # Truncamos bits menos significativos del C2
+                unsigned = (1 << bits) + num_int if num_int < 0 else num_int
+                unsigned %= (1 << bits)
+            else:
+                raise ValueError(f"{num_int} no cabe en {bits} bits (C2).")
+        else:
+            unsigned = (1 << bits) + num_int if num_int < 0 else num_int
+
+        bitstr = format(unsigned, f'0{bits}b')
+        return bitarray(bitstr)
 
     @staticmethod
     def binary_list2str(binary_list: list[int]) -> str:
@@ -38,7 +106,7 @@ class NumberConversion:
         # Análisis del complemento a 2
         if binary_list[0] == 1:
             # Complemento a 2
-            return int(bit_string, 2) - (1 << n_bits) # 2^n_bits para obtener negativo
+            return int(bit_string, 2) - (1 << n_bits)  # 2^n_bits para obtener negativo
         else:
             return int(bit_string, 2)
 
@@ -98,9 +166,9 @@ class NumberConversion:
             raise ValueError("No se admiten valores negativos")
 
         if fix_bits:
-            bin_list:list[int] = NumberConversion.entero2binary_list(n, fix_bits + 1)
+            bin_list: list[int] = NumberConversion.entero2binary_list(n, fix_bits + 1)
         else:
-            bin_list:list[int] = NumberConversion.entero2binary_list(n, None)
+            bin_list: list[int] = NumberConversion.entero2binary_list(n, None)
         # Le quito el signo
         if len(bin_list) > 1:
             bin_list = bin_list[1:]
@@ -152,6 +220,7 @@ def check_address_operation(operator: str, direccion: int) -> bool:
 
     return range[0] <= direccion <= range[1]
 
+
 class Math:
 
     @staticmethod
@@ -175,7 +244,7 @@ class Math:
 
         codes_bin_list = []
         for code in codes:
-            code_bin = [0 if l=='0' else 1 for l in code]
+            code_bin = [0 if l == '0' else 1 for l in code]
             codes_bin_list.append(code_bin)
         return codes_bin_list
 
@@ -203,9 +272,10 @@ class Math:
 
         return codes_bin_grouped
 
+
 class FileManager:
     @staticmethod
-    def dict2JSON(path_JSON:str, data: Dict):
+    def dict2JSON(path_JSON: str, data: Dict):
         if ".json" not in path_JSON:
             path_JSON += ".json"
         with open(path_JSON, "w", encoding="utf-8") as f:

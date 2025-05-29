@@ -1,8 +1,10 @@
 from typing import Callable
+
+import numpy as np
 from bitarray import bitarray
 
 import constants
-from model.procesador import memory
+from model.procesador.memory import Memory
 from utils import NumberConversion as NC
 
 
@@ -15,8 +17,7 @@ def set_up():
 def action():
     # Lee la instrucción de control y ejecuta su acción respectiva
     instruction: bitarray = ControlBus.read()
-    # TODO: Revisar que si esté usando el bit correcto dentro del bus de control
-    call_instruccion(instruction[0])
+    call_instruccion(instruction[constants.CONTROL_SIZE-1])
 
 
 def call_instruccion(instr: int):
@@ -52,14 +53,14 @@ class DataBus:
             '0' * constants.WORDS_SIZE_BITS, endian='big')
 
     @staticmethod
-    def read() -> bitarray[constants.WORDS_SIZE_BITS]:
+    def read() -> bitarray:
         """
         Devuelve la palabra almacenada en el bus de datos
         """
         return DataBus.array
 
     @staticmethod
-    def write(word: bitarray[constants.WORDS_SIZE_BITS]) -> None:
+    def write(word: bitarray) -> None:
         "Escribe una palabra en el bus de datos"
         if len(word) != constants.WORDS_SIZE_BITS:
             raise ValueError(
@@ -77,23 +78,23 @@ class DirectionBus:
     @staticmethod
     def set_up():
         DirectionBus.array = bitarray(
-            '0' * constants.WORDS_SIZE_BITS, endian='big')
+            '0' * constants.MEMORY_BITS, endian='big')
 
     @staticmethod
-    def read() -> bitarray[constants.WORDS_SIZE_BITS]:
+    def read() -> bitarray:
         """
         Devuelve la dirección almacenada en el bus de dirección
         """
         return DirectionBus.array
 
     @staticmethod
-    def write(word: bitarray[constants.WORDS_SIZE_BITS]) -> None:
+    def write(word: bitarray) -> None:
         """
         Escribe una dirección en el bus de dirección
         """
-        if len(word) != constants.WORDS_SIZE_BITS:
+        if len(word) != constants.MEMORY_BITS:
             raise ValueError(
-                f"La dirección debe tener {constants.WORDS_SIZE_BITS} bits.")
+                f"La dirección debe tener {constants.MEMORY_BITS} bits.")
         DirectionBus.array = word.copy()
 
 
@@ -103,8 +104,12 @@ class ControlBus:
     Almacena la instrucción de control que se está ejecutando.
     """
     array: bitarray = None
+    # Comandos en base 10, pasar a binario para hacer correspondencia con
     READ_MEMORY = 0
     WRITE_MEMORY = 1
+    # Comandos en base 2
+    READ_MEMORY_BIN = NC.natural2bitarray(READ_MEMORY, bits=constants.CONTROL_SIZE)
+    WRITE_MEMORY_BIN = NC.natural2bitarray(WRITE_MEMORY, bits=constants.CONTROL_SIZE)
 
     @staticmethod
     def set_up():
@@ -112,14 +117,14 @@ class ControlBus:
             '0' * constants.CONTROL_SIZE, endian='big')
 
     @staticmethod
-    def read() -> bitarray[64]:
+    def read() -> bitarray:
         """
         Devuelve la instrucción de control almacenada en el bus de control
         """
         return ControlBus.array
 
     @staticmethod
-    def write(word: bitarray[constants.WORDS_SIZE_BITS]) -> None:
+    def write(word: bitarray) -> None:
         """
         Escribe una instrucción de control en el bus de control
         """
@@ -135,14 +140,19 @@ class ControlBus:
         """
         @staticmethod
         def read_memory():
-            word: bitarray = memory.read(
-                DirectionBus.read()).copy()
+            """Get bitarray from memory and store it in Data bus"""
+            word: np.uint64 = Memory.read(
+                NC.bitarray2natural(DirectionBus.read())
+            )
+            word: bitarray = NC.natural2bitarray(int(word), bits=constants.WORDS_SIZE_BITS)
             DataBus.write(word)
 
         @staticmethod
         def write_memory():
+            """Get bitaray at DataBus and store it in Memory"""
             word: bitarray = DataBus.read().copy()
-            memory.write(
-                DirectionBus.read(),
-                word
-            )
+            address: int = NC.bitarray2natural(DirectionBus.read())
+
+            word: np.uint64 = NC.safe_uint64(NC.bitarray2natural(word))
+
+            Memory.write(address, word)
