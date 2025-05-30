@@ -1,3 +1,5 @@
+
+import csv
 import json
 import struct
 from typing import Optional, Dict, Any
@@ -278,17 +280,36 @@ class Math:
 
 
 class FileManager:
-    @staticmethod
-    def dict2JSON(path_JSON: str, data: Dict):
-        if ".json" not in path_JSON:
-            path_JSON += ".json"
-        with open(path_JSON, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+    class JSON:
+        @staticmethod
+        def dict2JSON(path_JSON: str, data: Dict):
+            if ".json" not in path_JSON:
+                path_JSON += ".json"
+            with open(path_JSON, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
 
-    @staticmethod
-    def JSON2dict(path_JSON: str) -> Dict[str, Any]:
-        if not path_JSON.endswith(".json"):
-            path_JSON += ".json"
+        @staticmethod
+        def JSON2dict(path_JSON: str) -> Dict[str, Any]:
+            if not path_JSON.endswith(".json"):
+                path_JSON += ".json"
 
-        with open(path_JSON, "r", encoding="utf-8") as f:
-            return json.load(f)
+            with open(path_JSON, "r", encoding="utf-8") as f:
+                return json.load(f)
+
+    class CSV:
+
+        @staticmethod
+        def list_to_csv(data: list[str], filename: str):
+            """
+            Guarda una lista de strings en un archivo .csv, una cadena por fila.
+
+            :param data: Lista de cadenas.
+            :param filename: Nombre del archivo (puede incluir .csv o no).
+            """
+            if not filename.endswith(".csv"):
+                filename += ".csv"
+
+            with open(filename, mode="w", newline="", encoding="utf-8") as file:
+                writer = csv.writer(file)
+                for line in data:
+                    writer.writerow([line])

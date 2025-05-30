@@ -2,18 +2,20 @@ import numpy as np
 from bitarray import bitarray
 
 import constants
-from model.procesador.CPU import ALU
 from utils import NumberConversion as NC
+from utils import FileManager
+
+from model.procesador import CPU
+from model.procesador import unidad_E_S
 from model.procesador.memory import Memory
+from model.enlazador.enlazador import Enlazador
+
+from model.procesador import bus
 from model.procesador.bus import DataBus, DirectionBus, ControlBus
 
 # -----------------------
 # Public Global Variables
 # -----------------------
-
-# Código de máquina donde cada línea está separada por un \n
-MACHINE_CODE: str = None
-
 
 # -----------------------
 # Funciones de acción
@@ -22,47 +24,109 @@ MACHINE_CODE: str = None
 class Action:
 
     @staticmethod
-    def start_simulation() -> int:
+    def start_emulation() -> int:
+        """
+        Inicializar componentes y desplegar interfaz gráfica.
+        Se llama desde el main para ejecutar tod0.
+
+        return:
+            0 éxito
+            -1 fracaso
+        """
+
         # Inicializar componentes
+        bus.set_up()
+        CPU.refresh()
+        CPU.ALU.set_up()
+        Memory.set_up()
 
         # Desplegar interfaz grafica
+        # TODO @sebastian desplegar
 
         # Retornar
-            # 0 exito
+        return 0
             # -1 fracaso
         pass
 
     @staticmethod
-    def stop_simulation() -> None:
-        # Cerrar programa
-        # Guardar archivos?
-        # Llamar CPU Refresh
-        pass
+    def stop_emulation(
+            save_memory:bool=False, save_registers:bool=False,
+            mode: str= "bin"
+    ) -> None:
+        """
+        Función que detiene toda la emulación.
+
+        La idea es que un botón del front "Apagar",
+        llama a esta función para que guarde tod0.
+
+        Si en el front se seleccionó, "Guardar Memoria" o "Guardar Registros",
+        entonces los parámetros deben ser True respectivamente.
+        """
+        valid_modes = ["bin", "hex", "decimal", "decimalc2"]
+        if mode not in valid_modes:
+            raise ValueError(
+                f"Modo inválido: '{mode}'. "
+                f"Opciones válidas: {valid_modes}")
+
+        # Guardar memoria si requerido en .csv
+        if save_memory:
+            cells_data: list[str] = (
+                Data.Memory_D.
+                get_memory_range_content(
+                    0, constants.STACK_RANGE[1], mode
+                )
+            )
+            FileManager.CSV.list_to_csv(cells_data, constants.MEMORY_SAVE_PATH)
+
+
+        # Guardar memoria si requerido en .csv
+        if save_registers:
+            registers_data: list[str] = (
+                Data.CPU_D.get_registers_range_content(
+                    0, constants.REGISTERS_SIZE-1, mode
+                )
+            )
+            FileManager.CSV.list_to_csv(registers_data, constants.REGISTERS_SAVE_PATH)
+
+        # Cerrar interfaz gráfica
+        # TODO @sebastian
+
+        # Refrescar la CPU
+        CPU.refresh()
+
+        return
 
     @staticmethod
-    def load_machine_code(address: int):
+    def load_machine_code(machine_code_reloc: str, address: int):
         """
-        Load machine code at the given address
+        Load machine code at the given address.
+
+        El usuario puede escribir el código de máquina relocalizable en
+        una ventana de exto fija en la APp.
+        En la parte inferior debe haber un botón que diga enlazar
+        y a la izquierda, un campo de texto donde se pueda poner la
+        dirección, que es el área del código.
+
+        Al darle click al botón,se llama a esta función con:
+        :param machine_code_reloc un string, el código de máquina
+            relocalizable que
+            contiene '\n'para separar cada línea
+        :param address número de 0 a 65535
         """
-        # Convertir machine_code en una lista separada por \n
+        # Verificar machine_code en una lista separada por '\n'
+        Enlazador.set_machine_code(machine_code_reloc)
 
-        # Tomar de a línea i=0 por línea de machine_code
-            # 64 por 64 digitos binarios
-            # Tener en cuenta que cada 0, 1 es +1 en conteo
-            # pero cuando haya un {n},y se reemplaza por (address + n)
-            # en binario y se suma su longitud al conteo.
-            # El conteo es una verificación de apoyo, si una línea no tiene
-
-            # Cuando se tenga la palabra de 64 bits pasarla a bitarray, se
-            # pone el Bus de dirección en address + i, el de control en
-            # write memory y el de datos se pone esa palabra que esta ingresando.
-            # Se corre bus.action() para scribir en la memoria.
+        # Cargar código
+        Enlazador.link_load_machine_code(address)
 
 
     @staticmethod
     def execute_instruction(address: int):
         """
         Execute a specific instruction from a given address
+
+        En el front debe haber un botón "Ejecutar Instrucción"
+        Y una caja de texto donde se
         """
         # Pone el contenido del PC de la ALU en la
         # dirección adress como de natural a bitarray
@@ -96,15 +160,6 @@ class Action:
 # -----------------------
 # Funciones de datos
 # -----------------------
-
-class Code_Management:
-    @staticmethod
-    def set_machine_code(machine_code: str):
-        """
-        Guarda el machine code, como código de máquina relocalizable.
-        Las separaciones deben ser con \n
-        """
-        MACHINE_CODE = machine_code
 
 class Data:
 
@@ -150,6 +205,12 @@ class Data:
                     "La dirección inicial debe ser menor o "
                     "igual a la dirección final."
                 )
+            if start < 0:
+                raise ValueError(f"Del rango {start} inválido. Debe ser mayor o igual a 0")
+            if end > constants.STACK_RANGE[1]:
+                raise ValueError(
+                    f"Del rango {end} inválido. "
+                    f"Debe ser menor o igual a {constants.STACK_RANGE[1]}")
 
             return [Data.Memory_D.get_memory_content(addr, mode) for addr in range(start, end + 1)]
 
@@ -211,7 +272,7 @@ class Data:
             if mode not in valid_modes:
                 raise ValueError(f"Modo inválido: '{mode}'. Opciones válidas: {valid_modes}")
 
-            word_bit: bitarray = ALU.read_register(reg_num)
+            word_bit: bitarray = CPU.ALU.read_register(reg_num)
 
             if mode == "bin":
                 return word_bit.to01()
@@ -221,6 +282,28 @@ class Data:
                 return str(NC.bitarray2natural(word_bit))
             elif mode == "decimalc2":
                 return str(NC.bitarray2int(word_bit))
+
+        @staticmethod
+        def get_registers_range_content(start: int, end: int, mode: str) -> list[str]:
+            """
+            Devuelve el contenido de un rango de registros en el formato especificado.
+
+            :param start: Dirección inicial del rango (inclusive).
+            :param end: Dirección final del rango (inclusive).
+            :param mode: Modo de representación ('bin', 'hex', 'decimal', 'decimalc2').
+            :return: Lista de cadenas con el contenido de cada dirección en el formato solicitado.
+            """
+            if start > end:
+                raise ValueError(
+                    "La dirección inicial debe ser menor o "
+                    "igual a la dirección final."
+                )
+            if start < 0:
+                raise ValueError(f"Del rango {start} inválido. Debe ser mayor o igual a 0")
+            if end > 31:
+                raise ValueError(f"Del rango {end} inválido. Debe ser menor o igual a 31")
+
+            return [Data.CPU_D.get_register_content(num, mode) for num in range(start, end +1)]
 
     class Bus_D:
 

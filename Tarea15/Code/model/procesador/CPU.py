@@ -20,6 +20,7 @@ PARA_INSTRUCTION = False
 # -----------------------
 
 def refresh():
+    global EN_EJECUCION, PARA_INSTRUCTION
     EN_EJECUCION = False
     PARA_INSTRUCTION = False
 
@@ -83,13 +84,13 @@ class ALU:
     """ Unidad Aritmético Lógica (ALU) del procesador.
     Contiene los registros del procesador y metodos para manipularlos."""
 
-    # Indice de los registros especiales
+    # Índice de los registros especiales
     PC = 0
     SP = 1
     IR = 2
     STATE = 3
 
-    # Indice de los flags dentro del registro ESTADO
+    # Índice de los flags dentro del registro ESTADO
     C = 0
     P = 1
     N = 2
@@ -201,7 +202,7 @@ class CU:
         CU.instruction_word = word_binary
 
         # Encontrar de qué tipo es la instrucción y cuál es su opcode.
-        opcodes_dict = utils.FileManager.JSON2dict(constants.OPCODES_PATH)
+        opcodes_dict = utils.FileManager.JSON.JSON2dict(constants.OPCODES_PATH)
         length, offset = None, None
         instr_str = str(CU.instruction_word.to01()) # Convertir a string la cadena de bits
 
@@ -221,7 +222,7 @@ class CU:
         CU.opcode_offset = offset
 
         # Obtener la instrucción exacta
-        instr_asm_dict: dict = utils.FileManager.JSON2dict(constants.ISA_PATH)
+        instr_asm_dict: dict = utils.FileManager.JSON.JSON2dict(constants.ISA_PATH)
         CU.instruction_asm = instr_asm_dict[CU.opcode_length][CU.opcode_offset]
 
         # Extract args depending on length type

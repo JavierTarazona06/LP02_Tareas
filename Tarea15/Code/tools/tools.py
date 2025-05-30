@@ -3,7 +3,7 @@ import constants
 from utils import Math, FileManager, NumberConversion
 
 def get_huffman_for_instructions():
-    dict_isa = FileManager.JSON2dict(constants.ISA_PATH)
+    dict_isa = FileManager.JSON.JSON2dict(constants.ISA_PATH)
 
     huff_list = []
     for length, ISA_list in dict_isa.items():
@@ -15,4 +15,4 @@ def get_huffman_for_instructions():
         huffman_dict[key] = []
         for code in value:
             huffman_dict[key].append(NumberConversion.binary_list2str(code))
-    FileManager.dict2JSON(constants.OPCODES_PATH, huffman_dict)
+    FileManager.JSON.dict2JSON(constants.OPCODES_PATH, huffman_dict)
