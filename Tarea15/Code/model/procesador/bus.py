@@ -105,11 +105,11 @@ class ControlBus:
     """
     array: bitarray = None
     # Comandos en base 10, pasar a binario para hacer correspondencia con
-    READ_MEMORY = 0
-    WRITE_MEMORY = 1
+    READ_MEMORY: int = 0
+    WRITE_MEMORY: int = 1
     # Comandos en base 2
-    READ_MEMORY_BIN = NC.natural2bitarray(READ_MEMORY, bits=constants.CONTROL_SIZE)
-    WRITE_MEMORY_BIN = NC.natural2bitarray(WRITE_MEMORY, bits=constants.CONTROL_SIZE)
+    READ_MEMORY_BIN: bitarray = NC.natural2bitarray(READ_MEMORY, bits=constants.CONTROL_SIZE)
+    WRITE_MEMORY_BIN: bitarray = NC.natural2bitarray(WRITE_MEMORY, bits=constants.CONTROL_SIZE)
 
     @staticmethod
     def set_up():

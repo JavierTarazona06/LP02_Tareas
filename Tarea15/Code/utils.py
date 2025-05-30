@@ -1,14 +1,11 @@
-
 import csv
 import json
 import struct
-from typing import Optional, Dict, Any
-
 import numpy as np
 from bitarray import bitarray
+from typing import Optional, Dict, Any
 
 import constants
-import bitarray
 
 
 class NumberConversion:
@@ -28,6 +25,8 @@ class NumberConversion:
     @staticmethod
     def natural2bitarray(natural: int, bits: int = None, truncate: bool = False) -> bitarray:
         """Número natural a bitarray"""
+        if natural < 0:
+            raise ValueError(f"El número ingresado {natural} no es un número natural")
         if bits is None:
             bits = natural.bit_length()
 
@@ -37,8 +36,8 @@ class NumberConversion:
             else:
                 raise ValueError(f"El número natural {natural} no cabe en {bits} bits.")
 
-        bitstr = format(natural, f'0{bits}b')
-        return bitarray(bitstr)
+        natural_bin: bitarray = bitarray(format(natural, f'0{bits}b'))
+        return natural_bin
 
     @staticmethod
     def bitarray2int(bitarr: bitarray) -> int:
@@ -79,7 +78,7 @@ class NumberConversion:
         return bitarray(bitstr)
 
     @staticmethod
-    def binary_list2str(binary_list: bitarray[constants.WORDS_SIZE_BITS]) -> str:
+    def binary_list2str(binary_list: bitarray) -> str:
         return "".join(str(bit) for bit in binary_list)
 
     @staticmethod
@@ -313,3 +312,16 @@ class FileManager:
                 writer = csv.writer(file)
                 for line in data:
                     writer.writerow([line])
+
+    class TXT:
+        @staticmethod
+        def read_file_as_str(path: str) -> str:
+            """
+            Lee el contenido completo de un archivo como una única cadena de texto.
+
+            :param path: Ruta del archivo, como ( .in)
+            :return: Contenido del archivo como string
+            """
+            with open(path, "r", encoding="utf-8") as f:
+                contenido = f.read()
+            return contenido

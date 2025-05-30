@@ -13,6 +13,7 @@ from model.enlazador.enlazador import Enlazador
 from model.procesador import bus
 from model.procesador.bus import DataBus, DirectionBus, ControlBus
 
+
 # -----------------------
 # Public Global Variables
 # -----------------------
@@ -45,13 +46,13 @@ class Action:
 
         # Retornar
         return 0
-            # -1 fracaso
+        # -1 fracaso
         pass
 
     @staticmethod
     def stop_emulation(
-            save_memory:bool=False, save_registers:bool=False,
-            mode: str= "bin"
+            save_memory: bool = False, save_registers: bool = False,
+            mode: str = "bin"
     ) -> None:
         """
         Función que detiene toda la emulación.
@@ -78,12 +79,11 @@ class Action:
             )
             FileManager.CSV.list_to_csv(cells_data, constants.MEMORY_SAVE_PATH)
 
-
         # Guardar memoria si requerido en .csv
         if save_registers:
             registers_data: list[str] = (
                 Data.CPU_D.get_registers_range_content(
-                    0, constants.REGISTERS_SIZE-1, mode
+                    0, constants.REGISTERS_SIZE - 1, mode
                 )
             )
             FileManager.CSV.list_to_csv(registers_data, constants.REGISTERS_SAVE_PATH)
@@ -119,25 +119,33 @@ class Action:
         # Cargar código
         Enlazador.link_load_machine_code(address)
 
-
     @staticmethod
     def execute_instruction(address: int):
         """
         Execute a specific instruction from a given address
 
         En el front debe haber un botón "Ejecutar Instrucción"
-        Y una caja de texto donde se
+        Y una caja de texto donde se escribe la
+        primera instrucción que se desea ejecutar.
+
+        Al oprimir el botón, el PC se pone en dicha instrucción
+        y se ejecuta solo una.
         """
         # Pone el contenido del PC de la ALU en la
-        # dirección adress como de natural a bitarray
+        #   dirección address como bitarray
+        CPU.preparate(address)
 
-        # Poner CPU.EN_EJECUCION = True
+        # Poner CPU en ejecución
+        CPU.EN_EJECUCION = True
 
-        # Llama a fetch de CPU
-        # Llama a decode de CPU
-        # Llama a execute de CPU
+        # Ciclo Fetch-Decode-Execute
+        CPU.fetch()
+        CPU.decode()
+        CPU.execute()
 
-        # Llama CPU.reset(), pone CPU.en ejecución y CPU.para en False
+        # Refrescar la CPU:
+        #   Ejecución e instrucción de parada en Falso
+        CPU.refresh()
 
     @staticmethod
     def execute_progam(address: int):
@@ -145,16 +153,21 @@ class Action:
         Start program execution with the instruction from a given address
         """
         # Pone el contenido del PC de la ALU en la
-        # dirección adress como de natural a bitarray
+        #   dirección address como bitarray
+        CPU.preparate(address)
 
-        # Poner CPU.EN_EJECUCION = True
+        # Poner CPU en ejecución
+        CPU.EN_EJECUCION = True
 
-        # Mientras que CPU.PARA sea False:
-            # Llama a fetch de CPU
-            # Llama a decode de CPU
-            # Llama a execute de CPU
+        # Ciclo Fetch-Decode-Execute
+        while not CPU.PARA_INSTRUCTION:
+            CPU.fetch()
+            CPU.decode()
+            CPU.execute()
 
-        # Llama CPU.reset(), pone CPU.en ejecución y CPU.para en False
+        # Refrescar la CPU:
+        #   Ejecución e instrucción de parada en Falso
+        CPU.refresh()
 
 
 # -----------------------
@@ -162,7 +175,6 @@ class Action:
 # -----------------------
 
 class Data:
-
     class Memory_D:
 
         @staticmethod
@@ -303,7 +315,7 @@ class Data:
             if end > 31:
                 raise ValueError(f"Del rango {end} inválido. Debe ser menor o igual a 31")
 
-            return [Data.CPU_D.get_register_content(num, mode) for num in range(start, end +1)]
+            return [Data.CPU_D.get_register_content(num, mode) for num in range(start, end + 1)]
 
     class Bus_D:
 
@@ -329,7 +341,6 @@ class Data:
                 return str(NC.bitarray2natural(word_bit))
             elif mode == "decimalc2":
                 return str(NC.bitarray2int(word_bit))
-
 
         @staticmethod
         def get_directionbus(mode: str) -> str:
