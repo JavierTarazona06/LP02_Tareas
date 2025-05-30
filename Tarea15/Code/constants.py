@@ -28,8 +28,10 @@ INS_TYPE_I = (13, 26)
 INS_TYPE_J = (27, 40)
 
 # ----------------------------------
-# Instructions
+# Paths
 # ----------------------------------
 
 ISA_PATH = "ISA.json"
 OPCODES_PATH = "opcodes.json"
+MEMORY_SAVE_PATH = "memory.csv"
+REGISTERS_SAVE_PATH = "registers.csv"

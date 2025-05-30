@@ -12,16 +12,31 @@ from utils import NumberConversion as NC
 # Public Global Variables
 # -----------------------
 
-EN_EJECUCION = False
-PARA_INSTRUCTION = False
+EN_EJECUCION: bool = False
+PARA_INSTRUCTION: bool = False
 
 # -----------------------
 # Methods
 # -----------------------
 
 def refresh():
+    """
+    Limpia el entorno
+    indicando que ya mo esta en
+    ejecución y que no hay una instrucción de parada
+    :return:
+    """
+    global EN_EJECUCION, PARA_INSTRUCTION
     EN_EJECUCION = False
     PARA_INSTRUCTION = False
+
+def preparate(address: int):
+    """
+    Prepara el entorno de ejecución para el ciclo
+    fetch-decode-execute desde
+    :param address
+    """
+    ALU.write_register(ALU.PC, NC.natural2bitarray(address, 64))
 
 def fetch():
     """
@@ -83,17 +98,17 @@ class ALU:
     """ Unidad Aritmético Lógica (ALU) del procesador.
     Contiene los registros del procesador y metodos para manipularlos."""
 
-    # Indice de los registros especiales
-    PC = 0
-    SP = 1
-    IR = 2
-    STATE = 3
+    # Índice de los registros especiales
+    PC: int = 0
+    SP: int = 1
+    IR: int = 2
+    STATE: int = 3
 
-    # Indice de los flags dentro del registro ESTADO
-    C = 0
-    P = 1
-    N = 2
-    D = 3
+    # Índice de los flags dentro del registro ESTADO
+    C: int = 0
+    P: int = 1
+    N: int = 2
+    D: int = 3
     registers: np.ndarray[bitarray] = None
 
     @staticmethod
@@ -201,7 +216,7 @@ class CU:
         CU.instruction_word = word_binary
 
         # Encontrar de qué tipo es la instrucción y cuál es su opcode.
-        opcodes_dict = utils.FileManager.JSON2dict(constants.OPCODES_PATH)
+        opcodes_dict = utils.FileManager.JSON.JSON2dict(constants.OPCODES_PATH)
         length, offset = None, None
         instr_str = str(CU.instruction_word.to01()) # Convertir a string la cadena de bits
 
@@ -221,7 +236,7 @@ class CU:
         CU.opcode_offset = offset
 
         # Obtener la instrucción exacta
-        instr_asm_dict: dict = utils.FileManager.JSON2dict(constants.ISA_PATH)
+        instr_asm_dict: dict = utils.FileManager.JSON.JSON2dict(constants.ISA_PATH)
         CU.instruction_asm = instr_asm_dict[CU.opcode_length][CU.opcode_offset]
 
         # Extract args depending on length type
@@ -444,72 +459,6 @@ class ISA:
             bus.DataBus.write(word)
             bus.action()
 
-        """@staticmethod
-        def carga_inm():
-            # TODO: Continuar aqui
-            """
-            #Cargar un entero inmediato (32 bits) al registro en
-            #los bits menos significativos.
-            #Hace una limpieza antes de cargar para dejarlo como nuevo.
-            """
-            r = NC.binary_list2natural(CU.instruction_args[1])
-            v: list[int] = CU.instruction_args[2]
-
-            # val_rec: list[int] = leer_reg(r, mode="bin")
-            val_rec: list[int] = [0 for _ in range(constants.WORDS_SIZE_BITS)]
-            val_rec[32:] = v.copy()
-
-            escribir_reg(
-                r,
-                val_rec,
-                mode="bin"
-            )
-            ALU.modify_state(val_rec, mode="bin")
-
-        @staticmethod
-        def carga_inm_superior():
-            """
-            #Cargar un entero inmediato (32 bits) al registro en
-            #los bits más significativos
-            """
-            r: int = NC.binary_list2natural(CU.instruction_args[1])
-            v: list[int] = CU.instruction_args[2]
-
-            # Leer lo que ya hay
-            val_rec: list[int] = leer_reg(r, mode="bin")
-            val_rec[0:32] = v.copy()
-
-            escribir_reg(
-                r,
-                val_rec,
-                mode="bin"
-            )
-            ALU.modify_state(val_rec, mode="bin")
-
-        @staticmethod
-        def suma_inm():
-            """
-            #Suma el registro destino con un entero inmediato
-            """
-            r: int = NC.binary_list2natural(CU.instruction_args[1])
-            v: int = NC.binary_list2natural(CU.instruction_args[2])
-
-            v1 = leer_reg(r, mode="int")
-            v2 = v
-            value_result: int = v1 + v2
-
-            ALU.modify_state(value_result, mode="int")
-
-            escribir_reg(
-                r,
-                value_result,
-                mode="int"
-            )"""
-
-    # ------------------
-    # Type J
-    # ------------------
-
 
 
 # ------------------------------------
@@ -530,7 +479,7 @@ operations: dict[int, list[Callable[[], None]]] = {
         ISA.I_.cargar, ISA.I_.guardar, "SIREGCERO", "SIREGNCERO"
     ],
     27: [
-        ISA.I_.carga_inm, ISA.I_.carga_inm_superior, ISA.I_.suma_inm, "IRESTA", "IMULT",
+        "ICARGA", "ISCARGA", "ISUMA", "IRESTA", "IMULT",
         "IDIVI", "IAND", "IOR", "IXOR", "ICOMP"
     ],
     40: [
