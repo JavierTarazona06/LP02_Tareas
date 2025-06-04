@@ -91,6 +91,7 @@ class DirectionBus:
     def write(word: bitarray) -> None:
         """
         Escribe una dirección en el bus de dirección
+        24 bits
         """
         if len(word) != constants.MEMORY_BITS:
             raise ValueError(

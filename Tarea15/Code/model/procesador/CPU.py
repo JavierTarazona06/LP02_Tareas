@@ -1,3 +1,4 @@
+import inspect
 import numpy as np
 from typing import Callable
 from bitarray import bitarray
@@ -15,6 +16,7 @@ from utils import NumberConversion as NC
 EN_EJECUCION: bool = False
 PARA_INSTRUCTION: bool = False
 
+
 # -----------------------
 # Methods
 # -----------------------
@@ -30,6 +32,7 @@ def refresh():
     EN_EJECUCION = False
     PARA_INSTRUCTION = False
 
+
 def preparate(address: int):
     """
     Prepara el entorno de ejecución para el ciclo
@@ -38,6 +41,7 @@ def preparate(address: int):
     """
     ALU.write_register(ALU.PC, NC.natural2bitarray(address, 64))
 
+
 def fetch():
     """
     Lee la siguiente instrucción de memoria y la guarda en el registro IR.
@@ -45,6 +49,7 @@ def fetch():
     """
     # Leer PC para ver a qué palabra apunta
     curr_pc_word_dir: bitarray = ALU.read_register(ALU.PC).copy()
+    curr_pc_word_dir = NC.truncate_bitarray_ls(curr_pc_word_dir, 24)
 
     # Indicarle al bus de control que lea memoria
     bus.ControlBus.write(bus.ControlBus.READ_MEMORY_BIN)
@@ -80,7 +85,7 @@ def decode():
     Decodifica la instrucción almacenada en el registro IR.
     Utiliza la Unidad de Control (CU) para identificar el tipo de instrucción y su opcode.
     """
-    IR_word_bin: bitarray= ALU.read_register(ALU.IR).copy()
+    IR_word_bin: bitarray = ALU.read_register(ALU.IR).copy()
     CU.decode(IR_word_bin)
 
 
@@ -89,6 +94,7 @@ def execute():
         operations[CU.opcode_length][CU.opcode_offset]()
     except KeyError:
         raise ValueError(f"Instrucción {CU.instruction_asm} no definida.")
+
 
 # -----------------------
 # Classes
@@ -143,10 +149,6 @@ class ALU:
         Lee el registro especificado por register_id y devuelve su contenido como un bitarray de 64 bits.
         """
 
-        if ALU.is_register_special(register_id):
-            raise ValueError(
-                f"Registro {register_id} es especial y no se puede leer directamente.")
-
         content: bitarray = ALU.registers[register_id]
 
         return content
@@ -159,9 +161,17 @@ class ALU:
         Si el registro es especial, se lanza una excepción.
         """
 
+        # Obtener la pila de llamadas
+        stack = inspect.stack()
+        # Nombre de la función llamadora
+        caller_name = stack[1].function
+
         if ALU.is_register_special(register_id):
-            raise ValueError(
-                f"Registro {register_id} es especial y no se puede escribir directamente.")
+            if not (
+                    caller_name == "preparate" or caller_name == "fetch"
+                    or caller_name == "modify_state_int"):
+                raise ValueError(
+                    f"Registro {register_id} es especial y no se puede escribir directamente.")
 
         if len(value) != constants.WORDS_SIZE_BITS:
             raise ValueError(
@@ -180,13 +190,13 @@ class ALU:
             valid_length = False
 
         if value == 0:
-            state[constants.WORDS_SIZE_BITS - ALU.C -1] = 1
+            state[constants.WORDS_SIZE_BITS - ALU.C - 1] = 1
         if value > 0:
-            state[constants.WORDS_SIZE_BITS - ALU.P -1] = 1
+            state[constants.WORDS_SIZE_BITS - ALU.P - 1] = 1
         if value < 0:
-            state[constants.WORDS_SIZE_BITS - ALU.N -1] = 1
+            state[constants.WORDS_SIZE_BITS - ALU.N - 1] = 1
         if not valid_length:
-            state[constants.WORDS_SIZE_BITS - ALU.D -1] = 1
+            state[constants.WORDS_SIZE_BITS - ALU.D - 1] = 1
 
         ALU.write_register(ALU.STATE, state)
 
@@ -198,7 +208,7 @@ class CU:
     """
     # Convenciones de segmentos de instrucción
     instruction_word: bitarray = None
-    opcode_length: int = None
+    opcode_length: str = None
     opcode_offset: int = None
     instruction_asm: str = None
     instruction_args: list[bitarray] = None
@@ -218,7 +228,7 @@ class CU:
         # Encontrar de qué tipo es la instrucción y cuál es su opcode.
         opcodes_dict = utils.FileManager.JSON.JSON2dict(constants.OPCODES_PATH)
         length, offset = None, None
-        instr_str = str(CU.instruction_word.to01()) # Convertir a string la cadena de bits
+        instr_str = str(CU.instruction_word.to01())  # Convertir a string la cadena de bits
 
         for length_i, opcodes_list in opcodes_dict.items():
             for idx, opcode in enumerate(opcodes_list):
@@ -232,6 +242,7 @@ class CU:
         if length is None:
             raise ValueError(
                 "No existe opcode con el que inicie la instrucción.")
+
         CU.opcode_length = length
         CU.opcode_offset = offset
 
@@ -241,24 +252,24 @@ class CU:
 
         # Extract args depending on length type
         CU.instruction_args = []
-        if length == 64:
+        if length == "64":
             CU.instruction_args.append(CU.instruction_word)  # Code instruction
-        elif length == 54:
+        elif length == "54":
             CU.instruction_args.append(CU.instruction_word[0:54])  # Opcode
             CU.instruction_args.append(CU.instruction_word[54:59])  # R
             CU.instruction_args.append(CU.instruction_word[59:64])  # R'
-        elif length == 59:
+        elif length == "59":
             CU.instruction_args.append(CU.instruction_word[0:59])  # Opcode
             CU.instruction_args.append(CU.instruction_word[59:64])  # R
-        elif length == 35:
+        elif length == "35":
             CU.instruction_args.append(CU.instruction_word[0:35])  # Opcode
             CU.instruction_args.append(CU.instruction_word[35:40])  # R
             CU.instruction_args.append(CU.instruction_word[40:64])  # M
-        elif length == 27:
+        elif length == "27":
             CU.instruction_args.append(CU.instruction_word[0:27])  # Opcode
             CU.instruction_args.append(CU.instruction_word[27:32])  # R
             CU.instruction_args.append(CU.instruction_word[32:64])  # V
-        elif length == 40:
+        elif length == "40":
             CU.instruction_args.append(CU.instruction_word[0:40])  # Opcode
             CU.instruction_args.append(CU.instruction_word[40:64])  # M
 
@@ -272,8 +283,8 @@ class ISA:
 
         @staticmethod
         def para():
+            global PARA_INSTRUCTION
             PARA_INSTRUCTION = True
-
 
     # ------------------
     # Type R
@@ -403,7 +414,7 @@ class ISA:
         @staticmethod
         def limpia():
             """Limpia un registro"""
-            r:int = NC.bitarray2natural(CU.instruction_args[1])
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
 
             ALU.write_register(r, NC.int2bitarray(0, 64))
 
@@ -459,30 +470,79 @@ class ISA:
             bus.DataBus.write(word)
             bus.action()
 
+        @staticmethod
+        def carga_inm():
+            """
+            Cargar un entero inmediato (32 bits) al registro en
+                los bits menos significativos.
+                Lo convierte a 64 bits para dejarlo como nuevo.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v: bitarray = CU.instruction_args[2]
+
+            v = NC.extend_bitarray(v, constants.WORDS_SIZE_BITS)
+
+            ALU.write_register(r, v)
+
+        @staticmethod
+        def carga_inm_superior():
+            """
+            #Cargar un entero inmediato (32 bits) al registro en
+            #los bits más significativos
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+
+            # Value most significant bits
+            v_m: bitarray = CU.instruction_args[2]
+            # Value less significant bits
+            v_l: bitarray = NC.truncate_bitarray_ls(ALU.read_register(r).copy(), 32)
+
+            long_bin: bitarray = v_m + v_l
+
+            ALU.write_register(r, long_bin)
+
+        @staticmethod
+        def suma_inm():
+            """
+            Suma enteros el registro destino con un entero inmediato
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v1: int = NC.bitarray2int(ALU.read_register(r))
+            v2: int = NC.bitarray2int(CU.instruction_args[2])
+
+            value_result: int = v1 + v2
+            ALU.write_register(
+                r, NC.int2bitarray(
+                    value_result, constants.WORDS_SIZE_BITS,
+                    truncate=True
+                )
+            )
+
+            ALU.modify_state_int(value_result)
 
 
 # ------------------------------------
 # ------------------------------------
 
-operations: dict[int, list[Callable[[], None]]] = {
-    64: [
+operations: dict[str, list[Callable[[], None]]] = {
+    "64": [
         "PROCRASTINA", "VUELVE", ISA.C.para
     ],
-    54: [
+    "54": [
         ISA.R.suma, ISA.R.resta, ISA.R.mult, ISA.R.divi, ISA.R.y_bit_bit,
         ISA.R.o_bit_bit, ISA.R.xor_bit_bit, ISA.R.comp, ISA.R.copia
     ],
-    59: [
+    "59": [
         ISA.R.not_bit_bit, ISA.R.limpia, ISA.R.incr, ISA.R.decr, "APILA", "DESAPILA"
     ],
-    35: [
+    "35": [
         ISA.I_.cargar, ISA.I_.guardar, "SIREGCERO", "SIREGNCERO"
     ],
-    27: [
-        "ICARGA", "ISCARGA", "ISUMA", "IRESTA", "IMULT",
+    "27": [
+        ISA.I_.carga_inm, ISA.I_.carga_inm_superior, ISA.I_.suma_inm, "IRESTA", "IMULT",
         "IDIVI", "IAND", "IOR", "IXOR", "ICOMP"
     ],
-    40: [
+    "40": [
         "SALTA", "LLAMA", "SICERO", "SINCERO", "SIPOS", "SINEG",
         "SIOVERFL", "SIMAYOR", "SIMENOR", "INTERRUP"
     ]

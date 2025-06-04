@@ -1,5 +1,7 @@
+import csv
 import numpy as np
 from bitarray import bitarray
+from openpyxl import Workbook
 
 import constants
 from utils import NumberConversion as NC
@@ -56,6 +58,7 @@ class Action:
     ) -> None:
         """
         Función que detiene toda la emulación.
+        valid_modes = ["bin", "hex", "decimal", "decimalc2"]
 
         La idea es que un botón del front "Apagar",
         llama a esta función para que guarde tod0.
@@ -71,13 +74,8 @@ class Action:
 
         # Guardar memoria si requerido en .csv
         if save_memory:
-            cells_data: list[str] = (
-                Data.Memory_D.
-                get_memory_range_content(
-                    0, constants.STACK_RANGE[1], mode
-                )
-            )
-            FileManager.CSV.list_to_csv(cells_data, constants.MEMORY_SAVE_PATH)
+            Data.Memory_D.save_memory_fast(constants.MEMORY_SAVE_PATH_CSV, mode)
+            #Data.Memory_D.save_modified_memory(constants.MEMORY_SAVE_PATH, mode)
 
         # Guardar memoria si requerido en .csv
         if save_registers:
@@ -86,7 +84,10 @@ class Action:
                     0, constants.REGISTERS_SIZE - 1, mode
                 )
             )
-            FileManager.CSV.list_to_csv(registers_data, constants.REGISTERS_SAVE_PATH)
+            FileManager.Excel.list_to_xlsx(
+                registers_data, constants.REGISTERS_SAVE_PATH,
+                "Registros"
+            )
 
         # Cerrar interfaz gráfica
         # TODO @sebastian
@@ -178,6 +179,60 @@ class Data:
     class Memory_D:
 
         @staticmethod
+        def format_memory_value(val: np.uint64, mode: str) -> str:
+            """
+            Obtiene el string del valor uint64 y lo convierte
+            :param val: uint64 que corresponde a un contenido de celda de memoria
+            :param mode: ["bin", "hex", "decimal", "decimalc2"]
+            :return:
+            """
+            if mode == "bin":
+                return format(val, '064b')
+            elif mode == "hex":
+                return hex(val)
+            elif mode == "decimal":
+                return str(val)
+            elif mode == "decimalc2":
+                return str(NC.bitarray2int(NC.natural2bitarray(int(val))))
+            else:
+                raise ValueError("Modo no válido.")
+
+        @staticmethod
+        def save_memory_fast(path_csv: str, mode: str) -> None:
+            """
+            Guarda la memoria en un CSV fast
+            :param path_csv
+            :param mode: ('bin', 'hex', 'decimal', 'decimalc2').
+            """
+            mem_array: np.ndarray = Memory.array
+            with open(path_csv, "w", encoding="utf-8") as f:
+                for val in mem_array:
+                    f.write(Data.Memory_D.format_memory_value(val, mode) + '\n')
+
+        @staticmethod
+        def save_modified_memory(path_xlsx: str, mode: str) -> None:
+            """
+            Guarda la memoria modificada en un Excel
+            :param path_xlsx
+            :param mode: ('bin', 'hex', 'decimal', 'decimalc2').
+            """
+            if not path_xlsx.endswith(".xlsx"):
+                path_xlsx += ".xlsx"
+
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Memoria Modificada"
+
+            # Encabezados
+            ws.append(["Dirección", "Contenido"])
+
+            for address in Memory.memory_changed:
+                content = Data.Memory_D.get_memory_content(address, mode)
+                ws.append([address, content])
+
+            wb.save(path_xlsx)
+
+        @staticmethod
         def get_memory_content(address: int, mode: str) -> str:
             """
             Devuelve la palabra almacenada en una dirección de memoria en el formato solicitado.
@@ -191,16 +246,7 @@ class Data:
                 raise ValueError(f"Modo inválido: '{mode}'. Opciones válidas: {valid_modes}")
 
             word_64: np.uint64 = Memory.read(address)
-            word_bit: bitarray = NC.natural2bitarray(int(word_64))
-
-            if mode == "bin":
-                return word_bit.to01()
-            elif mode == "hex":
-                return hex(int(word_64))
-            elif mode == "decimal":
-                return str(int(word_64))
-            elif mode == "decimalc2":
-                return str(NC.bitarray2int(word_bit))
+            return Data.Memory_D.format_memory_value(word_64, mode)
 
         @staticmethod
         def get_memory_range_content(start: int, end: int, mode: str) -> list[str]:

@@ -33,5 +33,6 @@ INS_TYPE_J = (27, 40)
 
 ISA_PATH = "ISA.json"
 OPCODES_PATH = "opcodes.json"
-MEMORY_SAVE_PATH = "memory.csv"
-REGISTERS_SAVE_PATH = "registers.csv"
+MEMORY_SAVE_PATH = "memory.xlsx"
+MEMORY_SAVE_PATH_CSV = "memory.csv"
+REGISTERS_SAVE_PATH = "registers.xlsx"
