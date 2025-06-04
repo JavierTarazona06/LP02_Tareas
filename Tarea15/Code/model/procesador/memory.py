@@ -2,7 +2,6 @@
 import constants
 import numpy as np
 
-
 class Memory:
     """
     Clase que representa la memoria del procesador.
@@ -11,6 +10,8 @@ class Memory:
     La memoria tiene un tamaño de MEMORY_SIZE palabras.
     """
     array: np.ndarray[np.uint64] = None
+    # Direcciones de memoria que fueron escritas
+    memory_changed = []
 
     @staticmethod
     def set_up():
@@ -46,3 +47,5 @@ class Memory:
             raise TypeError("El valor debe ser de tipo np.uint64.")
 
         Memory.array[direction] = value
+        if direction not in Memory.memory_changed:
+            Memory.memory_changed.append(direction)

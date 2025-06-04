@@ -3,6 +3,7 @@ import json
 import struct
 import numpy as np
 from bitarray import bitarray
+from openpyxl import Workbook
 from typing import Optional, Dict, Any
 
 import constants
@@ -210,6 +211,31 @@ class NumberConversion:
         byte_data = int(bit_string, 2).to_bytes(8, byteorder='big')
         return struct.unpack('>d', byte_data)[0]
 
+    @staticmethod
+    def truncate_bitarray_ls(bin_num: bitarray, bits: int) -> bitarray:
+        """
+        Truncate bin_num to the less significant given bits.
+        Not In Place
+        """
+        if all(bit == 0 for bit in bin_num[:len(bin_num) - bits]):
+            bin_num_truncated = bin_num[len(bin_num) - bits:].copy()
+            return bin_num_truncated
+        else:
+            raise ValueError("Los 40 bits más significativos no son todos ceros")
+
+    @staticmethod
+    def extend_bitarray(num_bin: bitarray, bits_total: int) -> bitarray:
+        """
+        Extend bitarray with bits_total bits.
+        Not In Place.
+        """
+        # Calcular cuántos ceros hay que agregar
+        missing = bits_total - len(num_bin)
+
+        # Agregar ceros a la izquierda
+        num_bin_ext: bitarray = (bitarray('0' * missing) + num_bin).copy()
+        return num_bin_ext
+
 
 def check_address_operation(operator: str, direccion: int) -> bool:
     operators = {
@@ -312,6 +338,30 @@ class FileManager:
                 writer = csv.writer(file)
                 for line in data:
                     writer.writerow([line])
+
+    class Excel:
+
+        @staticmethod
+        def list_to_xlsx(data: list[str], filename: str, title: str = "Datos"):
+            """
+            Guarda una lista de strings en un archivo .xlsx,
+            una cadena por fila (una por celda en la columna A).
+
+            :param data: Lista de cadenas.
+            :param filename: Nombre del archivo (puede incluir .xlsx o no).
+            """
+            if not filename.endswith(".xlsx"):
+                filename += ".xlsx"
+
+            wb = Workbook()
+            ws = wb.active
+            ws.title = title
+
+            for i, line in enumerate(data, start=1):
+                ws.cell(row=i, column=1, value=line)
+
+            wb.save(filename)
+
 
     class TXT:
         @staticmethod

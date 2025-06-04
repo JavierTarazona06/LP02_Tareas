@@ -84,10 +84,10 @@ class Enlazador:
                 if bits_count != constants.WORDS_SIZE_BITS:
                     raise ValueError(f"Instrucción {idx} no tiene 64 bits")
 
-                instruction_bin: bitarray = bitarray(code_line)
+            instruction_bin: bitarray = bitarray(code_line)
 
-                # Cargar la instrucción en memoria
-                bus.DirectionBus.write(NC.natural2bitarray(address+idx, 24))
-                bus.ControlBus.write(bus.ControlBus.WRITE_MEMORY_BIN)
-                bus.DataBus.write(instruction_bin)
-                bus.action()
+            # Cargar la instrucción en memoria
+            bus.DirectionBus.write(NC.natural2bitarray(address+idx, 24))
+            bus.ControlBus.write(bus.ControlBus.WRITE_MEMORY_BIN)
+            bus.DataBus.write(instruction_bin)
+            bus.action()
