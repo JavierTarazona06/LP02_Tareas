@@ -1,0 +1,124 @@
+// Teoría de Rachas
+
+Func Vacio Principal{
+
+	/*-----------------------
+		Multicotomización
+	----------------------*/
+
+	// Crear un alfabeto y valores
+	Conjunto<Caracter> categorias = {'a', 'b'};
+	Arreglo<Flotante> valores[5] = [-1.5, -2.7, 3.0, 4.8, -5.3];
+	
+	// Se envían categorias y reglas para la función
+	Multicotomizacion<Flotante> modeloMultiCom = Multicotomizacion<Flotante>(categorias);
+	modeloMultiCom.añadeRegla(X < 0.0, 'a');
+	modeloMultiCom.añadeRegla(X >= 0.0, 'b');
+	
+	// Aplica la función a la lista de valores
+	Cadena cadenaMulti = modeloMultiCom.cadenaMulticotomizada(valores);
+	imprimir(cadenaMulti);
+	// Imprime: "aabba"
+	
+	Arreglo<Entero> contadoraRachas = cadenaMulti.contadoraRachas();
+	imprimir(contadoraRachas);
+	// [1,0,1,0,1]
+	
+	Arreglo<Cadena> rachas = cadenaMulti.aRachas();
+	imprimir(rachas);
+	// Imprime: ["aa", "bb", "a"]
+	
+	Entero numRachas = cadenaMulti.numRachas();
+	imprimir(numRachas);
+	// 3
+	
+	Entero numRachasParcial = cadenaMulti.numRachas(0);
+	imprimir(numRachasParcial);
+	// 1
+	
+	Entero numRachasParcial = cadenaMulti.numRachas(3);
+	imprimir(numRachasParcial);
+	// 2
+
+	/*---------------------
+	Modelo Dos Vías de Clasificacion
+	----------------------*/
+	
+	Entero paramGlobal = 4.7;
+	Arreglo<Flotante> bloques = [5.4, -9.2];
+	Arreglo<Flotante> tratamientos = [-7.4, 1.2, 0.58];
+	
+	M2VClasificacion<Flotante> modelo2V = M2VClasificacion<Flotante>(
+		paramGlobal, bloques, tratamientos
+	);
+	
+	Arreglo<Flotante> valores1 = [15.9, -4.0, 66.1];
+	modelo2V[0][0] = valores1;
+	modelo2V[0][1] = [-6.1, 3.9];
+	modelo2V[0][2] = [-1.3, 12.4, 5.8];
+	
+	modelo2V[1][0] = [23.8];
+	modelo2V[1][1] = [4.5, 3.6, -0.5];
+	modelo2V[1][1] = [2.2, -5.6];
+	
+	// Si se llenaron todas las posiciones (i,j)
+	imprimir(modelo2V.lleno());
+	// Verdadero
+	
+	imprimir(modelo2V);
+	/*
+	[
+		[[15.9, -4.0, 66.1], [-6.1, 3.9], [-1.3, 12.4, 5.8]],
+		[[23.8], [4.5, 3.6, -0.5], [2.2, -5.6]]
+	]
+	*/
+	
+	// Trae el número de replicas en el bloque i, tratamiento j("i,j")
+	imprimir(modelo2V.nDatos(".,."));
+	// 14
+	imprimir(modelo2V.nDatos("0,2"));
+	// 3
+	
+	// Trae la unión de replicas/valores en el bloque i, tratamiento j("i,j")
+	Conjunto<Flotante> valores = modelo2V.datos(".,.");
+	imprimir(valores);
+	// [15.9, -4.0, 66.1, -6.1, 3.9, -1.3, 12.4, 5.8, 23.8, 4.5, 3.6, -0.5, 2.2, -5.6]
+	
+	Conjunto<Flotante> valores = modelo2V.datos(".,2");
+	imprimir(valores);
+	// [-6.1, 3.9, 4.5, 3.6, -0.5]
+	
+	MatrizRachas<Flotante> matrizRachas = 
+		modelo2V.matrizRachas(modeloMultiCom);
+	// Si no le pasa parámetro multicotomiza con base a la pertenencia de la celda
+	
+	Arreglo<Arreglo<Arreglo<Entero>>> arr = matrizRachas.aArreglos();
+	
+	// Trae la racha del valor en el bloque i, tratamiento j y réplica k ("i,j,k")
+	Entero matrizRachas.traeRacha("1,1,0");
+	
+	//Entero sum1 = matrizRachas.sumRachas("i,j,k");
+	// Suma todas las rachas del bloque i, en tratamiento j réplicas hasta la k
+	Entero sum1 = matrizRachas.sumRachas(".,.,.");	
+	// Todos los bloques, todos los tratamientos y todas las replicas
+	
+	//Entero sum1 = matrizRachas.promRachas("i,j,k");
+	// Promedia todas las rachas del bloque i, en tratamiento j réplicas hasta la k
+	Flotante sum1 = matrizRachas.promRachas(".,.,.");	
+	// Todos los bloques, todos los tratamientos y todas las replicas
+	
+	
+	/*---------------------
+	 Estadistico Friedman
+	----------------------*/
+	Matriz<Flotante> matrizFried = Matriz<Flotante>(
+		bloques.long(), tratamientos.long()
+	);
+	
+	Para (Entero i=0; i < bloques.long(); i+=1){
+		Para (Entero j=0; j < bloques.long(); j+=1){
+			matrizFried[i][j] = matrizRachas.sumRachas(f"{i},{j},.");
+		}
+	}
+	
+}
