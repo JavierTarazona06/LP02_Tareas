@@ -1,0 +1,16 @@
+// Algoritmo de Euclides
+
+Func Entero Euclides(Entero a, Entero b){
+	Mientras (b != 0){
+		r = a % b;
+		a = b;
+		b = r;
+	}
+	Retornar a
+}
+
+Func Vacio Principal(){
+	Entero res = Euclides(48,18);
+	imprimir(res);
+	// 6
+}
