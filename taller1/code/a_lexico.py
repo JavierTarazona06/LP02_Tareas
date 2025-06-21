@@ -49,17 +49,17 @@ t_TIPOB.__doc__ = TIPOB_PATTERN'''
 # -------------------------------
 #   Caracter y Cadenas
 # ------------------------------
-# TODO: No reconoce la cadena f
+
 tokens += ['CARACTER', 'CADENA']
 
 t_CARACTER = r"'(?:\\.|[^\\'])'"
 
 CADENA_S = r'"(?:\\.|[^"\\])*"'
 CADENA_F = (
-    r'"(?:'
+    r'f"(?:'
     r'\\.'
     r'|[^"\\{]'
-    r'|\{[A-Za-z_][A-Za-z0-9_]*\}'
+    r'|\{[A-Za-z_ñÑ][A-Za-z0-9_ñÑ]*\}'
     r')*"'
 )
 CADENA_PATTERN = rf'(?:{CADENA_S}|{CADENA_F})'
@@ -77,7 +77,7 @@ tokens += ['ID', 'BOOL']
 reserved.update({ b: 'BOOL' for b in ['Verdadero','Falso'] })
 
 def t_ID(t):
-    r'[A-Za-z_][A-Za-z0-9_]*'
+    r'[A-Za-z_ñÑ][A-Za-z0-9_ñÑ]*'
     t.type = reserved.get(t.value, 'ID')
     return t
 
@@ -133,12 +133,36 @@ t_COMMENT.__doc__ = COMMENT_PATTERN
 
 tokens += ['OPREL', 'OPASI', 'OPASIU', 'OPACC', 'OPARIT', 'OPLOG']
 
-t_OPREL = r'(?:<=|>=|==|!=|<|>)'
-t_OPASI = r'(?:\*\*=|//=|\+=|-=|\*=|/=|%=|@=|=)'
-t_OPASIU = r'(?:\+\+|--)'
-t_OPACC = r'[\[\]\.]'
-t_OPARIT = r'(?:\*\*|//|\+|\-|\*|/|%|@)'
-t_OPLOG = r'(?:&&|\|\||NO|Y|O|!)'
+OPREL_PATTERN= r'(?:<=|>=|==|!=|<|>)'
+OPASI_PATTERN= r'(?:\*\*=|//=|\+=|-=|\*=|/=|%=|@=|=)'
+OPASIU_PATTERN = r'(?:\+\+|--)'
+OPACC_PATTERN= r'[\[\]\.]'
+OPARIT_PATTERN = r'(?:\*\*|//|\+|\-|\*|/|%|@)'
+OPLOG_PATTERN= r'(?:&&|\|\||NO|Y|O|!)'
+
+def t_OPREL(t):
+    return t
+t_OPREL.__doc__ = OPREL_PATTERN
+
+def t_OPASI(t):
+    return t
+t_OPASI.__doc__ = OPASI_PATTERN
+
+def t_OPASIU(t):
+    return t
+t_OPASIU.__doc__ = OPASIU_PATTERN
+
+def t_OPACC(t):
+    return t
+t_OPACC.__doc__ = OPACC_PATTERN
+
+def t_OPARIT(t):
+    return t
+t_OPARIT.__doc__ = OPARIT_PATTERN
+
+def t_OPLOG(t):
+    return t
+t_OPLOG.__doc__ = OPLOG_PATTERN
 
 # -------------------------------
 #   DELIM
@@ -178,7 +202,7 @@ if __name__ == "__main__":
             datos = f.read()
         lexer.input(datos)
 
-        with open(s[:-4]+'_tokens.txt', 'w', encoding='utf-8') as fout:
+        with open(s[:-4]+'_lex.txt', 'w', encoding='utf-8') as fout:
             while True:
                 tok = lexer.token()
                 if not tok:
