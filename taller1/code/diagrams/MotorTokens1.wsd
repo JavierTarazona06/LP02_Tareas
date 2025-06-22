@@ -1,0 +1,10 @@
+@startuml
+scale 4
+
+' El Motor de Tokens utiliza las siguientes reglas:
+[Reglas Motor de Tokens ] ..> [ Palabras Reservadas ]
+[Reglas Motor de Tokens ] ..> [ Tipos (TIPOA/TIPOB) ]
+[Reglas Motor de Tokens ] ..> [ Identificadores ]
+[Reglas Motor de Tokens ] ..> [ Literales Numéricos ]
+
+@enduml

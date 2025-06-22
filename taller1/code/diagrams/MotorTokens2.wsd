@@ -1,0 +1,11 @@
+@startuml
+scale 4
+
+' El Motor de Tokens utiliza las siguientes reglas:
+[Reglas Motor de Tokens ] ..> [ Cadena y Carácter ]
+[Reglas Motor de Tokens ] ..> [ Comentarios ]
+[Reglas Motor de Tokens ] ..> [ Operadores ]
+[Reglas Motor de Tokens ] ..> [ Delimitadores ]
+[Reglas Motor de Tokens ] ..> [ Error e Ignorar ]
+
+@enduml
