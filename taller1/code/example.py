@@ -33,7 +33,7 @@ lexer = lex.lex()
 
 if __name__ == "__main__":
     while True:
-        s = input('calc> ')
+        s = input('term> ')
         if not s:
             break
         lexer.input(s)

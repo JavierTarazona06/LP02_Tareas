@@ -195,14 +195,16 @@ lexer = lex.lex(reflags=lex.re.VERBOSE)
 if __name__ == "__main__":
     
     while True:
-        s = input('calc> ')
+        s = input('term> ')
+        ultm_dot = s.rfind('.')
+
         if not s:
             break
         with open(s, 'r', encoding='utf-8') as f:
             datos = f.read()
         lexer.input(datos)
 
-        with open(s[:-4]+'_lex.txt', 'w', encoding='utf-8') as fout:
+        with open(s[:ultm_dot]+'_lex.txt', 'w', encoding='utf-8') as fout:
             while True:
                 tok = lexer.token()
                 if not tok:
