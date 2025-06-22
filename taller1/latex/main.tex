@@ -1,10 +1,47 @@
 \documentclass{article}
+\usepackage{csquotes}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
 \usepackage{graphicx}
 \usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{titletoc}
 \usepackage{adjustbox}
+\usepackage{listings}
+
+
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{purple}{rgb}{0.58,0,0.82}
+\definecolor{bluekeyword}{rgb}{0.26,0.44,0.76}
+\definecolor{lightorange}{rgb}{0.8,0.5,0.2}
+\definecolor{darkgreen}{rgb}{0.0,0.5,0.0}
+
+\lstdefinestyle{mypython}{
+    language=Python,
+    backgroundcolor=\color{bg},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{bluekeyword}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{lightorange},
+    numberstyle=\tiny\color{gray},
+    identifierstyle=\color{black},
+    showstringspaces=false,
+    numbers=left,
+    numbersep=10pt,
+    frame=single,
+    breaklines=true,
+    tabsize=4,
+    captionpos=b,
+    escapeinside={(*@}{@*)},
+    literate=
+     {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+     {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+     {ñ}{{\~n}}1 {Ñ}{{\~N}}1
+     {¡}{{\textexclamdown}}1 {¿}{{\textquestiondown}}1
+}
 
 \hypersetup{
     colorlinks=true,
@@ -29,34 +66,35 @@
 \begin{document}
 
 \begin{titlepage}
-    \centering
-    % Logo de la Universidad
-    \includegraphics[width=0.48\textwidth]{logo_universidad.png}
-    \par\vspace{2cm}
+  \centering
+  % Logo de la Universidad
+  \includegraphics[width=0.48\textwidth]{logo_universidad.png}
+  \par\vspace{2cm}
 
-    % Nombre de la Universidad y detalles del curso
-    {\Large \textbf{Universidad Nacional de Colombia} \par}
-    \vspace{0.5cm}
-    {\large Ingeniería de Sistemas y Computación \par}
-    {\large 2025966 Lenguajes de Programación (02)\par}
-    \vspace{3cm}
+  % Nombre de la Universidad y detalles del curso
+  {\Large \textbf{Universidad Nacional de Colombia} \par}
+  \vspace{0.5cm}
+  {\large Ingeniería de Sistemas y Computación \par}
+  {\large 2025966 Lenguajes de Programación (02)\par}
+  \vspace{3cm}
 
-    % Detalles del laboratorio y actividad
-    {\large \textbf{Taller 1} \par}
-    {\large Analizador Léxico\par}
-    \vspace{3cm}
+  % Detalles del laboratorio y actividad
+  {\large \textbf{Taller 1} \par}
+  {\large Analizador Léxico\par}
+  \vspace{3cm}
 
-    % Lista de integrantes
-    {\large \textbf{Integrantes:} \par}
-    \vspace{0.5cm}
-    \begin{tabular}{ll}
+  % Lista de integrantes
+  {\large \textbf{Integrantes:} \par}
+  \vspace{0.5cm}
+  \begin{tabular}{ll}
     Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
-    - & -@unal.edu.co \\
-    \end{tabular}
-    \par\vspace{3cm}
+    David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
+    -                              & -@unal.edu.co          \\
+  \end{tabular}
+  \par\vspace{3cm}
 
-    % Fecha
-    {\large Junio 24 de 2025 \par}
+  % Fecha
+  {\large Junio 24 de 2025 \par}
 \end{titlepage}
 
 \tableofcontents % Inserta la tabla de contenidos
@@ -111,19 +149,19 @@
 
 \section{Código Fuente}\label{sec:cod}
 
-El código fuente completo de este modelo se encuentra adjunto en el buzón 
+El código fuente completo de este modelo se encuentra adjunto en el buzón
 (11 Tarazona Jimenez Javier Andres 02.zip)
 y disponible en el repositorio GitHub del proyecto:
 
 \begin{center}
-\url{URL}
+  \url{URL}
 \end{center}
 
 El repositorio contiene:
 \begin{itemize}
-\item A
-\item B
-\item C
+  \item A
+  \item B
+  \item C
 \end{itemize}
 
 %---------------------------------------------------------------------------------
@@ -134,45 +172,45 @@ El repositorio contiene:
 
 El primer paso es descargar el archivo \texttt{11 Tarazona Jimenez Javier Andres 02.zip}.
 
-Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un 
-entorno virtual utilizando Python 3.12. o superior. Para ello, ejecute el siguiente 
-comando en 
+Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un
+entorno virtual utilizando Python 3.12. o superior. Para ello, ejecute el siguiente
+comando en
 la terminal o línea de comandos:
 
 \begin{itemize}
   \item En Windows:
-  \begin{verbatim}
+        \begin{verbatim}
     python3.12 -m venv nombre_del_entorno
   \end{verbatim}
   \item En macOS o Linux:
-  \begin{verbatim}
+        \begin{verbatim}
     python3.12 -m venv nombre_del_entorno
   \end{verbatim}
 \end{itemize}
 
-Donde \texttt{nombre\_del\_entorno} es el nombre que desea asignar a su entorno virtual. 
+Donde \texttt{nombre\_del\_entorno} es el nombre que desea asignar a su entorno virtual.
 A continuación, active el entorno virtual:
 
 \begin{itemize}
   \item En Windows:
-  \begin{verbatim}
+        \begin{verbatim}
     .\nombre_del_entorno\Scripts\activate
   \end{verbatim}
   \item En macOS o Linux:
-  \begin{verbatim}
+        \begin{verbatim}
     source nombre_del_entorno/bin/activate
   \end{verbatim}
 \end{itemize}
 
-En el archivo \texttt{constants/program.py} encontrará las constantes del programa. 
+En el archivo \texttt{constants/program.py} encontrará las constantes del programa.
 En ese archivo, podrá modificar los parámetros de entrada que se detallan más abajo.\\
 
-Después de configurar los parámetros, asegúrese de tener el entorno virtual activado. 
+Después de configurar los parámetros, asegúrese de tener el entorno virtual activado.
 Una vez activo, puede ejecutar el archivo principal con el siguiente comando:
 
 \begin{center}
   \begin{adjustbox}{minipage=\linewidth, center}
-  \begin{verbatim}
+    \begin{verbatim}
     python main.py
   \end{verbatim}
   \end{adjustbox}
@@ -197,9 +235,9 @@ Todos los parámetros de entrada son opcionales.
   \item Número de estudiantes.
   \item Promedio de P.A.P.I de los estudiantes
   \item Desviación estandar de P.A.P.I de los estudiantes
-  \item Máximo número de materias que un estudiante va a inscribir (mayor o igual a 3, 
+  \item Máximo número de materias que un estudiante va a inscribir (mayor o igual a 3,
         menor o igual a lista de deseos).
-  \item Máximo número de materias deseadas de un estudiante (Predeterminado=9, 
+  \item Máximo número de materias deseadas de un estudiante (Predeterminado=9,
         mayor o igual a 3).
   \item Tiempo de simulación (CONSUMO\_CT)
   \item Iteraciones de las realizaciones (ITERACIONES\_CT)
@@ -212,16 +250,219 @@ Todos los parámetros de entrada son opcionales.
 
 \section{Manual Técnico}\label{sec:man_t}
 
+\subsection{Resumen}
 
-\subsection{Fases de la Simulación}
+Esta sección describe la construcción de un analizador léxico usando la biblioteca \texttt{ply.lex} en Python. El objetivo es reconocer estructuras léxicas propias de un lenguaje de programación personalizado, incluyendo identificadores, palabras clave, operadores, tipos, literales y delimitadores.
+
+\subsection{Estructura General}
+
+A continuación se detalla la estructura general del código:
+
+\begin{itemize}
+  \item El código usa la biblioteca \texttt{ply.lex} para definir un lexer que procesa un texto fuente y genera tokens. Cada token es una unidad léxica que representa una categoría específica del lenguaje.
+  \item El codigo cuenta con dos partes principales, en la primera se definen los tokens (\texttt{tokens}), las palabras reservadas (\texttt{reserved}) y las funciones o expresiones regulares (aquellas que empiezan por \texttt{t\_}) que definen la estructura del lenguajes; en la segunda parte, se define la función \texttt{\_\_main\_\_} en la cual se pide la dirección de un archivo que contiene el texto a ser procesado, después de leer el contenido de este archivo, se procesa y se guarda en un archivo con el mismo nombre pero sin la extensión y con la terminación \texttt{\_tokens.txt}.
+  \item Al principio del codigo se declara una lista vacia de tokens que luego se va llenando con las categorías que el analizador puede reconocer, aquí también se define la variable \texttt{reserved} usada para definir las palabras clave que pertenecen a una categoria. El código se organiza en varias secciones que definen las categorías y subcategorías dentro de estas (tokens, palabras reservadas, tipos de datos, cadenas, identificadores, literales numéricos, comentarios y operadores), en cada una de estas secciones se van agregando las cadenas de caracteres que representan los tipos de tokens correspondientes a la categoría (a la lista \texttt{tokens}) y a sus subcategorías correspondientes (dentro del diccionario \texttt{reserved}), se crean las expresiones regulares o los mecanismos de reconocimiento para cada categoria bajo las funciones \texttt{t\_<nombre\_categoria>} y bajo su atributo \texttt{\_\_doc\_\_}.
+\end{itemize}
+
+\subsection{Categorías definidas:}
+
+\subsubsection{PALABCLAVE}
+
+Esta sección define las palabras clave del lenguaje. Estas palabras tienen un significado especial dentro de la gramática y no pueden usarse como identificadores por el usuario. Se agrupan en una lista y se registran en un diccionario reservado para ser reconocidas durante el análisis léxico.
+
+\begin{lstlisting}[style=mypython]
+tokens.append('PALABCLAVE')
+
+palabras_reservadas = [
+    'Func','Principal','imprimir','Vacio','Retornar','Global',
+    'Romper','Continuar','Pasar','Sino',
+    'Si','Entonces','Para','Mientras','Lanzar','Intentar',
+    'Excepto'
+]
+reserved = { w: 'PALABCLAVE' for w in palabras_reservadas }
+\end{lstlisting}
+
+\subsubsection{TIPO}
+
+Define los tipos de datos del lenguaje. Se separan en tipos atómicos (como \texttt{Entero} o \texttt{Bool}) y tipos estructurados (como \texttt{Matriz} o \texttt{Diccionario}). Cada uno se mapea a su token correspondiente (\texttt{TIPOA} o \texttt{TIPOB}) para su correcta clasificación.
+
+\begin{lstlisting}[style=mypython]
+tokens += ['TIPOA', 'TIPOB']
+
+tiposa = ['Bool','Entero','Flotante','Cadena','Caracter']
+reserved.update({ w: 'TIPOA' for w in tiposa})
+
+tiposb = ['Conjunto','Arreglo','Matriz','MatrizRachas','Multicotomizacion','M2VClasificacion','Diccionario']
+reserved.update({ w: 'TIPOB' for w in tiposb })
+\end{lstlisting}
+
+\subsubsection{Caracter y Cadenas}
+
+Esta sección define cómo se reconocen los caracteres y cadenas. Los caracteres están definidos por comillas simples y las cadenas pueden ser simples o contener expresiones interpoladas (estilo \texttt{f-strings}).
+
+\begin{lstlisting}[style=mypython]
+tokens += ['CARACTER', 'CADENA']
+
+t_CARACTER = r"'(?:\\.|[^\\'])'"
+
+CADENA_S = r'"(?:\\.|[^"\\])*"'
+CADENA_F = (
+    r'"(?:'
+    r'\\.'
+    r'|[^"\\{]'
+    r'|\{[A-Za-z_][A-Za-z0-9_]*\}'
+    r')*"'
+)
+CADENA_PATTERN = rf'(?:{CADENA_S}|{CADENA_F})'
+
+def t_CADENA(t):
+    return t
+t_CADENA.__doc__ = CADENA_PATTERN
+\end{lstlisting}
+
+\subsubsection{ID}
+
+Los identificadores se reconocen como cualquier secuencia válida que comience con una letra o guión bajo, seguida de letras, números o guión bajo. Si el valor coincide con una palabra reservada, se clasifica como tal; si no, como \texttt{ID}.
+
+\begin{lstlisting}[style=mypython]
+tokens += ['ID', 'BOOL']
+
+reserved.update({ b: 'BOOL' for b in ['Verdadero','Falso'] })
+
+def t_ID(t):
+    r'[A-Za-z_][A-Za-z0-9_]*'
+    t.type = reserved.get(t.value, 'ID')
+    return t
+\end{lstlisting}
+
+\subsubsection{LITERAL}
+
+Reconoce valores literales numéricos. Incluye enteros (\texttt{ENTERO}), números reales con punto decimal (\texttt{REAL}) y números complejos (\texttt{COMPLEJO}). Cada tipo convierte su lexema al tipo de dato adecuado.
+
+\begin{lstlisting}[style=mypython]
+tokens += ['ENTERO','REAL','COMPLEJO']
+
+DIGITO = r'[0-9]'
+NATURAL = rf'(?:[1-9]{DIGITO}*|0)'
+ENTERO_PATTERN = rf'(?:-?{NATURAL})'
+REAL_U = rf'(?:{NATURAL}?\.{NATURAL})(?:[eE][+-]?{NATURAL})?'
+REAL_PATTERN = rf'(?:-?{REAL_U})'
+COMPLEJO_PATTERN = rf'(?:{REAL_PATTERN}[+-]{REAL_U}[jJ]|{REAL_PATTERN}[jJ])'
+
+def t_COMPLEJO(t):
+    t.value = complex(t.value.replace('J','j'))
+    return t
+t_COMPLEJO.__doc__ = COMPLEJO_PATTERN
+
+def t_REAL(t):
+    t.value = float(t.value)
+    return t
+t_REAL.__doc__ = REAL_PATTERN
+
+def t_ENTERO(t):
+    t.value = int(t.value)
+    return t
+t_ENTERO.__doc__ = ENTERO_PATTERN
+\end{lstlisting}
+
+\subsubsection{COMMENT}
+Define los comentarios del lenguaje. Se reconocen tanto los de línea (\texttt{//}) como los de bloque (\texttt{/* */}). Estos tokens pueden ser omitidos o analizados dependiendo del contexto del compilador.
+
+\begin{lstlisting}[style=mypython]
+tokens += ["COMMENT"]
+
+LINEA = r'//[^\n]*'
+BLOQUECO = r'/\*[\s\S]*?\*/'
+COMMENT_PATTERN = rf'(?:{LINEA}|{BLOQUECO})'
+
+def t_COMMENT(t):
+    return t
+t_COMMENT.__doc__ = COMMENT_PATTERN
+\end{lstlisting}
 
 
-\subsection{Manejo de Datos}
+\subsubsection{OPERADOR}
 
-\subsection{Evaluación de la Simulación}
+Esta sección define los operadores válidos del lenguaje. Se separan en distintas clases:
 
+\begin{itemize}
+  \item \texttt{OPREL}: operadores relacionales como \texttt{<, >, ==, !=}.
+  \item \texttt{OPASI}: operadores de asignación combinada como \texttt{+=, *=}.
+  \item \texttt{OPASIU}: operadores unarios de asignación como \texttt{++} y \texttt{--}.
+  \item \texttt{OPACC}: operadores de acceso como corchetes y punto.
+  \item \texttt{OPARIT}: operadores aritméticos.
+  \item \texttt{OPLOG}: operadores lógicos como \texttt{Y, O, !}.
+\end{itemize}
 
-\subsection{Conclusiones y Recomendaciones}
+\begin{lstlisting}[style=mypython]
+tokens += ['OPREL', 'OPASI', 'OPASIU', 'OPACC', 'OPARIT', 'OPLOG']
+
+t_OPREL = r'(?:<=|>=|==|!=|<|>)'
+t_OPASI = r'(?:\*\*=|//=|\+=|-=|\*=|/=|%=|@=|=)'
+t_OPASIU = r'(?:\+\+|--)'
+t_OPACC = r'[\[\]\\.]'
+t_OPARIT = r'(?:\*\*|//|\+|\-|\*|/|%|@)'
+t_OPLOG = r'(?:&&|\|\||NO|Y|O|!)'
+\end{lstlisting}
+
+\subsubsection{DELIM}
+
+Define los símbolos de puntuación y delimitación del lenguaje. Incluye llaves, paréntesis, comas y punto y coma.
+
+\begin{lstlisting}[style=mypython]
+tokens += ["DELIM"]
+
+t_DELIM = r'[;{},()]'
+\end{lstlisting}
+
+\subsection{Secciones que no son categorias:}
+
+\subsubsection{Espacios y Saltos de Línea}
+
+En esta sección se ignoran los espacios en blanco y se contabilizan los saltos de línea para el control del número de línea dentro del lexer. Es fundamental para reportar errores con precisión.
+
+\begin{lstlisting}[style=mypython]
+t_ignore = ' \t'
+
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
+\end{lstlisting}
+
+\subsubsection{Manejo de errores}
+Cuando el analizador encuentra un carácter no reconocido por ninguna regla, se ejecuta esta función de error. El carácter se reporta y se omite.
+
+\begin{lstlisting}[style=mypython]
+def t_error(t):
+    print(f"Error: carácter inesperado '{t.value[0]}'")
+    t.lexer.skip(1)
+\end{lstlisting}
+
+\subsubsection{Construcción del lexer y entrada desde archivo}
+
+Esta sección finaliza la construcción del lexer y permite al usuario ingresar un nombre de archivo para leer y analizar su contenido, escribiendo los tokens detectados en un nuevo archivo de salida con el mismo nombre pero sin su extensión (últimos 4 caracteres) y finalizando en \texttt{\_tokens.txt}.
+
+Cabe recalcar que el lexer busca automaticamente la lista \texttt{tokens} y el diccionario \texttt{reserved} para identificar los tokens y palabras reservadas, respectivamente. El lexer también maneja los comentarios y espacios en blanco, ignorándolos durante el análisis léxico. Además, usa aútomaticamente las expresiones regulares definidas para cada token en las funciones que empiezan por \texttt{t\_}.
+
+\begin{lstlisting}[style=mypython]
+lexer = lex.lex(reflags=lex.re.VERBOSE)
+
+if __name__ == "__main__":
+    while True:
+        s = input('calc> ')
+        if not s:
+            break
+        with open(s, 'r', encoding='utf-8') as f:
+            datos = f.read()
+        lexer.input(datos)
+
+        with open(s[:-4]+'_tokens.txt', 'w', encoding='utf-8') as fout:
+            while True:
+                tok = lexer.token()
+                if not tok:
+                    break
+                fout.write(f"{tok.lineno}:{tok.lexpos}\t{tok.type}\t{tok.value}\n")
+\end{lstlisting}
 
 
 %---------------------------------------------------------------------------------
@@ -235,31 +476,13 @@ Todos los parámetros de entrada son opcionales.
 \subsubsection{Escenario 1: }
 
 \subsubsection{Escenario 2: }
- 
+
 \subsubsection{Escenario 3: }
 
 \subsubsection{Comparación resultados?}
 
-
-
-\section{Referencias}
-\renewcommand{\refname}{}
-
-\begin{thebibliography}{9}
-
-\bibitem{ref} \label{ref:vidIntro} A. Párraga, “Cómo se programa un ORDENADOR CUÁNTICO (bien explicado),”
-YouTube, 2021. [Online]. Available: \url{https://www.youtube.com/watch?v=eRlQdW1lgJE. }
-
-\bibitem{ref} \label{ref:vidTelepor} Ket.G, “La Teleportación cuántica,” YouTube, 3-Mar-2020. [Online]. 
-Available: \url{https://www.youtube.com/watch?v=4BUB41iK25Y.}
-
-\bibitem{ref} \label{ref:Grover} Ket.G, “PROGRAMANDO \#3 Algoritmo de Grover (Qiskit),” YouTube, 3-Mar-2020. 
-[Online]. Available: \url{https://www.youtube.com/watch?v=u5Yd0St6MN4.}
-
-\bibitem{ref} \label{ref:IBMQuant} IBM Research, “Running an experiment in the IBM Quantum Experience,” 
-YouTube, 4-May-2016. [Online]. 
-Available: \url{https://www.youtube.com/watch?v=pYD6bvKLI_c}
-
-\end{thebibliography}
+%---------------------------------------------------------------------------------
+% Referencias, aunque creo que mejor deberíamos usar un .bib y llamarlas desde ahí, es más facil ---------------------------------------------------------
+%---------------------------------------------------------------------------------
 
 \end{document}
