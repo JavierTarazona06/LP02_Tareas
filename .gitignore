@@ -188,6 +188,8 @@ cython_debug/
 */Latex/*.bcf
 */Latex/*run.xml
 *main.bbl-SAVE-ERROR
+main.bcf
+main.run.xml
 
 # Archivos de respaldo del editor
 *~
