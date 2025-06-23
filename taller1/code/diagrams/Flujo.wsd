@@ -1,0 +1,9 @@
+@startuml
+scale 4
+
+[ Lector de Archivo ] --> [ Preprocesamiento: Manejador de Espacios y Saltos ]
+[ Preprocesamiento: Manejador de Espacios y Saltos ] --> [ Lexer: Compilador de Patrones Regex ]
+[ Lexer: Compilador de Patrones Regex ] --> [ Tokenización: Motor de Tokens y reglas ]
+
+[ Tokenización: Motor de Tokens y reglas ] --> [ Salida: Escritor de Tokens ]
+@enduml
