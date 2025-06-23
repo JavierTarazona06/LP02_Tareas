@@ -1,0 +1,60 @@
+Func Vacio Principal() {
+
+    // Declaraciones de variables simples
+    Entero contador = 0;
+    Flotante tasa = 3.14;
+    Cadena saludo = "Hola mundo!";
+    Caracter letra = 'x';
+    Bool bandera = Verdadero;
+    Complejo comp = 1.5+2.2j;
+
+    // Estructuras y TDAs
+    Arreglo<Entero> datos = [1, 2, 3, 4];
+    Conjunto<Cadena> etiquetas = {"rojo", "verde"};
+    Matriz<Flotante> tabla = [[1.1, 2.2], [3.3, 4.4]];
+    MatrizRachas<Flotante> rachas = modelo.generar();
+    Multicotomizacion<Flotante> mult = Multicotomizacion<Flotante>(etiquetas);
+    M2VClasificacion<Flotante> clasif = M2VClasificacion<Flotante>(
+        2.0, [1.0, 2.0], [0.5, 1.5]
+    );
+    Diccionario<Cadena, Entero> mapa = {"a", 1, "b", 2};
+
+    // Control de flujo
+    Si (bandera && contador <= 10) Entonces {
+        Para (Entero i = 0; i < 5; i += 1) {
+            Mientras (datos[i] != 0) {
+                imprimir("Iterando...");
+                Continuar;
+            }
+            Romper;
+        }
+    } Sino {
+        Pasar;
+    }
+
+    // Operaciones combinadas
+    contador += 1;
+    contador *= 2;
+    tasa = tasa / 2.0;
+    comp **= 2;
+    comp //= 1;
+    comp %= 0.5;
+    comp = comp + 1.0 @ 2;
+
+    // Operadores lógicos extendidos
+    bandera = NO Falso Y Verdadero O Falso || !bandera;
+
+    // Accesos y métodos
+    imprimir(tabla[0][1]);
+    imprimir(mapa["a"]);
+    imprimir(mult.cadenaMulticotomizada(datos));
+    imprimir(clasif.nDatos("0,1"));
+    imprimir(rachas.sumRachas(".,.,."));
+
+    // Cadenas interpoladas
+    Cadena mensaje = "Valor actual {contador}";
+
+    // Final
+    Retornar 0;
+}
+
