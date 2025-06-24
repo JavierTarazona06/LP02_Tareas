@@ -631,7 +631,93 @@ if __name__ == "__main__":
 
 \subsubsection{Escenario 1: }
 
-\subsubsection{Escenario 2: }
+\subsubsection{Escenario 2: Código con errores léxicos}
+
+Este escenario busca evaluar la **resiliencia y precisión del analizador léxico** frente a errores comunes en la escritura de código fuente. A diferencia del Escenario 1 (en el que se probó el reconocimiento correcto de estructuras válidas), aquí se pretende identificar cómo se comporta el lexer ante errores léxicos, si puede continuar el análisis tras detectar fallos y qué tan detallados son los mensajes de error.
+
+\paragraph{Motivación}
+
+Durante la fase de desarrollo de un compilador, es fundamental validar que el analizador léxico no solo reconozca tokens válidos, sino que también sea capaz de:
+
+\begin{itemize}
+  \item Detectar patrones inválidos que no coinciden con ninguna expresión regular.
+  \item Reportar errores de forma clara y localizada (línea y columna).
+  \item Continuar procesando el código tras errores, evitando bloqueos innecesarios.
+\end{itemize}
+
+\paragraph{Código utilizado}
+
+\begin{lstlisting}[style=mypython, caption={Fragmento con errores léxicos intencionados}]
+Func Principal() {
+    imprimir("Hola mundo!;  // Error: comillas no cerradas
+    Entero número = 5.6.7;  // Error: número real mal formado
+    @invalido = Verdadero; // Error: carácter '@' no reconocido
+    Flotante π = 3.14;      // Error: símbolo Unicode no admitido
+}
+\end{lstlisting}
+
+\paragraph{Análisis técnico por línea}
+
+\begin{itemize}
+  \item \textbf{Línea 2 — Cadena no cerrada:} El patrón para cadenas (\texttt{CADENA\_PATTERN}) espera una comilla de cierre. Al no encontrarla, el lexer toma todo el contenido restante como parte de una cadena inválida, lanzando un error al detectar el salto de línea.
+  
+  \item \textbf{Línea 3 — Número mal formado:} \texttt{5.6.7} contiene múltiples puntos decimales. Esto no se ajusta a la expresión regular para números reales ni para números complejos. El lexer identifica \texttt{5.6} como un real válido, pero falla al procesar el segundo punto y el \texttt{7}, generando un token huérfano.
+
+  \item \textbf{Línea 4 — Carácter no reconocido:} El símbolo \texttt{@} no está incluido en ningún patrón definido. El lexer invoca automáticamente la función \texttt{t\_error()}, imprime el carácter inesperado, y lo omite para continuar el análisis.
+
+  \item \textbf{Línea 5 — Unicode fuera del patrón:} El símbolo \texttt{π} (pi) está fuera del alfabeto ASCII básico usado en la expresión regular de identificadores. Aunque Python internamente puede manejar Unicode, la gramática definida en este lexer lo excluye. Se reporta como un carácter inválido.
+\end{itemize}
+
+\paragraph{Salida esperada del lexer}
+
+\begin{verbatim}
+Error: carácter inesperado '"'
+Error: carácter inesperado '7'
+Error: carácter inesperado '@'
+Error: carácter inesperado 'π'
+\end{verbatim}
+
+Cada error es detectado, reportado con precisión y el lexer continúa la ejecución. Esta capacidad de **tolerancia a fallos** es crucial para no abortar el análisis completo ante un único error léxico.
+
+\paragraph{Comparación con lexers de compiladores reales}
+
+En compiladores como GCC o Clang, errores léxicos son tratados con mensajes específicos que incluyen:
+
+\begin{itemize}
+  \item Tipo de error (e.g., “string literal not terminated”).
+  \item Línea y columna.
+  \item Token problemático y sugerencia de corrección.
+\end{itemize}
+
+Nuestro lexer aún no provee estos elementos, pero al menos ofrece una detección funcional y permite continuar el análisis.
+
+\paragraph{Reflexiones y oportunidades de mejora}
+
+Este escenario sugiere varias líneas de mejora para el sistema actual:
+
+\begin{itemize}
+  \item Incorporar el número de línea y columna en los mensajes de error para facilitar el debugging.
+  \item Desarrollar un sistema de logging de errores, en lugar de imprimir en consola.
+  \item Ampliar la definición de identificadores para incluir símbolos Unicode válidos si se desea un lenguaje moderno e inclusivo.
+  \item Implementar una regla de recuperación (como ignorar hasta el siguiente delimitador válido) para no quedarse atrapado en tokens largos mal formados.
+  \item Identificar y diferenciar errores de cierre de delimitadores como \texttt{()}, \texttt{[]}, \texttt{\{\}} y comillas.
+\end{itemize}
+
+\paragraph{Escenarios complementarios recomendados}
+
+A futuro, recomendamos incluir escenarios adicionales con:
+
+\begin{itemize}
+  \item Comentarios mal cerrados (\texttt{/* sin cierre}).
+  \item Literales numéricos fuera de rango.
+  \item Identificadores que colisionan con palabras reservadas parcialmente.
+  \item Operadores no definidos como \texttt{===} o \texttt{<>}.
+\end{itemize}
+
+\paragraph{Conclusión}
+
+Este escenario permitió validar que el analizador léxico cumple su función básica de detección y reporte de errores. Si bien aún puede mejorar en términos de detalle y elegancia de los mensajes, se confirma que no bloquea la ejecución, lo que constituye una base sólida para el desarrollo de etapas posteriores del compilador.
+
 
 \subsubsection{Escenario 3: }
 
