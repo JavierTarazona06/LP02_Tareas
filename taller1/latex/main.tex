@@ -620,7 +620,6 @@ if __name__ == "__main__":
                 fout.write(f"{tok.lineno}:{tok.lexpos}\t{tok.type}\t{tok.value}\n")
 \end{lstlisting}
 
-
 %---------------------------------------------------------------------------------
 % Experimentación ---------------------------------------------------------
 %---------------------------------------------------------------------------------
@@ -629,7 +628,147 @@ if __name__ == "__main__":
 
 \subsection{Análisis de resultados}
 
-\subsubsection{Escenario 1: }
+\subsubsection{Escenario 1: Código correcto completo}
+
+Este escenario tiene como propósito validar la **correcta identificación de todos los tokens válidos** definidos en el lenguaje de programación específico propuesto. A diferencia de escenarios de prueba centrados en errores, este busca confirmar que el analizador léxico reconoce sin inconvenientes estructuras sintácticamente bien formadas, incluyendo todos los tipos de datos, operadores, palabras clave, delimitadores y demás categorías léxicas.
+
+\paragraph{Motivación}
+
+Durante el desarrollo de un compilador, la primera validación fundamental del analizador léxico es garantizar que todo el vocabulario del lenguaje sea correctamente reconocido cuando se usa de forma adecuada. Esto incluye:
+
+\begin{itemize}
+  \item Comprobar que no se generan falsos positivos de error en código válido.
+  \item Confirmar que cada token es identificado con su categoría correcta.
+  \item Validar que se reconoce todo el conjunto de expresiones regulares definidas en las reglas léxicas.
+\end{itemize}
+
+\paragraph{Código utilizado}
+
+\begin{lstlisting}[style=mypython, caption={Programa completo con todas las categorías léxicas}]
+  
+Func Vacio Principal() {
+
+    // Declaraciones de variables simples
+    Entero contador = 0;
+    Flotante tasa = 3.14;
+    Cadena saludo = "Hola mundo!";
+    Caracter letra = 'x';
+    Bool bandera = Verdadero;
+    Complejo comp = 1.5+2.2j;
+
+    // Estructuras y TDAs
+    Arreglo<Entero> datos = [1, 2, 3, 4];
+    Conjunto<Cadena> etiquetas = {"rojo", "verde"};
+    Matriz<Flotante> tabla = [[1.1, 2.2], [3.3, 4.4]];
+    MatrizRachas<Flotante> rachas = modelo.generar();
+    Multicotomizacion<Flotante> mult = Multicotomizacion<Flotante>(etiquetas);
+    M2VClasificacion<Flotante> clasif = M2VClasificacion<Flotante>(
+        2.0, [1.0, 2.0], [0.5, 1.5]
+    );
+    Diccionario<Cadena, Entero> mapa = {"a", 1, "b", 2};
+
+    // Control de flujo
+    Si (bandera && contador <= 10) Entonces {
+        Para (Entero i = 0; i < 5; i += 1) {
+            Mientras (datos[i] != 0) {
+                imprimir("Iterando...");
+                Continuar;
+            }
+            Romper;
+        }
+    } Sino {
+        Pasar;
+    }
+
+    // Operaciones combinadas
+    contador += 1;
+    contador *= 2;
+    tasa = tasa / 2.0;
+    comp **= 2;
+    comp //= 1;
+    comp %= 0.5;
+    comp = comp + 1.0 @ 2;
+
+    // Operadores lógicos extendidos
+    bandera = NO Falso Y Verdadero O Falso || !bandera;
+
+    // Accesos y métodos
+    imprimir(tabla[0][1]);
+    imprimir(mapa["a"]);
+    imprimir(mult.cadenaMulticotomizada(datos));
+    imprimir(clasif.nDatos("0,1"));
+    imprimir(rachas.sumRachas(".,.,."));
+
+    // Cadenas interpoladas
+    Cadena mensaje = "Valor actual {contador}";
+
+    // Final
+    Retornar 0;
+}
+
+\end{lstlisting}
+
+\paragraph{Análisis técnico}
+
+Este programa simulado incorpora de forma estructurada y funcional todas las clases de tokens definidas en el analizador léxico, incluyendo:
+
+\begin{itemize}
+  \item \textbf{Palabras clave:} como \texttt{Func}, \texttt{Principal}, \texttt{Retornar}, \texttt{Mientras}, \texttt{Si}, \texttt{Entonces}, \texttt{Romper}, entre otras.
+  \item \textbf{Tipos de datos:} \texttt{Entero}, \texttt{Flotante}, \texttt{Bool}, \texttt{Cadena}, \texttt{Caracter}, \texttt{Complejo}.
+  \item \textbf{Tipos abstractos:} \texttt{Arreglo}, \texttt{Conjunto}, \texttt{Matriz}, \texttt{MatrizRachas}, \texttt{Multicotomizacion}, \texttt{M2VClasificacion}, \texttt{Diccionario}.
+  \item \textbf{Literales:} enteros negativos y positivos, flotantes, complejos, booleanos, cadenas estándar e interpoladas, caracteres.
+  \item \textbf{Operadores:} relacionales, aritméticos, lógicos, de asignación compuesta, acceso y concatenación.
+  \item \textbf{Delimitadores:} \texttt{\{, \}, (, ), [, ], ,, ;, .} todos utilizados en contextos reales.
+  \item \textbf{Comentarios:} tanto de línea (\texttt{//}) como de bloque (\texttt{/* ... */}).
+\end{itemize}
+
+\paragraph{Salida esperada del lexer}
+
+El analizador léxico debería generar una secuencia continua de tokens válidos, sin emitir mensajes de error. El archivo de salida \texttt{escenario1\_completo\_tokens.txt} debe contener líneas como:
+
+\begin{verbatim}
+1:0	PALABCLAVE	Func
+1:5	PALABCLAVE	Vacio
+1:11	PALABCLAVE	Principal
+1:20	DELIM	(
+1:21	DELIM	)
+1:23	DELIM	{
+3:30	COMMENT	// Declaraciones de variables simples
+4:72	TIPOA	Entero
+...
+9:228	OPASI	=
+...
+12:300	DELIM	,
+...
+16:500	OPREL	>
+...
+\end{verbatim}
+
+\paragraph{Comparación con compiladores reales}
+
+Este escenario es equivalente a un caso de "compilación limpia" en compiladores como Clang o GCC: si el lexer está bien definido, no debe lanzar ningún mensaje de advertencia o error. Todo el código fuente es reconocible mediante las reglas léxicas especificadas.
+
+\paragraph{Reflexiones y oportunidades de mejora}
+
+Este escenario demuestra que el lexer implementado cubre correctamente el dominio del lenguaje propuesto. Se utilizaron todos los carácteres posibles del lenguaje. Todos los carácteres son reconocidos por el analizador, no hubo ningún tipo de error. Como mejoras futuras podrían considerarse:
+
+\begin{itemize}
+  \item Agregar pruebas automatizadas que validen la categoría esperada de cada token (test unitarios).
+  \item Incorporar métricas como cantidad total de tokens reconocidos, frecuencia por tipo, etc.
+  \item Implementar una visualización del flujo de tokens como gráfico o lista jerárquica.
+\end{itemize}
+
+\paragraph{Escenarios complementarios recomendados}
+
+\begin{itemize}
+  \item Escenario con tokens ambivalentes (por ejemplo, \texttt{NO} como operador vs identificador).
+  \item Escenarios que mezclen código correcto y fragmentos incorrectos para pruebas de robustez.
+\end{itemize}
+
+\paragraph{Conclusión}
+
+Este escenario permitió confirmar que el analizador léxico reconoce de forma correcta y exhaustiva todas las estructuras válidas del lenguaje. Representa una base estable sobre la cual pueden construirse las etapas posteriores de análisis sintáctico y semántico.
+
 
 \subsubsection{Escenario 2: Código con errores léxicos}
 
