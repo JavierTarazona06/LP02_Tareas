@@ -858,7 +858,100 @@ A futuro, recomendamos incluir escenarios adicionales con:
 Este escenario permitió validar que el analizador léxico cumple su función básica de detección y reporte de errores. Si bien aún puede mejorar en términos de detalle y elegancia de los mensajes, se confirma que no bloquea la ejecución, lo que constituye una base sólida para el desarrollo de etapas posteriores del compilador.
 
 
-\subsubsection{Escenario 3: }
+\subsubsection{Escenario 3:  Anidamientos Complejos }
+
+Este escenario busca comprobar la precisión y robustez del analizador léxico, enfocándose en situaciones que requieren un reconocimiento detallado de estructuras que son léxicamente complejas, como lo podrían ser los tipos genéricos anidados  y llamadas de funciones dentro de otras, asegurando que todos los delimitadores estén balanceados y que cada token sea identificado con exactitud.
+
+
+\paragraph{Motivación}
+
+
+Durante el desarrollo de un compilador, es importante verificar que el analizador léxico pueda manejar correctamente estructuras anidadas con delimitadores balanceados, llamadas a funciones dentro de otras funciones. Estas estructuras son comunes en lenguajes modernos por lo tanto el analizador lexico debe ser capaz de:
+
+\begin{itemize}
+  \item Maneja correctamente estructuras de tipos genéricos anidados.
+  \item Validar que los delimitadores como \texttt{<}, \texttt{>}, \texttt{(}, \texttt{)} están balanceados y se reconocen en el orden adecuado.
+  \item Confirmar que las llamadas de funciones anidadas generan secuencias de tokens correctas.
+\end{itemize}
+
+\paragraph{Código utilizado}
+
+\begin{lstlisting}[style=mypython, caption={ Fragmento con anidamientos léxicos complejos}]
+Func Vacio Principal() {
+    Arreglo<Conjunto<Entero>> datos;        
+    resultado = procesar(funcion1(5), funcion2(funcion3()));  
+}
+\end{lstlisting}
+\paragraph{Análisis técnico por línea}
+
+\begin{itemize}
+  \item \textbf{Línea 2 - Tipo genérico anidado:} 
+    Esta línea se declara una variable con un tipo genérico anidado.  \lstinline{Arreglo} y \lstinline{Conjunto} como tokens \lstinline{TIPOB}, y \lstinline{Entero} como \lstinline{TIPOA}, según las listas de palabras reservadas definidas.
+    Los símbolos \lstinline{<} y \lstinline{>}  como operadores relacionales (\lstinline{OPREL}).
+    \lstinline{datos} como token (\lstinline{ID}) y el punto y coma final como delimitador (\lstinline{DELIM}).
+    
+  \item \textbf{Línea 3 – Llamadas de función anidadas:} 
+    En esta línea se asigna a una variable el resultado de múltiples llamadas de funciones anidadas.
+    \lstinline{resultado} como identificador (\lstinline{ID}), seguido de \lstinline{=} como operador de asignación (\lstinline{OPASI}), y \lstinline{procesar} como identificador (\lstinline{ID}), los paréntesis y la coma son reconocidos como delimitadores (\lstinline{DELIM}). 
+    \lstinline{funcion1} como identificador (\lstinline{ID}), \lstinline{5} como número entero (\lstinline{ENTERO}). 
+    Luego \lstinline{funcion2(funcion3())} con cada función reconocida como \lstinline{ID} y sus paréntesis como \lstinline{DELIM}, y el punto y coma \lstinline{;} como delimitador (\lstinline{DELIM}).
+
+\end{itemize}
+
+\paragraph{Salida esperada del lexer}
+
+Dado el código de prueba el analizador léxico debería generar una secuencia continua de tokens válidos que representen correctamente cada identificador, delimitador, operador y literal, sin emitir mensajes de error. Esto para comprobar la capacidad de manejo de estructuras anidadas complejas sin ambigüedades léxicas.
+
+\begin{verbatim}
+30:0	PALABCLAVE	Func
+30:5	PALABCLAVE	Vacio
+...
+31:29	TIPOB	Arreglo
+31:36	OPREL	<
+31:37	TIPOB	Conjunto
+31:45	OPREL	<
+31:46	TIPOA	Entero
+31:52	OPREL	>
+31:53	OPREL	>
+31:55	ID	datos2
+31:61	DELIM	;
+...
+32:75	ID	resultado
+32:85	OPASI	=
+32:87	ID	procesar
+...
+32:96	ID	funcion1
+32:104	DELIM	(
+32:105	ENTERO	5
+32:106	DELIM	)
+32:107	DELIM	,
+32:109	ID	funcion2
+32:118	ID	funcion3
+32:126	DELIM	(
+32:127	DELIM	)
+...
+\end{verbatim}
+
+\paragraph{Comparación con lexers de compiladores reales}
+
+El comportamiento del analizador lexico en este escenario es similar al de compiladores como los de C++ o Java. En estos los símbolos \lstinline{>>} suelen tratarse como dos tokens \lstinline{>} separados para evitar confusiones, especialmente en tipos genéricos anidados. Nuestro analizador aplica el mismo criterio: tokeniza cada \lstinline{>} por separado como \lstinline{OPREL}, dejando al parser la tarea de interpretar la estructura. 
+
+\paragraph{Reflexiones y oportunidades de mejora}
+Este escenario permitió comprobar nuestro analizador léxico puede manejar correctamente estructuras con anidamientos complejos, como tipos genéricos y llamadas de funciones dentro de otras funciones. Todos los tokens fueron identificados correctamente. Como posibles mejoras se proponen:
+
+\begin{itemize}
+\item Incluir validaciones adicionales para secuencias, en caso de que el lenguaje se amplíe con operadores más complejos.
+\end{itemize}
+
+\paragraph{Escenarios complementarios recomendados}
+\begin{itemize}
+\item Casos con múltiples niveles de genéricos, por ejemplo: \lstinline{Diccionario<Arreglo<Conjunto<Entero>>>}.
+\item Funciones con expresiones dentro de los argumentos que mezclen operadores aritméticos, booleanos y llamados anidados.
+\end{itemize}
+
+\paragraph{Conclusión}
+El escenario validó que el analizador léxico reconoce adecuadamente estructuras anidadas, tanto en definiciones de tipo como en llamadas a funciones. No se presentaron errores léxicos y cada símbolo fue tokenizado correctamente.
+
 
 
 
