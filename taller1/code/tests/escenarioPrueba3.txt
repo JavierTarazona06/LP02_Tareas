@@ -1,0 +1,4 @@
+Func Vacio Principal() {
+    Arreglo<Conjunto<Entero>> datos2;        
+    resultado = procesar(funcion1(5), funcion2(funcion3()));  
+}
