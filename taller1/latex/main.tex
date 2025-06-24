@@ -89,7 +89,7 @@
   \begin{tabular}{ll}
     Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
     David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
-    -                              & -@unal.edu.co          \\
+    Juan Sebastian Muñoz Lemus     & jumunozle@unal.edu.co          \\
   \end{tabular}
   \par\vspace{3cm}
 
@@ -116,10 +116,13 @@
 \section{Marco Teórico}\label{sec:marc}
 
 
-
 \subsection{Contextualización del problema}
 
+En el ámbito de la estadística matemática, el análisis no paramétrico juega un papel fundamental cuando no se cumplen los supuestos clásicos de normalidad o cuando los datos tienen una naturaleza ordinal. En este contexto, las \textbf{pruebas de Friedman} se utilizan ampliamente para evaluar diferencias entre tratamientos o condiciones en experimentos de medidas repetidas. La prueba de Friedman, propuesta por Milton Friedman en 1937, es una alternativa no paramétrica al análisis de varianza de medidas repetidas (ANOVA de una vía con medidas repetidas), y se basa en el análisis de los \emph{rangos} en lugar de los valores originales.
 
+Un concepto complementario a estas pruebas es la \textbf{teoría de rachas}, que consiste en analizar secuencias de datos categóricos o binarios con el fin de identificar patrones de aleatoriedad. Una \emph{racha} es una secuencia de elementos iguales consecutivos en un conjunto de datos. Esta teoría es clave en pruebas de hipótesis sobre la independencia o aleatoriedad de observaciones sucesivas, y tiene aplicaciones en diversas áreas, como pruebas estadísticas, control de calidad, genética y ciencias sociales.
+
+Dado el uso intensivo de estos métodos en investigación y análisis de datos, surge la necesidad de contar con herramientas computacionales que faciliten su aplicación, integración y extensión. Para ello, el desarrollo de un \textbf{lenguaje de programación de propósito específico} (DSL, por sus siglas en inglés) orientado a estas pruebas representa una solución efectiva. Este lenguaje debe permitir expresar de manera clara, concisa y semánticamente válida los procedimientos relacionados con las pruebas de Friedman y el análisis de rachas, integrando estructuras de programación tradicionales como variables, arreglos, matrices, ciclos y condicionales.
 
 
 %---------------------------------------------------------------------------------
@@ -128,10 +131,42 @@
 
 \section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
 
+\subsection{Descripcion del problema}
+
+El problema a resolver consiste en el diseño y construcción de la primera etapa de un \textbf{lenguaje de programación de propósito específico}, enfocado en facilitar la implementación de pruebas estadísticas como la de Friedman y el análisis de rachas. Este lenguaje deberá permitir a los usuarios (principalmente profesionales en estadística) desarrollar programas que manipulen datos experimentales, realicen ordenamientos por rangos, detecten rachas y apliquen criterios de hipótesis sobre la aleatoriedad de los datos.
+
+El lenguaje será construido bajo el \textbf{paradigma imperativo}, lo que implica que el flujo de control de los programas estará compuesto por \textbf{secuencias de instrucciones, estructuras de selección (\texttt{if}, \texttt{switch}), iteración (\texttt{for}, \texttt{while})} y el uso de \textbf{tipos de datos abstractos (TDA)}. Además, debe incorporar capacidades para definir y trabajar con \textbf{variables, arreglos unidimensionales y matrices}, elementos comunes en los procesos de manipulación de datos experimentales.
+
+En esta primera fase, se enfoca específicamente en el \textbf{análisis léxico} del lenguaje, es decir, la definición del vocabulario que podrá ser reconocido por el compilador o intérprete, la clasificación de los elementos léxicos (\emph{tokens}), y su implementación práctica mediante una herramienta de análisis léxico como \textbf{FLEX} (para C), \textbf{JFLEX} (para Java) o \textbf{lex.py} (para Python).
+
+\subsection{Justificacion del problema}
+
+La justificación del proyecto radica en la necesidad de herramientas especializadas para el análisis estadístico avanzado, que actualmente se realiza mediante lenguajes de propósito general como R, Python o MATLAB, los cuales requieren de una curva de aprendizaje considerable y conocimientos de programación más generales. Un lenguaje específico para pruebas de Friedman y análisis de rachas permitirá:
+
+\begin{itemize}
+  \item \textbf{Reducir la complejidad} de la codificación de estas pruebas.
+  \item \textbf{Establecer una sintaxis especializada} que se alinee con los conceptos estadísticos que utilizan los profesionales del área.
+  \item \textbf{Evitar errores semánticos comunes}, al estar restringido a un dominio de aplicación concreto.
+  \item \textbf{Agilizar el análisis y la validación de hipótesis estadísticas} sin necesidad de implementar desde cero las pruebas cada vez.
+\end{itemize}
+
+Además, desde el punto de vista académico, el desarrollo de este lenguaje contribuye a la formación integral en diseño de lenguajes, compiladores y en la aplicación del paradigma imperativo mediante el diseño modular de analizadores léxicos.
+
 
 \subsection{Objetivo Principal}
 
+\begin{quote}
+Diseñar e implementar el analizador léxico de un lenguaje de programación de propósito específico orientado a pruebas estadísticas de dos vías de clasificación, basadas en la teoría de rachas y pruebas tipo Friedman, utilizando el paradigma de programación imperativo y estructuras abstractas de datos.
+\end{quote}
 
+Este objetivo general se descompone en las siguientes metas específicas:
+
+\begin{itemize}
+  \item Proponer prototipos de programas que ejemplifiquen cómo se utilizaría el lenguaje para expresar problemas de análisis estadístico.
+  \item Definir el vocabulario del lenguaje y las categorías léxicas necesarias.
+  \item Formalizar los patrones léxicos mediante expresiones regulares.
+  \item Implementar el analizador léxico en una herramienta adecuada (FLEX, JFLEX o lex.py).
+\end{itemize}
 %---------------------------------------------------------------------------------
 % Diseño de la solución ---------------------------------------------------------
 %---------------------------------------------------------------------------------
