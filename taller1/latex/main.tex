@@ -1,9 +1,11 @@
 \documentclass{article}
 \usepackage{csquotes}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1,T2A]{fontenc}
 \usepackage[spanish]{babel}
 \usepackage{graphicx}
+\usepackage[T2A]{fontenc}   % Esto activa codificación cirílica
+\usepackage{fvextra}
 \usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
 \usepackage{xcolor}
 \usepackage{hyperref}
@@ -38,7 +40,7 @@
     literate=
      {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
      {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
-     {ñ}{{\~n}}1 {Ñ}{{\~N}}1
+     {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {π}{{$\pi$}}1  {Ш}{{\fontencoding{T2A}\selectfont\char"DB}}1
      {¡}{{\textexclamdown}}1 {¿}{{\textquestiondown}}1
 }
 
@@ -785,15 +787,15 @@ Durante la fase de desarrollo de un compilador, es fundamental validar que el an
 \end{itemize}
 
 \paragraph{Código utilizado}
-
 \begin{lstlisting}[style=mypython, caption={Fragmento con errores léxicos intencionados}]
 Func Vacio Principal() {
     imprimir("Hola mundo!;  // Error: comillas no cerradas
-    Entero número = 5.67;
-    Шinvalido = Verdadero; // Error: carácter '@' no reconocido
+    Entero número = 5.67;   // Error: letra con tilde no reconocida
+    Шinvalido = Verdadero; // Error: carácter cirílico no reconocido
     Flotante π = 3.14;      // Error: símbolo Unicode no admitido
 }
 \end{lstlisting}
+
 
 \paragraph{Análisis técnico por línea}
 
@@ -804,7 +806,7 @@ Func Vacio Principal() {
 
   \item \textbf{Línea 4 — Carácter no reconocido:} El símbolo \texttt{Ш} no forma parte de ningún token válido en el lenguaje. No está incluido en los operadores, identificadores ni literales. El analizador lo clasifica como carácter inesperado y lo omite mediante la función \texttt{t\_error()}.
 
-  \item \textbf{Línea 5 — Carácter Unicode inválido:} El símbolo \texttt{π} (pi) tampoco está incluido en el conjunto permitido para identificadores. Al ser un carácter Unicode fuera del rango aceptado, el lexer lo reporta como error léxico.
+  \item \textbf{Línea 5 — Carácter Unicode inválido:} El símbolo $\pi$ (pi) tampoco está incluido en el conjunto permitido para identificadores. Al ser un carácter Unicode fuera del rango aceptado, el lexer lo reporta como error léxico.
 \end{itemize}
 
 \paragraph{Salida real del lexer}
@@ -813,8 +815,9 @@ Func Vacio Principal() {
 Error: carácter inesperado '"'
 Error: carácter inesperado 'ú'
 Error: carácter inesperado 'Ш'
-Error: carácter inesperado 'π'
 \end{verbatim}
+\noindent\texttt{Error: carácter inesperado '$\pi$'}
+
 
 Cada uno de estos errores fue correctamente identificado y reportado. El lexer omitió los caracteres problemáticos y continuó el análisis léxico, demostrando tolerancia a errores y permitiendo seguir procesando el archivo sin interrupciones. Esta característica es fundamental para detectar múltiples errores en una sola pasada, mejorando la experiencia de desarrollo.
 
