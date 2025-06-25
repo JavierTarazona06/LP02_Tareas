@@ -1,0 +1,31 @@
+1:0	PALABCLAVE	Func
+1:5	PALABCLAVE	Vacio
+1:11	PALABCLAVE	Principal
+1:20	DELIM	(
+1:21	DELIM	)
+1:23	DELIM	{
+2:29	PALABCLAVE	imprimir
+2:37	DELIM	(
+2:39	ID	Hola
+2:44	ID	mundo
+2:49	OPLOG	!
+2:50	DELIM	;
+2:53	COMMENT	// Error: comillas no cerradas
+3:88	TIPOA	Entero
+3:95	ID	n
+3:97	ID	mero
+3:102	OPASI	=
+3:104	REAL	5.67
+3:108	DELIM	;
+3:112	COMMENT	//Error: caracter con tilde no reconocido
+4:159	ID	invalido
+4:168	OPASI	=
+4:170	BOOL	Verdadero
+4:179	DELIM	;
+4:181	COMMENT	// Error: carácter 'Ш' no reconocido
+5:222	TIPOA	Flotante
+5:233	OPASI	=
+5:235	REAL	3.14
+5:239	DELIM	;
+5:246	COMMENT	// Error: símbolo Unicode no admitido
+6:284	DELIM	}
