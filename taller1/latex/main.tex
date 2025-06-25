@@ -1,8 +1,7 @@
 \documentclass{article}
 \usepackage{csquotes}
-
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1,T2A]{fontenc}
 \usepackage{fvextra}
 \fvset{commandchars=\\\{\}, mathescape=true}
 \usepackage{xcolor}
@@ -44,12 +43,10 @@
     captionpos=b,
     escapeinside={(*@}{@*)},
     literate=
-      {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
-      {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
-      {ñ}{{\~n}}1 {Ñ}{{\~N}}1
-      {π}{{$\pi$}}1               % ahora π se mapea correctamente
-      {Ш}{{$\Sha$}}1             % y Ш → \Sha sin error
-      {¡}{{\textexclamdown}}1 {¿}{{\textquestiondown}}1
+     {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+     {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+     {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {π}{{$\pi$}}1  {Ш}{{\fontencoding{T2A}\selectfont\char"DB}}1
+     {¡}{{\textexclamdown}}1 {¿}{{\textquestiondown}}1
 }
 
 
@@ -456,16 +453,16 @@ A continuación se detalla la estructura general del código:
 Esta sección define las palabras clave del lenguaje. Estas palabras tienen un significado especial dentro de la gramática y no pueden usarse como identificadores por el usuario. Se agrupan en una lista y se registran en un diccionario reservado para ser reconocidas durante el análisis léxico.
 
 \begin{lstlisting}[style=mypython]
-tokens.append('PALABCLAVE')
+  tokens.append('PALABCLAVE')
 
-palabras_reservadas = [
-    'Func','Principal','imprimir','Vacio','Retornar','Global',
-    'Romper','Continuar','Pasar','Sino',
-    'Si','Entonces','Para','Mientras','Lanzar','Intentar',
-    'Excepto'
-]
-reserved = { w: 'PALABCLAVE' for w in palabras_reservadas }
-\end{lstlisting}
+  palabras_reservadas = [
+      'Func','Principal','imprimir','Vacio','Retornar','Global',
+      'Romper','Continuar','Pasar','Sino',
+      'Si','Entonces','Para','Mientras','Lanzar','Intentar',
+      'Excepto'
+  ]
+  reserved = { w: 'PALABCLAVE' for w in palabras_reservadas }
+  \end{lstlisting}
 
 \subsubsection{TIPO}
 
@@ -831,12 +828,13 @@ Durante la fase de desarrollo de un compilador, es fundamental validar que el an
 
 \begin{lstlisting}[style=mypython, caption={Fragmento con errores léxicos intencionados}]
 Func Vacio Principal() {
-    imprimir("Hola mundo!";  // Error: comillas no cerradas
-    Entero número = 5.67;
-    Ш invalido = Verdadero; // Error: carácter '@' no reconocido
+    imprimir("Hola mundo!;  // Error: comillas no cerradas
+    Entero número = 5.67;   // Error: letra con tilde no reconocida
+    Шinvalido = Verdadero; // Error: carácter cirílico no reconocido
     Flotante π = 3.14;      // Error: símbolo Unicode no admitido
 }
 \end{lstlisting}
+
 
 \paragraph{Análisis técnico por línea}
 
@@ -849,17 +847,18 @@ Func Vacio Principal() {
   lenguaje. No está incluido en los operadores, identificadores ni literales. El analizador lo clasifica como carácter inesperado y 
   lo omite mediante la función \texttt{t\_error()}.
 
-  \item \textbf{Línea 5 — Carácter Unicode inválido:} El símbolo \texttt{$\pi$} (pi) tampoco está incluido en el conjunto permitido para identificadores. Al ser un carácter Unicode fuera del rango aceptado, el lexer lo reporta como error léxico.
+  \item \textbf{Línea 5 — Carácter Unicode inválido:} El símbolo $\pi$ (pi) tampoco está incluido en el conjunto permitido para identificadores. Al ser un carácter Unicode fuera del rango aceptado, el lexer lo reporta como error léxico.
 \end{itemize}
 
 \paragraph{Salida real del lexer}
 
-\begin{Verbatim}
+\begin{verbatim}
   Error: carácter inesperado '"'
   Error: carácter inesperado 'ú'
-  Error: carácter inesperado '$\Sha$'
-  Error: carácter inesperado '$\pi$'
-\end{Verbatim}
+  Error: carácter inesperado 'Ш'
+\end{verbatim}
+\noindent\texttt{Error: carácter inesperado '$\pi$'}
+
 
 Cada uno de estos errores fue correctamente identificado y reportado. El lexer omitió los caracteres problemáticos y continuó el análisis léxico, demostrando tolerancia a errores y permitiendo seguir procesando el archivo sin interrupciones. Esta característica es fundamental para detectar múltiples errores en una sola pasada, mejorando la experiencia de desarrollo.
 
