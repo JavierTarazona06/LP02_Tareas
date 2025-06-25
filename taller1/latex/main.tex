@@ -2,17 +2,19 @@
 \usepackage{csquotes}
 \usepackage[utf8x]{inputenc}
 \usepackage[T1,T2A]{fontenc}
+\usepackage{fvextra}
+\fvset{commandchars=\\\{\}, mathescape=true}
+\usepackage{xcolor}
+\usepackage{amssymb}       % define \Sha
+\usepackage{listings}
+\usepackage{listingsutf8}
 \usepackage[spanish]{babel}
 \usepackage{graphicx}
-\usepackage[T2A]{fontenc}   % Esto activa codificación cirílica
-\usepackage{fvextra}
 \usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
-\usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{titletoc}
 \usepackage{adjustbox}
 
-\usepackage{listings}
 \definecolor{bg}{rgb}{0.95,0.95,0.95}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{purple}{rgb}{0.58,0,0.82}
@@ -21,6 +23,9 @@
 \definecolor{darkgreen}{rgb}{0.0,0.5,0.0}
 
 \lstdefinestyle{mypython}{
+    inputencoding=utf8,           % Indica a listings que use UTF-8
+    extendedchars=true,           % Permite caracteres extendidos
+    mathescape=true,              % Habilita modo matemático dentro de literales
     language=Python,
     backgroundcolor=\color{bg},
     basicstyle=\ttfamily\footnotesize,
@@ -43,6 +48,7 @@
      {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {π}{{$\pi$}}1  {Ш}{{\fontencoding{T2A}\selectfont\char"DB}}1
      {¡}{{\textexclamdown}}1 {¿}{{\textquestiondown}}1
 }
+
 
 \hypersetup{
     colorlinks=true,
@@ -110,6 +116,23 @@
 %---------------------------------------------------------------------------------
 
 \section{Introducción}\label{sec:intr}
+
+En el desarrollo de lenguajes de programación, el diseño e implementación de 
+analizadores léxicos constituye uno de los pilares fundamentales para garantizar 
+que la interpretación y procesamiento del código fuente sea precisa, robusta 
+y escalable. En este taller, se propuso no solo abordar la construcción de un 
+analizador léxico para un lenguaje de dominio específico orientado a pruebas 
+estadísticas tipo Friedman y análisis de rachas, sino también entender a profundidad 
+los retos prácticos que esto implica desde la perspectiva del diseño modular, 
+el uso de expresiones regulares y la integración de herramientas modernas en 
+Python como PLY. Mmás allá de la simple clasificación de 
+cadenas, se explora cómo el reconocimiento léxico bien estructurado sienta las 
+bases para sistemas de compilación eficientes, confiables y alineados con 
+los conceptos de programación imperativa y la abstracción de estructuras de 
+datos. Este trabajo busca que cada componente del lexer utilizado contribuya 
+de manera significativa tanto a la formación profesional como al 
+avance en la construcción de soluciones computacionales adaptadas a 
+necesidades específicas en estadística y análisis de datos experimentales.
 
 %---------------------------------------------------------------------------------
 % Marco Teórico ------------------------------------------------------------------
@@ -256,7 +279,7 @@ solapamientos:
 \section{Código Fuente}\label{sec:cod}
 
 El código fuente completo de este modelo se encuentra adjunto como 
-(Taller1.zip)
+(taller1.zip)
 y disponible en el repositorio GitHub del proyecto:
 
 \begin{center}
@@ -269,7 +292,7 @@ y disponible en el repositorio GitHub del proyecto:
 
 \section{Manual Usuario}\label{sec:man_u}
 
-El primer paso es descargar el archivo \texttt{Taller1.zip}.
+El primer paso es descargar el archivo \texttt{taller1.zip}.
 
 El repositorio contiene:
 \begin{itemize}
@@ -303,6 +326,7 @@ El repositorio contiene:
         del algoritmo de Euclides en el lenguaje propuesto
     \item[\texttt{tests/prototype3\_lex.txt}] Salida de tokens correspondiente al 
         archivo \texttt{prototype3.txt}.
+    \item [\texttt{tests/escenarioPrueba...}] Archivos relacionados a los escenarios de prueba.
   \end{description}
 \end{itemize}
 
@@ -418,7 +442,7 @@ A continuación se detalla la estructura general del código:
 
 \begin{itemize}
   \item El código usa la biblioteca \texttt{ply.lex} para definir un lexer que procesa un texto fuente y genera tokens. Cada token es una unidad léxica que representa una categoría específica del lenguaje.
-  \item El codigo cuenta con dos partes principales, en la primera se definen los tokens (\texttt{tokens}), las palabras reservadas (\texttt{reserved}) y las funciones o expresiones regulares (aquellas que empiezan por \texttt{t\_}) que definen la estructura del lenguajes; en la segunda parte, se define la función \texttt{\_\_main\_\_} en la cual se pide la dirección de un archivo que contiene el texto a ser procesado, después de leer el contenido de este archivo, se procesa y se guarda en un archivo con el mismo nombre pero sin la extensión y con la terminación \texttt{\_tokens.txt}.
+  \item El codigo cuenta con dos partes principales, en la primera se definen los tokens (\texttt{tokens}), las palabras reservadas (\texttt{reserved}) y las funciones o expresiones regulares (aquellas que empiezan por \texttt{t\_}) que definen la estructura del lenguajes, en la segunda parte, se define la función \texttt{\_\_main\_\_} en la cual se pide la dirección de un archivo que contiene el texto a ser procesado, después de leer el contenido de este archivo, se procesa y se guarda en un archivo con el mismo nombre pero sin la extensión y con la terminación \texttt{\_tokens.txt}.
   \item Al principio del codigo se declara una lista vacia de tokens que luego se va llenando con las categorías que el analizador puede reconocer, aquí también se define la variable \texttt{reserved} usada para definir las palabras clave que pertenecen a una categoria. El código se organiza en varias secciones que definen las categorías y subcategorías dentro de estas (tokens, palabras reservadas, tipos de datos, cadenas, identificadores, literales numéricos, comentarios y operadores), en cada una de estas secciones se van agregando las cadenas de caracteres que representan los tipos de tokens correspondientes a la categoría (a la lista \texttt{tokens}) y a sus subcategorías correspondientes (dentro del diccionario \texttt{reserved}), se crean las expresiones regulares o los mecanismos de reconocimiento para cada categoria bajo las funciones \texttt{t\_<nombre\_categoria>} y bajo su atributo \texttt{\_\_doc\_\_}.
 \end{itemize}
 
@@ -429,16 +453,16 @@ A continuación se detalla la estructura general del código:
 Esta sección define las palabras clave del lenguaje. Estas palabras tienen un significado especial dentro de la gramática y no pueden usarse como identificadores por el usuario. Se agrupan en una lista y se registran en un diccionario reservado para ser reconocidas durante el análisis léxico.
 
 \begin{lstlisting}[style=mypython]
-tokens.append('PALABCLAVE')
+  tokens.append('PALABCLAVE')
 
-palabras_reservadas = [
-    'Func','Principal','imprimir','Vacio','Retornar','Global',
-    'Romper','Continuar','Pasar','Sino',
-    'Si','Entonces','Para','Mientras','Lanzar','Intentar',
-    'Excepto'
-]
-reserved = { w: 'PALABCLAVE' for w in palabras_reservadas }
-\end{lstlisting}
+  palabras_reservadas = [
+      'Func','Principal','imprimir','Vacio','Retornar','Global',
+      'Romper','Continuar','Pasar','Sino',
+      'Si','Entonces','Para','Mientras','Lanzar','Intentar',
+      'Excepto'
+  ]
+  reserved = { w: 'PALABCLAVE' for w in palabras_reservadas }
+  \end{lstlisting}
 
 \subsubsection{TIPO}
 
@@ -480,7 +504,7 @@ t_CADENA.__doc__ = CADENA_PATTERN
 
 \subsubsection{ID}
 
-Los identificadores se reconocen como cualquier secuencia válida que comience con una letra o guión bajo, seguida de letras, números o guión bajo. Si el valor coincide con una palabra reservada, se clasifica como tal; si no, como \texttt{ID}.
+Los identificadores se reconocen como cualquier secuencia válida que comience con una letra o guión bajo, seguida de letras, números o guión bajo. Si el valor coincide con una palabra reservada, se clasifica como tal, si no, como \texttt{ID}.
 
 \begin{lstlisting}[style=mypython]
 tokens += ['ID', 'BOOL']
@@ -603,23 +627,35 @@ Esta sección finaliza la construcción del lexer y permite al usuario ingresar 
 Cabe recalcar que el lexer busca automaticamente la lista \texttt{tokens} y el diccionario \texttt{reserved} para identificar los tokens y palabras reservadas, respectivamente. El lexer también maneja los comentarios y espacios en blanco, ignorándolos durante el análisis léxico. Además, usa aútomaticamente las expresiones regulares definidas para cada token en las funciones que empiezan por \texttt{t\_}.
 
 \begin{lstlisting}[style=mypython]
+# Regex legible, ignora espacios en blanco
 lexer = lex.lex(reflags=lex.re.VERBOSE)
 
 if __name__ == "__main__":
+    
     while True:
-        s = input('calc> ')
+        s = input('term> ')
+        ultm_dot = s.rfind('.')
+
         if not s:
             break
-        with open(s, 'r', encoding='utf-8') as f:
-            datos = f.read()
-        lexer.input(datos)
 
-        with open(s[:-4]+'_tokens.txt', 'w', encoding='utf-8') as fout:
-            while True:
-                tok = lexer.token()
-                if not tok:
-                    break
-                fout.write(f"{tok.lineno}:{tok.lexpos}\t{tok.type}\t{tok.value}\n")
+        try:
+            with open(s, 'r', encoding='utf-8') as f:
+                datos = f.read()
+
+            lexer.input(datos)
+
+            
+            with open(s[:ultm_dot]+'_lex.txt', 'w', encoding='utf-8') as fout:
+                while True:
+                    tok = lexer.token()
+                    if not tok:
+                        break
+                    # tok.type es el nombre del token, tok.value su lexema,
+                    # tok.lineno y tok.lexpos la línea y posición
+                    fout.write(f"{tok.lineno}:{tok.lexpos}\t{tok.type}\t{tok.value}\n")
+        except FileNotFoundError:
+            print(f"No se encontró el archivo: {s}")
 \end{lstlisting}
 
 %---------------------------------------------------------------------------------
@@ -632,7 +668,9 @@ if __name__ == "__main__":
 
 \subsubsection{Escenario 1: Código correcto completo}
 
-Este escenario tiene como propósito validar la **correcta identificación de todos los tokens válidos** definidos en el lenguaje de programación específico propuesto. A diferencia de escenarios de prueba centrados en errores, este busca confirmar que el analizador léxico reconoce sin inconvenientes estructuras sintácticamente bien formadas, incluyendo todos los tipos de datos, operadores, palabras clave, delimitadores y demás categorías léxicas.
+Este escenario tiene como propósito validar la 
+\textbf{correcta identificación de todos los tokens válidos}
+ definidos en el lenguaje de programación específico propuesto. A diferencia de escenarios de prueba centrados en errores, este busca confirmar que el analizador léxico reconoce sin inconvenientes estructuras sintácticamente bien formadas, incluyendo todos los tipos de datos, operadores, palabras clave, delimitadores y demás categorías léxicas.
 
 \paragraph{Motivación}
 
@@ -644,7 +682,7 @@ Durante el desarrollo de un compilador, la primera validación fundamental del a
   \item Validar que se reconoce todo el conjunto de expresiones regulares definidas en las reglas léxicas.
 \end{itemize}
 
-\paragraph{Código utilizado}
+\textbf{Código utilizado}
 
 \begin{lstlisting}[style=mypython, caption={Programa completo con todas las categorías léxicas}]
   
@@ -786,7 +824,8 @@ Durante la fase de desarrollo de un compilador, es fundamental validar que el an
   \item Continuar procesando el código tras errores, evitando bloqueos innecesarios.
 \end{itemize}
 
-\paragraph{Código utilizado}
+\textbf{Código utilizado}
+
 \begin{lstlisting}[style=mypython, caption={Fragmento con errores léxicos intencionados}]
 Func Vacio Principal() {
     imprimir("Hola mundo!;  // Error: comillas no cerradas
@@ -804,7 +843,9 @@ Func Vacio Principal() {
 
   \item \textbf{Línea 3 — Carácter Unicode no permitido en identificador:} La palabra \texttt{número} contiene una letra con tilde (\texttt{ú}). Como la expresión regular del token \texttt{ID} solo permite letras ASCII y las letras \texttt{ñ}/\texttt{Ñ}, el lexer lanza un error al encontrar \texttt{ú}.
 
-  \item \textbf{Línea 4 — Carácter no reconocido:} El símbolo \texttt{Ш} no forma parte de ningún token válido en el lenguaje. No está incluido en los operadores, identificadores ni literales. El analizador lo clasifica como carácter inesperado y lo omite mediante la función \texttt{t\_error()}.
+  \item \textbf{Línea 4 — Carácter no reconocido:} El símbolo \texttt{Ш} no forma parte de ningún token válido en el 
+  lenguaje. No está incluido en los operadores, identificadores ni literales. El analizador lo clasifica como carácter inesperado y 
+  lo omite mediante la función \texttt{t\_error()}.
 
   \item \textbf{Línea 5 — Carácter Unicode inválido:} El símbolo $\pi$ (pi) tampoco está incluido en el conjunto permitido para identificadores. Al ser un carácter Unicode fuera del rango aceptado, el lexer lo reporta como error léxico.
 \end{itemize}
@@ -812,9 +853,9 @@ Func Vacio Principal() {
 \paragraph{Salida real del lexer}
 
 \begin{verbatim}
-Error: carácter inesperado '"'
-Error: carácter inesperado 'ú'
-Error: carácter inesperado 'Ш'
+  Error: carácter inesperado '"'
+  Error: carácter inesperado 'ú'
+  Error: carácter inesperado 'Ш'
 \end{verbatim}
 \noindent\texttt{Error: carácter inesperado '$\pi$'}
 
@@ -867,7 +908,7 @@ Durante el desarrollo de un compilador, es importante verificar que el analizado
   \item Confirmar que las llamadas de funciones anidadas generan secuencias de tokens correctas.
 \end{itemize}
 
-\paragraph{Código utilizado}
+\textbf{Código utilizado}
 
 \begin{lstlisting}[style=mypython, caption={ Fragmento con anidamientos léxicos complejos}]
 Func Vacio Principal() {
@@ -946,6 +987,23 @@ Este escenario permitió comprobar nuestro analizador léxico puede manejar corr
 El escenario validó que el analizador léxico reconoce adecuadamente estructuras anidadas, tanto en definiciones de tipo como en llamadas a funciones. No se presentaron errores léxicos y cada símbolo fue tokenizado correctamente.
 
 
+\section{Conclusiones}
+
+La construcción de este analizador léxico permitió no solo materializar 
+los fundamentos teóricos del procesamiento de lenguajes formales, 
+sino también enfrentar y resolver desafíos reales asociados al diseño de 
+herramientas especializadas en el ámbito de la estadística computacional. 
+A través de la implementación modular y el uso de expresiones regulares robustas, 
+se logró desarrollar un sistema capaz de identificar con precisión la variedad 
+de tokens propios de un lenguaje orientado a pruebas estadísticas tipo Friedman y 
+análisis de rachas. Más allá del resultado técnico, este proceso evidenció la 
+importancia de un análisis léxico bien estructurado como base para futuras etapas 
+del compilador y como motor clave en la automatización de tareas complejas en 
+análisis de datos. En síntesis, este trabajo refuerza la necesidad de abordar 
+el desarrollo de lenguajes con rigurosidad, visión de largo plazo y una 
+mentalidad orientada a la mejora continua, siempre con el objetivo de crear 
+soluciones que respondan a necesidades concretas de la comunidad académica y 
+científica.
 
 
 \section{Referencias}

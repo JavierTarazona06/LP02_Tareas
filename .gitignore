@@ -190,6 +190,8 @@ cython_debug/
 *main.bbl-SAVE-ERROR
 main.bcf
 main.run.xml
+*main.synctex(busy)
+*main.bcf-SAVE-ERROR
 
 # Archivos de respaldo del editor
 *~

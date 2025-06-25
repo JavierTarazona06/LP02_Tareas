@@ -190,6 +190,7 @@ def t_error(t):
     t.lexer.skip(1)
 
 # Construir lexer
+# Regex legible, ignora espacios en blanco
 lexer = lex.lex(reflags=lex.re.VERBOSE)
 
 if __name__ == "__main__":
@@ -200,18 +201,24 @@ if __name__ == "__main__":
 
         if not s:
             break
-        with open(s, 'r', encoding='utf-8') as f:
-            datos = f.read()
-        lexer.input(datos)
 
-        with open(s[:ultm_dot]+'_lex.txt', 'w', encoding='utf-8') as fout:
-            while True:
-                tok = lexer.token()
-                if not tok:
-                    break
-                # tok.type es el nombre del token, tok.value su lexema,
-                # tok.lineno y tok.lexpos la línea y posición
-                fout.write(f"{tok.lineno}:{tok.lexpos}\t{tok.type}\t{tok.value}\n")
+        try:
+            with open(s, 'r', encoding='utf-8') as f:
+                datos = f.read()
+
+            lexer.input(datos)
+
+            
+            with open(s[:ultm_dot]+'_lex.txt', 'w', encoding='utf-8') as fout:
+                while True:
+                    tok = lexer.token()
+                    if not tok:
+                        break
+                    # tok.type es el nombre del token, tok.value su lexema,
+                    # tok.lineno y tok.lexpos la línea y posición
+                    fout.write(f"{tok.lineno}:{tok.lexpos}\t{tok.type}\t{tok.value}\n")
+        except FileNotFoundError:
+            print(f"No se encontró el archivo: {s}")
 
     '''while True:
         s = input('calc> ')
