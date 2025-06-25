@@ -1,6 +1,6 @@
 Func Vacio Principal() {
     imprimir("Hola mundo!;  // Error: comillas no cerradas
-    Entero número = 5.67;
-    Шinvalido = Verdadero; // Error: carácter '@' no reconocido
+    Entero número = 5.67;   //Error: caracter con tilde no reconocido
+    Шinvalido = Verdadero; // Error: carácter 'Ш' no reconocido
     Flotante π = 3.14;      // Error: símbolo Unicode no admitido
 }
