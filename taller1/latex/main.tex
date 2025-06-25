@@ -787,10 +787,10 @@ Durante la fase de desarrollo de un compilador, es fundamental validar que el an
 \paragraph{Código utilizado}
 
 \begin{lstlisting}[style=mypython, caption={Fragmento con errores léxicos intencionados}]
-Func Principal() {
+Func Vacio Principal() {
     imprimir("Hola mundo!;  // Error: comillas no cerradas
-    Entero número = 5.6.7;  // Error: número real mal formado
-    @invalido = Verdadero; // Error: carácter '@' no reconocido
+    Entero número = 5.67;
+    Шinvalido = Verdadero; // Error: carácter '@' no reconocido
     Flotante π = 3.14;      // Error: símbolo Unicode no admitido
 }
 \end{lstlisting}
@@ -798,25 +798,25 @@ Func Principal() {
 \paragraph{Análisis técnico por línea}
 
 \begin{itemize}
-  \item \textbf{Línea 2 — Cadena no cerrada:} El patrón para cadenas (\texttt{CADENA\_PATTERN}) espera una comilla de cierre. Al no encontrarla, el lexer toma todo el contenido restante como parte de una cadena inválida, lanzando un error al detectar el salto de línea.
-  
-  \item \textbf{Línea 3 — Número mal formado:} \texttt{5.6.7} contiene múltiples puntos decimales. Esto no se ajusta a la expresión regular para números reales ni para números complejos. El lexer identifica \texttt{5.6} como un real válido, pero falla al procesar el segundo punto y el \texttt{7}, generando un token huérfano.
+  \item \textbf{Línea 2 — Cadena no cerrada:} El patrón definido para cadenas (\texttt{CADENA\_PATTERN}) espera una comilla doble de apertura y otra de cierre. En este caso, la comilla inicial no está cerrada, por lo que el analizador lanza un error tan pronto encuentra el símbolo \texttt{"}. No puede interpretar el contenido posterior como cadena válida.
 
-  \item \textbf{Línea 4 — Carácter no reconocido:} El símbolo \texttt{@} no está incluido en ningún patrón definido. El lexer invoca automáticamente la función \texttt{t\_error()}, imprime el carácter inesperado, y lo omite para continuar el análisis.
+  \item \textbf{Línea 3 — Carácter Unicode no permitido en identificador:} La palabra \texttt{número} contiene una letra con tilde (\texttt{ú}). Como la expresión regular del token \texttt{ID} solo permite letras ASCII y las letras \texttt{ñ}/\texttt{Ñ}, el lexer lanza un error al encontrar \texttt{ú}.
 
-  \item \textbf{Línea 5 — Unicode fuera del patrón:} El símbolo \texttt{π} (pi) está fuera del alfabeto ASCII básico usado en la expresión regular de identificadores. Aunque Python internamente puede manejar Unicode, la gramática definida en este lexer lo excluye. Se reporta como un carácter inválido.
+  \item \textbf{Línea 4 — Carácter no reconocido:} El símbolo \texttt{Ш} no forma parte de ningún token válido en el lenguaje. No está incluido en los operadores, identificadores ni literales. El analizador lo clasifica como carácter inesperado y lo omite mediante la función \texttt{t\_error()}.
+
+  \item \textbf{Línea 5 — Carácter Unicode inválido:} El símbolo \texttt{π} (pi) tampoco está incluido en el conjunto permitido para identificadores. Al ser un carácter Unicode fuera del rango aceptado, el lexer lo reporta como error léxico.
 \end{itemize}
 
-\paragraph{Salida esperada del lexer}
+\paragraph{Salida real del lexer}
 
 \begin{verbatim}
 Error: carácter inesperado '"'
-Error: carácter inesperado '7'
-Error: carácter inesperado '@'
+Error: carácter inesperado 'ú'
+Error: carácter inesperado 'Ш'
 Error: carácter inesperado 'π'
 \end{verbatim}
 
-Cada error es detectado, reportado con precisión y el lexer continúa la ejecución. Esta capacidad de **tolerancia a fallos** es crucial para no abortar el análisis completo ante un único error léxico.
+Cada uno de estos errores fue correctamente identificado y reportado. El lexer omitió los caracteres problemáticos y continuó el análisis léxico, demostrando tolerancia a errores y permitiendo seguir procesando el archivo sin interrupciones. Esta característica es fundamental para detectar múltiples errores en una sola pasada, mejorando la experiencia de desarrollo.
 
 \paragraph{Comparación con lexers de compiladores reales}
 
@@ -842,16 +842,6 @@ Este escenario sugiere varias líneas de mejora para el sistema actual:
   \item Identificar y diferenciar errores de cierre de delimitadores como \texttt{()}, \texttt{[]}, \texttt{\{\}} y comillas.
 \end{itemize}
 
-\paragraph{Escenarios complementarios recomendados}
-
-A futuro, recomendamos incluir escenarios adicionales con:
-
-\begin{itemize}
-  \item Comentarios mal cerrados (\texttt{/* sin cierre}).
-  \item Literales numéricos fuera de rango.
-  \item Identificadores que colisionan con palabras reservadas parcialmente.
-  \item Operadores no definidos como \texttt{===} o \texttt{<>}.
-\end{itemize}
 
 \paragraph{Conclusión}
 
