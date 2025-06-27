@@ -24,7 +24,7 @@ PARA_INSTRUCTION: bool = False
 def refresh():
     """
     Limpia el entorno
-    indicando que ya mo esta en
+    indicando que ya no esta en
     ejecución y que no hay una instrucción de parada
     :return:
     """
@@ -132,6 +132,10 @@ class ALU:
             ALU.registers[i] = bitarray(
                 '0' * constants.WORDS_SIZE_BITS, endian='big')
 
+        # Inicializamos la pila (SP) en la última dirección de memoria disponible, puesto que esta crece hacía abajo, cada vez que se apila se decrementa el SP y se agrega el valor en la nueva dirección a la que apunta.
+        ALU.write_register(ALU.SP, NC.natural2bitarray(
+            constants.MEMORY_SIZE-1, 64))
+
     @staticmethod
     def is_register_special(register_id: int):
         """
@@ -168,8 +172,11 @@ class ALU:
 
         if ALU.is_register_special(register_id):
             if not (
-                    caller_name == "preparate" or caller_name == "fetch"
-                    or caller_name == "modify_state_int"):
+                    caller_name == "preparate"
+                    or caller_name == "fetch"
+                    or caller_name == "modify_state_int"
+                    or caller_name == "set_up"
+                    or caller_name == "push_to_stack"):
                 raise ValueError(
                     f"Registro {register_id} es especial y no se puede escribir directamente.")
 
@@ -200,6 +207,57 @@ class ALU:
 
         ALU.write_register(ALU.STATE, state)
 
+    @staticmethod
+    def push_to_stack(value: bitarray) -> None:
+        """
+        Apila un valor en la pila.
+        Decrementa el SP y luego guarda el valor en la dirección de memoria apuntada por SP.
+        :param value: Valor a apilar, debe ser un bitarray de 64 bits.
+        """
+        # Leer el SP
+        sp: int = NC.bitarray2natural(ALU.read_register(ALU.SP))
+
+        # Decrementar el SP
+        sp -= 1
+
+        # Guardar el nuevo valor del SP
+        ALU.write_register(ALU.SP, NC.natural2bitarray(sp, 64))
+
+        # Guardar el valor en la dirección de memoria apuntada por SP
+        m_bin: bitarray = NC.natural2bitarray(sp, 24)
+        bus.DirectionBus.write(m_bin)
+        bus.ControlBus.write(bus.ControlBus.WRITE_MEMORY_BIN)
+        bus.DataBus.write(value)
+        bus.action()
+
+    @staticmethod
+    def pop_from_stack(register: int) -> bitarray:
+        """
+        Desapila un valor de la pila.
+        Lee el valor de la dirección de memoria apuntada por SP y lo guarda en el registro especificado.
+        Luego incrementa el SP.
+        :param register: ID del registro donde se guardará el valor desapilado.
+        :return: El valor desapilado como un bitarray de 64 bits.
+        """
+        # Leer el SP
+        sp: int = NC.bitarray2natural(ALU.read_register(ALU.SP))
+
+        # Leer el valor de la dirección de memoria apuntada por SP
+        m_bin: bitarray = NC.natural2bitarray(sp, 24)
+        bus.DirectionBus.write(m_bin)
+        bus.ControlBus.write(bus.ControlBus.READ_MEMORY_BIN)
+        bus.action()
+        word: bitarray = bus.DataBus.read().copy()
+
+        # Guardar el valor en el registro especificado
+        ALU.write_register(register, word)
+
+        # Incrementar el SP
+        sp += 1
+        ALU.write_register(ALU.SP, NC.natural2bitarray(sp, 64))
+
+        return word
+
 
 class CU:
     """
@@ -228,7 +286,8 @@ class CU:
         # Encontrar de qué tipo es la instrucción y cuál es su opcode.
         opcodes_dict = utils.FileManager.JSON.JSON2dict(constants.OPCODES_PATH)
         length, offset = None, None
-        instr_str = str(CU.instruction_word.to01())  # Convertir a string la cadena de bits
+        # Convertir a string la cadena de bits
+        instr_str = str(CU.instruction_word.to01())
 
         for length_i, opcodes_list in opcodes_dict.items():
             for idx, opcode in enumerate(opcodes_list):
@@ -247,7 +306,8 @@ class CU:
         CU.opcode_offset = offset
 
         # Obtener la instrucción exacta
-        instr_asm_dict: dict = utils.FileManager.JSON.JSON2dict(constants.ISA_PATH)
+        instr_asm_dict: dict = utils.FileManager.JSON.JSON2dict(
+            constants.ISA_PATH)
         CU.instruction_asm = instr_asm_dict[CU.opcode_length][CU.opcode_offset]
 
         # Extract args depending on length type
@@ -275,7 +335,6 @@ class CU:
 
 
 class ISA:
-    # TODO: Refactorizar la ISA para que use bitarray y no listas de enteros, además use los metodos de después de la refactorización.
     # ------------------
     # Type Code
     # ------------------
@@ -286,6 +345,20 @@ class ISA:
             global PARA_INSTRUCTION
             PARA_INSTRUCTION = True
 
+        @staticmethod
+        def vuelve():
+            """ Vuelve desde la subrutina en la que se encuentre, primero DESAPILA y luego guarda el resultado desapilado en el PC."""
+            # Desapilar el valor de la pila y guardarlo en el PC
+            ALU.pop_from_stack(ALU.PC)
+            # TODO: También se debe manejar el contexto del bloque de ejecución
+
+        @staticmethod
+        def procrastina():
+            """
+            No hace nada, sirve para no hacer nada en un ciclo de ejecución, se usa para temas de sincronización, o simplemente para que el PC se parezca un poco más a sus diseñadores.
+            """
+            return
+
     # ------------------
     # Type R
     # ------------------
@@ -293,7 +366,7 @@ class ISA:
     class R:
         @staticmethod
         def suma():
-            """ Suma de Enteros. """
+            """ Suma dos enteros guardados en los registros R0 y R1, así: R0 <- R0 + R1. """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             r_p: int = NC.bitarray2natural(CU.instruction_args[2])
 
@@ -306,7 +379,7 @@ class ISA:
 
         @staticmethod
         def resta():
-            """ Resta de Enteros. """
+            """ Resta dos enteros guardados en los registros R0 y R1, así: R0 <- R0 - R1. """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             r_p: int = NC.bitarray2natural(CU.instruction_args[2])
 
@@ -319,7 +392,7 @@ class ISA:
 
         @staticmethod
         def mult():
-            """ Multiplicación de Enteros. """
+            """ Multiplicación dos enteros guardados en los registros R0 y R1, asi: R0 <- R0 * R1. """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             r_p: int = NC.bitarray2natural(CU.instruction_args[2])
 
@@ -434,6 +507,29 @@ class ISA:
             ALU.modify_state_int(value)
             ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
 
+        @staticmethod
+        def apila():
+            """
+            Decrementa el valor contenido en el r1 (SP) y hace push del contenido del registro R en la pila, es decir, apilamos el contenido del registro.
+            """
+            # Obtener el registro R y su contenido
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            value: int = NC.bitarray2int(ALU.read_register(r))
+
+            # Apilar el valor en la pila
+            ALU.push_to_stack(NC.int2bitarray(
+                value, constants.WORDS_SIZE_BITS, truncate=True))
+
+        def desapila():
+            """
+            Guarda el contenido de la dirección de memoria apuntada por SP en el registro R y luego incrementa el SP, basicamente hace un pop.
+            """
+            # Obtener el registro R
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+
+            # Desapilar el valor de la pila y guardarlo en el registro R
+            ALU.pop_from_stack(r)
+
     # ------------------
     # Type I
     # ------------------
@@ -495,7 +591,8 @@ class ISA:
             # Value most significant bits
             v_m: bitarray = CU.instruction_args[2]
             # Value less significant bits
-            v_l: bitarray = NC.truncate_bitarray_ls(ALU.read_register(r).copy(), 32)
+            v_l: bitarray = NC.truncate_bitarray_ls(
+                ALU.read_register(r).copy(), 32)
 
             long_bin: bitarray = v_m + v_l
 
@@ -533,7 +630,7 @@ operations: dict[str, list[Callable[[], None]]] = {
         ISA.R.o_bit_bit, ISA.R.xor_bit_bit, ISA.R.comp, ISA.R.copia
     ],
     "59": [
-        ISA.R.not_bit_bit, ISA.R.limpia, ISA.R.incr, ISA.R.decr, "APILA", "DESAPILA"
+        ISA.R.not_bit_bit, ISA.R.limpia, ISA.R.incr, ISA.R.decr, ISA.R.apila, ISA.R.desapila
     ],
     "35": [
         ISA.I_.cargar, ISA.I_.guardar, "SIREGCERO", "SIREGNCERO"
