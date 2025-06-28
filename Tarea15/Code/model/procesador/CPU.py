@@ -566,64 +566,21 @@ class ISA:
             bus.DataBus.write(word)
             bus.action()
 
-        @staticmethod
-        def carga_inm():
-            """
-            Cargar un entero inmediato (32 bits) al registro en
-                los bits menos significativos.
-                Lo convierte a 64 bits para dejarlo como nuevo.
-            """
-            r: int = NC.bitarray2natural(CU.instruction_args[1])
-            v: bitarray = CU.instruction_args[2]
-
-            v = NC.extend_bitarray(v, constants.WORDS_SIZE_BITS)
-
-            ALU.write_register(r, v)
-
-        @staticmethod
-        def carga_inm_superior():
-            """
-            #Cargar un entero inmediato (32 bits) al registro en
-            #los bits más significativos
-            """
-            r: int = NC.bitarray2natural(CU.instruction_args[1])
-
-            # Value most significant bits
-            v_m: bitarray = CU.instruction_args[2]
-            # Value less significant bits
-            v_l: bitarray = NC.truncate_bitarray_ls(
-                ALU.read_register(r).copy(), 32)
-
-            long_bin: bitarray = v_m + v_l
-
-            ALU.write_register(r, long_bin)
-
-        @staticmethod
-        def suma_inm():
-            """
-            Suma enteros el registro destino con un entero inmediato
-            """
-            r: int = NC.bitarray2natural(CU.instruction_args[1])
-            v1: int = NC.bitarray2int(ALU.read_register(r))
-            v2: int = NC.bitarray2int(CU.instruction_args[2])
-
-            value_result: int = v1 + v2
-            ALU.write_register(
-                r, NC.int2bitarray(
-                    value_result, constants.WORDS_SIZE_BITS,
-                    truncate=True
-                )
-            )
-
-            ALU.modify_state_int(value_result)
-
+    # ------------------
+    # Type J (Control)
+    # ------------------
+    class J:
+        # TODO
+        pass
 
 # ------------------------------------
+# Operations Dictionary
 # ------------------------------------
+
 
 operations: dict[str, list[Callable[[], None]]] = {
     "64": [
-        "PROCRASTINA", "VUELVE", ISA.C.para
+        ISA.C.procrastina, ISA.C.vuelve, ISA.C.para
     ],
     "54": [
         ISA.R.suma, ISA.R.resta, ISA.R.mult, ISA.R.divi, ISA.R.y_bit_bit,
