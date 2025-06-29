@@ -1,0 +1,298 @@
+\documentclass{article}
+\usepackage{csquotes}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1,T2A]{fontenc}
+\usepackage{fvextra}
+\fvset{commandchars=\\\{\}, mathescape=true}
+\usepackage{xcolor}
+\usepackage{amssymb}       % define \Sha
+\usepackage{listings}
+\usepackage{listingsutf8}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
+\usepackage{hyperref}
+\usepackage{titletoc}
+\usepackage{adjustbox}
+
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{purple}{rgb}{0.58,0,0.82}
+\definecolor{bluekeyword}{rgb}{0.26,0.44,0.76}
+\definecolor{lightorange}{rgb}{0.8,0.5,0.2}
+\definecolor{darkgreen}{rgb}{0.0,0.5,0.0}
+
+\lstdefinestyle{mypython}{
+    inputencoding=utf8,           % Indica a listings que use UTF-8
+    extendedchars=true,           % Permite caracteres extendidos
+    mathescape=true,              % Habilita modo matemático dentro de literales
+    language=Python,
+    backgroundcolor=\color{bg},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{bluekeyword}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{lightorange},
+    numberstyle=\tiny\color{gray},
+    identifierstyle=\color{black},
+    showstringspaces=false,
+    numbers=left,
+    numbersep=10pt,
+    frame=single,
+    breaklines=true,
+    tabsize=4,
+    captionpos=b,
+    escapeinside={(*@}{@*)},
+    literate=
+     {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+     {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+     {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {π}{{$\pi$}}1  {Ш}{{\fontencoding{T2A}\selectfont\char"DB}}1
+     {¡}{{\textexclamdown}}1 {¿}{{\textquestiondown}}1
+}
+
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue, % Color del texto del enlace
+    urlcolor=blue % Color del enlace
+}
+
+\usepackage{longtable} % Agrega el paquete longtable
+
+\definecolor{mygreen}{RGB}{0,128,0}
+
+\usepackage{array} % Para personalizar la tabla
+\usepackage{booktabs} % Para líneas horizontales de mejor calidad
+\usepackage{graphicx} % Paquete para incluir imágenes
+\usepackage{float}
+\usepackage[section]{placeins}
+
+% Definir márgenes
+\usepackage[margin=1in]{geometry}
+
+\renewcommand{\contentsname}{\textcolor{mygreen}{Tabla de Contenidos}}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  % Logo de la Universidad
+  \includegraphics[width=0.48\textwidth]{logo_universidad.png}
+  \par\vspace{2cm}
+
+  % Nombre de la Universidad y detalles del curso
+  {\Large \textbf{Universidad Nacional de Colombia} \par}
+  \vspace{0.5cm}
+  {\large Ingeniería de Sistemas y Computación \par}
+  {\large 2025966 Lenguajes de Programación (02)\par}
+  \vspace{3cm}
+
+  % Detalles del laboratorio y actividad
+  {\large \textbf{Taller 2} \par}
+  {\large Analizador Sintáctico y Semántico\par}
+  \vspace{3cm}
+
+  % Lista de integrantes
+  {\large \textbf{Integrantes:} \par}
+  \vspace{0.5cm}
+  \begin{tabular}{ll}
+    Javier Andrés Tarazona Jiménez   & jtarazonaj@unal.edu.co \\
+    David Felipe Marin Rosas         & dmarinro@unal.edu.co   \\
+    Juan Sebastian Muñoz Lemus       & jumunozle@unal.edu.co          \\
+    Eder José Hernández Buelvas      & ehernandezbu@unal.edu.co          \\
+    Axel Gomez Moreno                & axgomezm@unal.edu.co          \\
+    Daniel Santiago Delgado Pinilla  & ddelgadopi@unal.edu.co          \\
+  \end{tabular}
+  \par\vspace{3cm}
+
+  % Fecha
+  {\large Junio 24 de 2025 \par}
+\end{titlepage}
+
+\tableofcontents % Inserta la tabla de contenidos
+
+\newpage % Salto de página para separar la tabla de contenidos del contenido del documento
+
+% Contenido del artículo----------------------------------------------------------
+
+%---------------------------------------------------------------------------------
+% Intro --------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Introducción}\label{sec:intr}
+
+
+%---------------------------------------------------------------------------------
+% Marco Teórico ------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Marco Teórico}\label{sec:marc}
+
+
+
+%---------------------------------------------------------------------------------
+% Descripción y Justificación del Problema a Resolver ----------------------------
+%---------------------------------------------------------------------------------
+
+\section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
+
+
+
+%---------------------------------------------------------------------------------
+% Diseño de la solución ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Diseño de la solución}\label{sec:dis}
+
+
+%---------------------------------------------------------------------------------
+% Código Fuente ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Código Fuente}\label{sec:cod}
+
+El código fuente completo de este modelo se encuentra adjunto como 
+(taller2.zip)
+y disponible en el repositorio GitHub del proyecto:
+
+\begin{center}
+\url{https://github.com/JavierTarazona06/LP02_Tareas/tree/main/taller2/code}
+\end{center}
+
+%---------------------------------------------------------------------------------
+% Manual Usuario ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Manual Usuario}\label{sec:man_u}
+
+El primer paso es descargar el archivo \texttt{taller1.zip}.
+
+El repositorio contiene:
+\begin{itemize}
+  \item \textbf{Código principal}
+  \begin{description}
+    \item[\texttt{a\_lexico.py}] Código principal del analizador léxico: 
+      define la lista de tokens, patrones (regex) y funciones \texttt{t\_…} que definen patrones
+      para cada categoría, y construye el lexer con PLY.
+  \end{description}
+
+  \item \textbf{Otros}
+  \begin{description}
+    \item[\texttt{InstallationGuide.md}] Guía paso a paso (Markdown) para crear y 
+      activar el entorno virtual y luego instalar las dependencias necesarias con 
+      \texttt{pip install -r requirements.txt}.
+    \item[\texttt{requirements.txt}] Lista de dependencias del proyecto 
+      (principalmente la versión de \texttt{ply} necesaria para ejecutar el analizador).
+  \end{description}
+
+  \item \textbf{Testing}
+  \begin{description}
+    \item[\texttt{tests/prototype1.txt}] Primer caso de prueba...
+  \end{description}
+\end{itemize}
+
+
+Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un 
+entorno virtual utilizando Python 3.10. o superior. Para ello, ejecute el siguiente 
+comando en 
+la terminal o línea de comandos:
+
+\begin{itemize}
+  \item En Windows:
+        \begin{verbatim}
+    python3.12 -m venv nombre_del_entorno
+  \end{verbatim}
+  \item En macOS o Linux:
+        \begin{verbatim}
+    python3.12 -m venv nombre_del_entorno
+  \end{verbatim}
+\end{itemize}
+
+Donde \texttt{nombre\_del\_entorno} es el nombre que desea asignar a su entorno virtual.
+A continuación, active el entorno virtual:
+
+\begin{itemize}
+  \item En Windows:
+        \begin{verbatim}
+    .\nombre_del_entorno\Scripts\activate
+  \end{verbatim}
+  \item En macOS o Linux:
+        \begin{verbatim}
+    source nombre_del_entorno/bin/activate
+  \end{verbatim}
+\end{itemize}
+
+Asegúrese de tener el entorno virtual activado. 
+A continuación, descargue las dependencias necesarias 
+(en este caso, únicamente \texttt{PLY} para gestionar \texttt{Lex}):
+
+\begin{verbatim}
+    pip install -r requirements.txt
+\end{verbatim}
+
+Una vez activo y el entorno instalado, puede ejecutar el archivo 
+principal con el siguiente comando:
+
+\begin{center}
+  \begin{adjustbox}{minipage=\linewidth, center}
+  \begin{verbatim}
+    python a_lexico.py
+  \end{verbatim}
+  \end{adjustbox}
+\end{center}
+
+
+%---------------------------------------------------------------------------------
+% Manual Técnico ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Manual Técnico}\label{sec:man_t}
+
+
+\section{Experimentación}\label{sec:exp}
+
+\subsection{Análisis de resultados}
+
+\subsubsection{Escenario 1: Código correcto completo}
+
+
+
+\subsubsection{Escenario 2: Código con errores léxicos}
+
+
+\subsubsection{Escenario 3:  Anidamientos Complejos }
+
+
+
+\section{Conclusiones}
+
+
+\section{Gramáticas}\label{sec:grammar}
+
+A continuación se describen los análisis sintácticos por categorías:
+
+\subsection{Categoría 1}
+
+
+
+\section{Referencias}
+\renewcommand{\refname}{}
+
+\begin{thebibliography}{9}
+
+%---------------------------------------------------------------------------------
+% Referencias, aunque creo que mejor deberíamos usar un .bib y llamarlas desde ahí, es más facil ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\bibitem{ref} \label{ref:lexPy1} J. R. Levine, T. Mason, and D. 
+Brown, “Lex \& Yacc,” 2nd ed., O’Reilly \& Associates, 1992.
+
+\bibitem{ref} \label{ref:lexPy2}  D. M. Beazley, “PLY (Python Lex‐Yacc)
+Manual,” Version 3.11, 2023. [Online]. Available: https://www.dabeaz.com/ply/.
+
+\bibitem{ref} \label{ref:rachas} J.~E.~Ortiz~Triviño, ``Lenguaje para 
+  procesamiento de rachas,'' Documento interno, Universidad Nacional de 
+    Colombia, enviado por correo electrónico, 6 de mayo de 2025.
+
+\end{thebibliography}
+
+\end{document}
