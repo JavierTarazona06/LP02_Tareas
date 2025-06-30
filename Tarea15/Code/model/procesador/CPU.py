@@ -547,7 +547,7 @@ class ISA:
     # Type I
     # ------------------
 
-    class I_:
+    class I:
 
         @staticmethod
         def cargar():
@@ -718,8 +718,113 @@ class ISA:
     # Type J (Control)
     # ------------------
     class J:
-        # TODO
-        pass
+        @staticmethod
+        def salta():
+            """
+            Salta a la dirección especificada en el registro M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+            ALU.jump(m_bin)
+
+        @staticmethod
+        def llama():
+            """
+            Llama a una subrutina, guardando primero el PC en la pila, luego el ESTADO y finalmente salta a la dirección especificada en el registro M.
+            """
+            # Guardar el PC actual en la pila
+            ALU.push_to_stack(ALU.read_register(ALU.PC))
+
+            # Guardar el ESTADO actual en la pila
+            ALU.push_to_stack(ALU.read_register(ALU.STATE))
+
+            # Saltar a la dirección especificada en M
+            m_bin: bitarray = CU.instruction_args[1]
+            ALU.jump(m_bin)
+
+        @staticmethod
+        def siCero():
+            """
+            Si el bit C del registro de ESTADO indica que el último valor procesado es cero, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.C] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siNCero():
+            """
+            Si el bit C del registro de ESTADO indica que el último valor procesado no es cero, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.C] == 0:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siPos():
+            """
+            Si el bit P del registro de ESTADO indica que el último valor procesado es positivo, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.P] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siNeg():
+            """
+            Si el bit N del registro de ESTADO indica que el último valor procesado es negativo, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.N] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siOverfl():
+            """
+            Si el bit D del registro de ESTADO indica que hubo un overflow en la última operación, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.D] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siMayor():
+            """
+            Si el bit P del registro de ESTADO indica que el último valor procesado es positivo y no es cero, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.P] == 1 and ALU.read_register(ALU.STATE)[ALU.C] == 0:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siMenor():
+            """
+            Si el bit N del registro de ESTADO indica que el último valor procesado es negativo, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.N] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def interrump():
+            """
+            Guarda el PC y el ESTADO en la pila, luego salta a la dirección de interrupción especificada en M.
+            """
+            # Guardar el PC actual en la pila
+            ALU.push_to_stack(ALU.read_register(ALU.PC))
+
+            # Guardar el ESTADO actual en la pila
+            ALU.push_to_stack(ALU.read_register(ALU.STATE))
+
+            # Saltar a la dirección de interrupción especificada en M
+            m_bin: bitarray = CU.instruction_args[1]
+            ALU.jump(m_bin)
 
 # ------------------------------------
 # Operations Dictionary
@@ -738,14 +843,15 @@ operations: dict[str, list[Callable[[], None]]] = {
         ISA.R.not_bit_bit, ISA.R.limpia, ISA.R.incr, ISA.R.decr, ISA.R.apila, ISA.R.desapila
     ],
     "35": [
-        ISA.I_.cargar, ISA.I_.guardar, "SIREGCERO", "SIREGNCERO"
+        ISA.I.cargar, ISA.I.guardar, ISA.I.siRegCero, ISA.I.siRegNCero
     ],
     "27": [
-        ISA.I_.carga_inm, ISA.I_.carga_inm_superior, ISA.I_.suma_inm, "IRESTA", "IMULT",
-        "IDIVI", "IAND", "IOR", "IXOR", "ICOMP"
+        ISA.I.ICarga, ISA.I.ISuma, ISA.I.IResta, ISA.I.IMult,
+        ISA.I.IDivi, ISA.I.IAnd, ISA.I.IOr, ISA.I.IXor, ISA.I.IComp
     ],
     "40": [
-        "SALTA", "LLAMA", "SICERO", "SINCERO", "SIPOS", "SINEG",
-        "SIOVERFL", "SIMAYOR", "SIMENOR", "INTERRUP"
+        ISA.J.salta, ISA.J.llama, ISA.J.siCero, ISA.J.siNCero,
+        ISA.J.siPos, ISA.J.siNeg, ISA.J.siOverfl, ISA.J.siMayor,
+        ISA.J.siMenor, ISA.J.interrump
     ]
 }
