@@ -1,0 +1,7 @@
+program ::= ('COMMENT' | func_declaration)* main_declaration
+main_declaration ::= 'PALABCLAVE=Func' ('PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB') 'PALABCLAVE=Principal' block
+func_declaration ::= 'PALABCLAVE=Func' ('PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB') 'ID' block
+block ::= '{' statement_list '}'
+statement_list ::=  statement +
+statement ::= 'COMMENT' | var_declaration ';'
+var_declaration ::= 'TIPOA' 'ID' '=' expression | 'TIPOB' '<' 'TIPOA' '>' 'ID' '=' expression
