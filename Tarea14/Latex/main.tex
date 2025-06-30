@@ -440,23 +440,22 @@ Operaciones que saltan a una dirección de memoria o la manejan.
 
 \begin{longtable}{|p{0.25\textwidth}|p{0.25\textwidth}|p{0.4\textwidth}|}
   \hline
-  \textbf{Código Ensamblador}       & \textbf{Instrucción}              & \textbf{Descripción} \\
+  \textbf{Código Ensamblador}                                                                                                                                                                                                                   & \textbf{Instrucción}              & \textbf{Descripción} \\
   \hline
-  \texttt{PROCRASTINA}              &
+  \texttt{PROCRASTINA}                                                                                                                                                                                                                          &
   No hace nada (instrucción vacía), sirve para no hacer nada por un ciclo de reloj,
   se usa para temas de sincronización, o simplemente para que el PC se parezca un poco más
-  a sus diseñadores.                &
+  a sus diseñadores.                                                                                                                                                                                                                            &
   Si quieres ver un anime en vez de hacer la tarea o irte a jugar r6 en vez de adelantar
-  un trabajo.                                                                                  \\
+  un trabajo.                                                                                                                                                                                                                                                                                              \\
   \hline
-  \texttt{VUELVE}                   &
-  Vuelve desde la subrutina desde la que se encuentre, esto al hacer DESAPILA y guardar
-  el resultado desapilado en el PC. &
-  DESAPILA R y luego: $PC \leftarrow R$                                                        \\
+  \texttt{VUELVE}                                                                                                                                                                                                                               &
+  Vuelve desde la subrutina desde la que se encuentre, esto al hacer DESAPILA dos veces, la primera para sacar el registro ESTADO y la segunda para sacar el PC, la primera vez que DESSAPILA guarda el resultado en ESTADO y la segunda en PC. &
+  DESAPILA R y luego: $ESTADO \leftarrow R$, después DESAPILA R y luego: $PC \leftarrow R$                                                                                                                                                                                                                 \\
   \hline
-  \texttt{PARA}                     & Detiene la ejecución del programa &
+  \texttt{PARA}                                                                                                                                                                                                                                 & Detiene la ejecución del programa &
   Se detiene el ciclo de instrucciones, ya sea deteniendo completamente la CPU o
-  entrando en un estado de espera (IDLE)                                                       \\
+  entrando en un estado de espera (IDLE)                                                                                                                                                                                                                                                                   \\
   \hline
 \end{longtable}
 
@@ -503,35 +502,33 @@ Operaciones que saltan a una dirección de memoria o la manejan.
 
 \begin{longtable}{|p{0.25\textwidth}|p{0.25\textwidth}|p{0.4\textwidth}|}
   \hline
-  \textbf{Código Ensamblador} & \textbf{Instrucción}                                                                                      & \textbf{Descripción}                                                                                                \\
+  \textbf{Código Ensamblador} & \textbf{Instrucción}                                                                            & \textbf{Descripción}                                                                                                \\
   \hline
-  \texttt{CARGA R, M}         & Carga desde el espacio de memoria M al registro R                                                         & $R \leftarrow M$                                                                                                    \\
+  \texttt{CARGA R, M}         & Carga desde el espacio de memoria M al registro R                                               & $R \leftarrow M$                                                                                                    \\
   \hline
-  \texttt{GUARD R, M}         & Guarda el contenido del registro R en el espacio de memoria M                                             & $M \leftarrow R$                                                                                                    \\
+  \texttt{GUARD R, M}         & Guarda el contenido del registro R en el espacio de memoria M                                   & $M \leftarrow R$                                                                                                    \\
   \hline
-  \texttt{SIREGCERO R M}      & Salta a M si el registro R es igual a 0.                                                                  & Verifica si R == 0 y al confirmarlo hace un SALTA M.                                                                \\
+  \texttt{SIREGCERO R M}      & Salta a M si el registro R es igual a 0.                                                        & Verifica si R == 0 y al confirmarlo hace un SALTA M.                                                                \\
   \hline
-  \texttt{SIREGNCERO R M}     & Salta a M si un registro R no es igual a cero.                                                            & Verifica si R $\neq$ 0 y al confirmarlo hace un SALTA M.                                                            \\
+  \texttt{SIREGNCERO R M}     & Salta a M si un registro R no es igual a cero.                                                  & Verifica si R $\neq$ 0 y al confirmarlo hace un SALTA M.                                                            \\
   \hline
-  \texttt{ICARGA R, V}        & Carga un valor inmediato V a un registro R. V se guarda en los 32 bits menos significativos del registro. & $R \leftarrow V$                                                                                                    \\
+  \texttt{ICARGA R, V}        & Carga un valor inmediato V a un registro R.                                                     & $R \leftarrow V$                                                                                                    \\
   \hline
-  \texttt{ISCARGA R, V}       & Carga un valor inmediato V a un registro R.  V se guarda en los 32 bits más significativos del registro.  & $R \leftarrow V$                                                                                                    \\
+  \texttt{ISUMA R, V}         & Suma inmediata de un valor V a un registro R                                                    & $R \leftarrow R + V$                                                                                                \\
   \hline
-  \texttt{ISUMA R, V}         & Suma inmediata de un valor V a un registro R                                                              & $R \leftarrow R + V$                                                                                                \\
+  \texttt{IRESTA R, V}        & Resta inmediata de un valor V a un registro R                                                   & $R \leftarrow R - V$                                                                                                \\
   \hline
-  \texttt{IRESTA R, V}        & Resta inmediata de un valor V a un registro R                                                             & $R \leftarrow R - V$                                                                                                \\
+  \texttt{IMULT R, V}         & Multiplica un registro por un inmediato                                                         & $R \leftarrow R \times V$                                                                                           \\
   \hline
-  \texttt{IMULT R, V}         & Multiplica un registro por un inmediato                                                                   & $R \leftarrow R \times V$                                                                                           \\
+  \texttt{IDIVI R, V}         & Realiza la división entera de un registro R entre un valor inmediato V                          & $R \Leftarrow \lfloor R / V \rfloor $                                                                               \\
   \hline
-  \texttt{IDIVI R, V}         & Realiza la división entera de un registro R entre un valor inmediato V                                    & $R \Leftarrow \lfloor R / V \rfloor $                                                                               \\
+  \texttt{IAND R, V}          & Conjunción AND entre un registro R y un valor inmediato V                                       & $ R \leftarrow R \wedge R'$                                                                                         \\
   \hline
-  \texttt{IAND R, V}          & Conjunción AND entre un registro R y un valor inmediato V                                                 & $ R \leftarrow R \wedge R'$                                                                                         \\
+  \texttt{IOR R, V}           & Disyunción OR entre un registro R y un valor inmediato V                                        & $R \leftarrow R \vee R'$                                                                                            \\
   \hline
-  \texttt{IOR R, V}           & Disyunción OR entre un registro R y un valor inmediato V                                                  & $R \leftarrow R \vee R'$                                                                                            \\
+  \texttt{IXOR R, V}          & XOR bit a bit entre un registro R y un valor inmediato V                                        & $R \leftarrow R \oplus R'$                                                                                          \\
   \hline
-  \texttt{IXOR R, V}          & XOR bit a bit entre un registro R y un valor inmediato V                                                  & $R \leftarrow R \oplus R'$                                                                                          \\
-  \hline
-  \texttt{ICOMP R, V}         & Compara un registro R con un valor inmediato V y guarda el resultado en R3 (Registro de estado)           & Se realiza la resta $R - V$ y se indica si el resultado es positivo ($R > V$), negativo ($R < V$) o cero ($R = V$). \\
+  \texttt{ICOMP R, V}         & Compara un registro R con un valor inmediato V y guarda el resultado en R3 (Registro de estado) & Se realiza la resta $R - V$ y se indica si el resultado es positivo ($R > V$), negativo ($R < V$) o cero ($R = V$). \\
   \hline
 \end{longtable}
 
@@ -539,27 +536,27 @@ Operaciones que saltan a una dirección de memoria o la manejan.
 
 \begin{longtable}{|p{0.25\textwidth}|p{0.25\textwidth}|p{0.4\textwidth}|}
   \hline
-  \textbf{Código Ensamblador} & \textbf{Instrucción}                                                                                                                                                                    & \textbf{Descripción}                                                                  \\
+  \textbf{Código Ensamblador} & \textbf{Instrucción}                                                                                                                                                                                                                                                                            & \textbf{Descripción}                                                                  \\
   \hline
-  \texttt{SALTA M}            & Salta incondicionalmente a la dirección M, es decir, guarda la dirección M en el R0 (PC) program counter para que en el siguiente ciclo continúe desde ahí.                             & $PC(R0) \leftarrow M$                                                                 \\
+  \texttt{SALTA M}            & Salta incondicionalmente a la dirección M, es decir, guarda la dirección M en el R0 (PC) program counter para que en el siguiente ciclo continúe desde ahí, después de saltar deja el registro ESTADO en ceros. (No guarda contexto, no guarda el registro ESTADO, lo limpia después de saltar) & $PC(R0) \leftarrow M$                                                                 \\
   \hline
-  \texttt{LLAMA M}            & Llama a la subrutina en la dirección M, primero guarda el PC(R0) en la pila al hacer un APILA, luego pone en el PC (R0) el valor de M, donde empieza la subrutina.                      & APILA PC(R0) y luego: $PC \leftarrow M$                                               \\
+  \texttt{LLAMA M}            & Llama a la subrutina en la dirección M, primero guarda el PC(R0) en la pila al hacer un APILA, después hace lo mismo con el registro ESTADO, finalmente, pone en el PC (R0) el valor de M, donde empieza la subrutina (SALTA M).                                                                & APILA PC(R0), APILA ESTADO(R3) y luego: $PC \leftarrow M$                             \\
   \hline
-  \texttt{SICERO M}           & Salta si el resultado de la última comparación fue cero (C=1), al verificar el bit C del R3 (estado).                                                                                   & Verifica si C=1 y al confirmarlo hace un SALTA M                                      \\
+  \texttt{SICERO M}           & Salta si el resultado de la última comparación fue cero (C=1), al verificar el bit C del R3 (estado).                                                                                                                                                                                           & Verifica si C=1 y al confirmarlo hace un SALTA M                                      \\
   \hline
-  \texttt{SINCERO M}          & Salta a M si el resultado de la última comparación no fue cero (C=0)                                                                                                                    & Verifica si C=0 en el R3 (estado) y al confirmarlo hace un SALTA M                    \\
+  \texttt{SINCERO M}          & Salta a M si el resultado de la última comparación no fue cero (C=0)                                                                                                                                                                                                                            & Verifica si C=0 en el R3 (estado) y al confirmarlo hace un SALTA M                    \\
   \hline
-  \texttt{SIPOS M}            & Salta si el resultado de la última comparación fue positivo (P=1)                                                                                                                       & Verifica si P=1 y al confirmarlo hace un SALTA M                                      \\
+  \texttt{SIPOS M}            & Salta si el resultado de la última comparación fue positivo (P=1)                                                                                                                                                                                                                               & Verifica si P=1 y al confirmarlo hace un SALTA M                                      \\
   \hline
-  \texttt{SINEG M}            & Salta si el resultado de la última comparación fue negativo (N=1)                                                                                                                       & Verifica si N=1 en el R3 (estado) y al confirmarlo hace un SALTA M                    \\
+  \texttt{SINEG M}            & Salta si el resultado de la última comparación fue negativo (N=1)                                                                                                                                                                                                                               & Verifica si N=1 en el R3 (estado) y al confirmarlo hace un SALTA M                    \\
   \hline
-  \texttt{SIOVERFL M}         & Salta si el resultado de la última comparación u operación tuvo overflow (D=1)                                                                                                          & Verifica si D=1 en R3 (estado) y al confirmarlo hace un SALTA M.                      \\
+  \texttt{SIOVERFL M}         & Salta si el resultado de la última comparación u operación tuvo overflow (D=1)                                                                                                                                                                                                                  & Verifica si D=1 en R3 (estado) y al confirmarlo hace un SALTA M.                      \\
   \hline
-  \texttt{SIMAYOR M}          & Salta si el resultado de la última operación es de mayor que, es decir, al comparar, el resultado fue positivo y no fue igual a cero. $(P = 1 \land C = 0)$                             & Verifica si los flags P y C cumplen las condiciones y al confirmarlo hace un SALTA M. \\
+  \texttt{SIMAYOR M}          & Salta si el resultado de la última operación es de mayor que, es decir, al comparar, el resultado fue positivo y no fue igual a cero. $(P = 1 \land C = 0)$                                                                                                                                     & Verifica si los flags P y C cumplen las condiciones y al confirmarlo hace un SALTA M. \\
   \hline
-  \texttt{SIMENOR M}          & Salta si el resultado de la última operación es de menor que, es decir, al comparar, el resultado fue negativo. (N=1)                                                                   & Verifica si el flag N en R3 (estado) está activado, al confirmarlo hace un SALTA M.   \\
+  \texttt{SIMENOR M}          & Salta si el resultado de la última operación es de menor que, es decir, al comparar, el resultado fue negativo. (N=1)                                                                                                                                                                           & Verifica si el flag N en R3 (estado) está activado, al confirmarlo hace un SALTA M.   \\
   \hline
-  \texttt{INTERRUP M}         & Dispara una interrupción por software, guardando el estado actual del program counter en la pila junto con los flags o registros relevantes, luego salta a la rutina de interrupción M. & Se guardan los estados del sistema, se hace un APILA PC y se SALTA M.                 \\
+  \texttt{INTERRUP M}         & Dispara una interrupción por software, guardando el estado actual del program counter en la pila junto con los flags o registros relevantes, luego salta a la rutina de interrupción M.                                                                                                         & Se guardan los estados del sistema, se hace un APILA PC y se SALTA M.                 \\
   \hline
 \end{longtable}
 
