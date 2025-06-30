@@ -2,7 +2,8 @@ import re
 import ply.lex as lex
 
 # Lista de literales
-literals = ['+', '-', '*', '/', '(', ')']  # Define caracteres literales
+literals = ['+', '-', '*', '/', '(', ')', '{', '}',
+            '<', '>', '=']  # Define caracteres literales
 
 # Lista de tokens
 tokens = []
@@ -14,10 +15,10 @@ tokens = []
 tokens.append('PALABCLAVE')
 
 palabras_reservadas = [
-    'Func', 'Principal', 'imprimir', 'Vacio', 'Retornar', 'Global',
+    'Func', 'Principal', 'imprimir', 'Vacio', 'Retornar',
     'Romper', 'Continuar', 'Pasar', 'Sino',
     'Si', 'Entonces', 'Para', 'Mientras', 'Lanzar', 'Intentar',
-    'Excepto'
+    'Excepto', 'Lambda'
 ]
 reserved = {w: 'PALABCLAVE' for w in palabras_reservadas}
 

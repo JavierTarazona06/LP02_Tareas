@@ -270,7 +270,55 @@ principal con el siguiente comando:
 
 A continuación se describen los análisis sintácticos por categorías:
 
-\subsection{Categoría 1}
+\subsection{Definiciones Generales}
+
+\subsubsection*{Programa}
+
+\begin{verbatim}
+program ::= ('COMMENT' | func_declaration)* main_declaration
+\end{verbatim}
+
+Define la estructura general de un programa válido en el lenguaje. 
+Permite que haya cualquier cantidad de comentarios y llamadas
+definiciones de funciones (func\_call) al inicio, 
+pero siempre debe finalizar con una llamada a la función principal 
+(main\_call).
+
+\subsubsection*{Main Call}
+
+\begin{verbatim}
+main_declaration
+  ::= 'PALABCLAVE=Func' 
+        ( 'PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB' ) 
+        'PALABCLAVE=Principal' block
+\end{verbatim}
+
+\begin{itemize}
+    \item Detecta la definición \texttt{Func <tipo> Principal <block>}.
+    \item Valida cada parte:
+    \begin{itemize}
+        \item \texttt{Func} al inicio,
+        \item un tipo permitido,
+        \item nombre \texttt{Principal}.
+    \end{itemize}
+    \item Genera un nodo AST \texttt{('main', tipo, block)} para uso 
+      posterior.
+\end{itemize}
+
+\subsubsection*{Function Call}
+
+\begin{verbatim}
+func_declaration 
+      ::= 'PALABCLAVE=Func' 
+          ('PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB') 
+          'ID' block
+\end{verbatim}
+
+\begin{itemize}
+    \item Comprueba que empiece con \texttt{Func}.
+    \item Verifica que el tipo sea válido.
+    \item Construye y devuelve el nodo AST con el nombre y contenido del block.
+\end{itemize}
 
 
 
