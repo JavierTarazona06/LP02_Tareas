@@ -176,7 +176,8 @@ class ALU:
                     or caller_name == "fetch"
                     or caller_name == "modify_state_int"
                     or caller_name == "set_up"
-                    or caller_name == "push_to_stack"):
+                    or caller_name == "push_to_stack"
+                    or caller_name == "pop_from_stack"):
                 raise ValueError(
                     f"Registro {register_id} es especial y no se puede escribir directamente.")
 
@@ -257,6 +258,15 @@ class ALU:
         ALU.write_register(ALU.SP, NC.natural2bitarray(sp, 64))
 
         return word
+
+    @staticmethod
+    def jump(address: bitarray) -> None:
+        """
+        Salta a la dirección especificada, sin guardar absolutamente nada, lo único que hace es poner address en el PC y además pone el registro estado en ceros.
+        :param address: Dirección a la que se saltará.
+        """
+        ALU.write_register(ALU.PC, address)
+        ALU.modify_state_int(0)
 
 
 class CU:
@@ -347,10 +357,10 @@ class ISA:
 
         @staticmethod
         def vuelve():
-            """ Vuelve desde la subrutina en la que se encuentre, primero DESAPILA y luego guarda el resultado desapilado en el PC."""
-            # Desapilar el valor de la pila y guardarlo en el PC
+            """ Vuelve desde la subrutina en la que se encuentre, primero DESAPILA para sacar el ESTADO y luego guarda el resultado desapilado en el ESTADO, después vuelve a desapilar pero para sacar y guardar el PC."""
+            # Desapilar el valor de la pila y guardarlo en el ESTADO
+            ALU.pop_from_stack(ALU.STATE)
             ALU.pop_from_stack(ALU.PC)
-            # TODO: También se debe manejar el contexto del bloque de ejecución
 
         @staticmethod
         def procrastina():
@@ -426,6 +436,7 @@ class ISA:
             v2: bitarray = ALU.read_register(r_p)
 
             value: bitarray = v1 & v2
+            ALU.modify_state_int(value)
             ALU.write_register(r, value)
 
         @staticmethod
@@ -438,6 +449,7 @@ class ISA:
             v2: bitarray = ALU.read_register(r_p)
 
             value: bitarray = v1 | v2
+            ALU.modify_state_int(value)
             ALU.write_register(r, value)
 
         @staticmethod
@@ -450,6 +462,7 @@ class ISA:
             v2: bitarray = ALU.read_register(r_p)
 
             value: bitarray = v1 ^ v2
+            ALU.modify_state_int(value)
             ALU.write_register(r, value)
 
         @staticmethod
@@ -539,7 +552,7 @@ class ISA:
         @staticmethod
         def cargar():
             """
-            Contenido dirección de memoria a registro
+            Cargar contenido de una dirección de memoria a un registro
             """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             m_bin: bitarray = CU.instruction_args[2]
@@ -554,7 +567,7 @@ class ISA:
         @staticmethod
         def guardar():
             """
-            Contenido de un registro en una dirección de memoria
+            Guardar contenido de un registro en una dirección de memoria
             """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             m_bin: bitarray = CU.instruction_args[2]
@@ -565,6 +578,141 @@ class ISA:
             bus.ControlBus.write(bus.ControlBus.WRITE_MEMORY_BIN)
             bus.DataBus.write(word)
             bus.action()
+
+        @staticmethod
+        def siRegCero():
+            """
+            Si el registro es cero, salta a la dirección especificada.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            m_bin: bitarray = CU.instruction_args[2]
+
+            if NC.bitarray2int(ALU.read_register(r)) == 0:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siRegNCero():
+            """
+            Si el registro no es cero, salta a la dirección especificada.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            m_bin: bitarray = CU.instruction_args[2]
+
+            if NC.bitarray2int(ALU.read_register(r)) != 0:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def ICarga():
+            """
+            Carga un valor inmediato (binario) en un registro.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(v_bin)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def ISuma():
+            """
+            Suma un valor inmediato (binario) al registro.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(
+                ALU.read_register(r)) + NC.bitarray2int(v_bin)
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def IResta():
+            """
+            Resta un valor inmediato (binario) al registro.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(
+                ALU.read_register(r)) - NC.bitarray2int(v_bin)
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def IMult():
+            """
+            Multiplica un valor inmediato (binario) al registro.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(
+                ALU.read_register(r)) * NC.bitarray2int(v_bin)
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def IDivi():
+            """
+            Divide un valor inmediato (binario) al registro.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(
+                ALU.read_register(r)) // NC.bitarray2int(v_bin)
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def IAnd():
+            """
+            Realiza una operación AND bit a bit entre el registro y un valor inmediato (binario).
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: bitarray = ALU.read_register(r) & v_bin
+            ALU.modify_state_int(value)
+            ALU.write_register(r, value)
+
+        @staticmethod
+        def IOr():
+            """
+            Realiza una operación OR bit a bit entre el registro y un valor inmediato (binario).
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: bitarray = ALU.read_register(r) | v_bin
+            ALU.modify_state_int(value)
+            ALU.write_register(r, value)
+
+        @staticmethod
+        def IXor():
+            """
+            Realiza una operación XOR bit a bit entre el registro y un valor inmediato (binario).
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: bitarray = ALU.read_register(r) ^ v_bin
+            ALU.modify_state_int(value)
+            ALU.write_register(r, value)
+
+        @staticmethod
+        def IComp():
+            """
+            Compara el registro con un valor inmediato (binario) y actualiza el estado.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            v1: int = NC.bitarray2int(ALU.read_register(r))
+            v2: int = NC.bitarray2int(v_bin)
+
+            value_cmp: int = v1 - v2
+            ALU.modify_state_int(value_cmp)
 
     # ------------------
     # Type J (Control)
