@@ -2,8 +2,8 @@ import re
 import ply.lex as lex
 
 # Lista de literales
-literals = ['+', '-', '*', '/', '(', ')', '{', '}',
-            '<', '>', '=']  # Define caracteres literales
+#literals = ['+', '-', '*', '/', '(', ')', '{', '}',
+#            '<', '>', '=']  # Define caracteres literales
 
 # Lista de tokens
 tokens = []
@@ -28,7 +28,7 @@ reserved = {w: 'PALABCLAVE' for w in palabras_reservadas}
 
 tokens += ['TIPOA', 'TIPOB']
 
-tiposa = ['Bool', 'Entero', 'Flotante', 'Cadena', 'Caracter']
+tiposa = ['Bool', 'Entero', 'Flotante', 'Complejo', 'Cadena', 'Caracter']
 reserved.update({w: 'TIPOA' for w in tiposa})
 
 tiposb = ['Conjunto', 'Arreglo', 'Matriz', 'MatrizRachas', 'Multicotomizacion', 'M2VClasificacion', 'Diccionario']
@@ -148,14 +148,19 @@ t_COMMENT.__doc__ = COMMENT_PATTERN
 #   OPERADOR
 # ------------------------------
 
-tokens += ['OPREL', 'OPASI', 'OPASIU', 'OPACC', 'OPARIT', 'OPLOG']
+tokens += ['OPREL', 'OPASI', 'OPASIU', 'OPACC',
+           'OPARIT3', 'OPARIT2', 'OPARIT1',
+           'OPLOG2', 'OPLOG1']
 
-OPREL_PATTERN = r'(?:<=|>=|==|!=|<|>)'
-OPASI_PATTERN = r'(?:\*\*=|//=|\+=|-=|\*=|/=|%=|@=|=)'
-OPASIU_PATTERN = r'(?:\+\+|--)'
-OPACC_PATTERN = r'[\[\]\.]'
-OPARIT_PATTERN = r'(?:\*\*|//|\+|\-|\*|/|%|@)'
-OPLOG_PATTERN = r'(?:&&|\|\||NO|Y|O|!)'
+OPREL_PATTERN = r'(?:<=|>=|==|!=|<|>)'  # <= >= == != < >
+OPASI_PATTERN = r'(?:\*\*=|//=|\+=|-=|\*=|/=|%=|@=|=)'  # **= //= += -= *= /= %= @=
+OPASIU_PATTERN = r'(?:\+\+|--)'  # ++ --
+OPACC_PATTERN = r'[\[\]\.]'  # [ ] .
+OPARIT_PATTERN3 = r'(?:\*\*)'  # **
+OPARIT_PATTERN2 = r'(?://|\*|/|%|@)'  # // * / % @
+OPARIT_PATTERN1 = r'(?:\+|\-)'  # + -
+OPLOG_PATTERN2 = r'(?:!)'  # !
+OPLOG_PATTERN1 = r'(?:&&|\|\|)'  # && ||
 
 
 def t_OPREL(t):
@@ -186,18 +191,38 @@ def t_OPACC(t):
 t_OPACC.__doc__ = OPACC_PATTERN
 
 
-def t_OPARIT(t):
+def t_OPARIT3(t):
     return t
 
 
-t_OPARIT.__doc__ = OPARIT_PATTERN
+t_OPARIT3.__doc__ = OPARIT_PATTERN3
 
 
-def t_OPLOG(t):
+def t_OPARIT2(t):
     return t
 
 
-t_OPLOG.__doc__ = OPLOG_PATTERN
+t_OPARIT2.__doc__ = OPARIT_PATTERN2
+
+
+def t_OPARIT1(t):
+    return t
+
+
+t_OPARIT1.__doc__ = OPARIT_PATTERN1
+
+
+def t_OPLOG2(t):
+    return t
+
+
+t_OPLOG2.__doc__ = OPLOG_PATTERN2
+
+def t_OPLOG1(t):
+    return t
+
+
+t_OPLOG1.__doc__ = OPLOG_PATTERN1
 
 # -------------------------------
 #   DELIM
