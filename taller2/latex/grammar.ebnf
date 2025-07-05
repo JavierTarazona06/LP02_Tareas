@@ -2,9 +2,11 @@ program  ::= pre_main main_declaration comments_series
 pre_main ::= ( 'COMMENT' | func_declaration )*
 comments_series  ::=   'COMMENT'*
 
+datatype ::= 'TIPOA'
+            | 'TIPOB' '<' datatype '>'
 
-main_declaration ::= 'PALABCLAVE=Func' ('PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB') 'PALABCLAVE=Principal' '(' ')' block
-func_declaration ::= 'PALABCLAVE=Func' ('PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB') 'ID' '(' param_list ')' block
+main_declaration ::= 'PALABCLAVE=Func' 'PALABCLAVE=Vacio' 'PALABCLAVE=Principal' '(' ')' block
+func_declaration ::= 'PALABCLAVE=Func' ('PALABCLAVE=Vacio' | datatype) 'ID' '(' param_list ')' block
 param_list ::= (param_element (',' param_element)*)?
 param_element ::= ('TIPOA' | ('TIPOB' '<' 'TIPOA' '>')) 'ID'
 
@@ -27,14 +29,14 @@ arg_element ::= 'ID'
 id_list ::= 'ID' (',' 'ID')*
 lambda_expression ::= 'PALABCLAVE=Lambda' '(' id_list ',' expression ')'
 
-var_declaration ::= 'TIPOA' 'ID' '=' ( expression | obj_func_call)
-                 | 'TIPOB' '<' 'TIPOA' '>' 'ID' '=' ( expression | iterables | obj_func_call)
+var_declaration ::= datatype 'ID' '=' ( expression | iterables | obj_func_call)
                  | 'TIPOB' '<' 'TIPOA' '>' 'ID' '=' 'TIPOB' '<' 'TIPOA' '>' '(' arg_list ')'
                  
+item_access ::= ('[' 'ENTERO' ']')+
 var_assignation ::= 'ID' 'OPASI' ( expression | obj_func_call | iterables)
                 | 'ID' item_access 'OPASI' ( expression | obj_func_call | iterables)
                 | 'ID' 'OPASI' 'TIPOB' '<' 'TIPOA' '>' '(' arg_list ')'
-item_access ::= ('[' 'ENTERO' ']')+
+                | 'ID' item_access 'OPASI' 'TIPOB' '<' 'TIPOA' '>' '(' arg_list ')' 
 
                  
 iterables ::= '{' elements_array '}'

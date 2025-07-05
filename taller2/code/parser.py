@@ -1,6 +1,8 @@
 import ply.yacc as yacc
 
+import ASTInterpreter
 import lexer
+import ASTInterpreter as Nodes
 from lexer import tokens
 
 # Definir la función que corresponde al simbolo inicial
@@ -24,18 +26,22 @@ def p_program(p):
     """
     program : pre_main main_declaration comments_series
     """
-    p[0] = p[1] + [p[2]] + p[3]
+    # p[1] es una lista de comentarios o declaraciones de funciones
+    p[0] = Nodes.ProgramNode(p[1] + [p[2]] + p[3])
 
 
 # Cero o más comentarios o declaraciones de funciones al inicio
 def p_pre_main(p):
     """
     pre_main : pre_main func_declaration
-              | pre_funcs COMMENT
-              |
+             | pre_main COMMENT
+             |
     """
     if len(p) == 3:
-        p[0] = p[1] + [p[2]]
+        if p.slice[2].type == 'COMMENT':
+            p[0] = p[1]
+        else:
+            p[0] = p[1] + [p[2]]
     else:
         p[0] = []
 
@@ -46,32 +52,50 @@ def p_comments_series(p):
     comments_series : comments_series COMMENT
                   |
     """
-    if len(p) == 3:
-        p[0] = p[1] + [p[2]]
+    p[0] = []
+
+
+def p_datatype(p):
+    """
+    datatype : TIPOA
+           | TIPOB OPREL datatype OPREL
+    """
+    if len(p) == 2:
+        # Caso simple: solo un tipo A
+        if p[1] not in lexer.tiposa:
+            raise SyntaxError(f"Tipo A inválido: {p[1]}")
+        p[0] = [str(p[1])]
+    elif len(p) == 5:
+        # Caso genérico: TIPOB<TIPOA>
+        if p[2] != '<' or p[4] != '>':
+            raise SyntaxError("Use <...> for generic data type")
+        if p[1] not in lexer.tiposb:
+            raise SyntaxError(f"Tipo B inválido: {p[1]}")
+        p[0] = [str(p[1])] + p[3]
     else:
-        p[0] = []
+        raise SyntaxError("Tipo B mal formado")
 
 
 def p_main_declaration(p):
     """
-    main_declaration : PALABCLAVE (PALABCLAVE|TIPOA|TIPOB) PALABCLAVE DELIM DELIM block
+    main_declaration : PALABCLAVE PALABCLAVE PALABCLAVE DELIM DELIM block
     """
     if p[4] != '(' or p[5] != ')':
         raise SyntaxError(f"After {p[3]} you must have ()")
 
     if p[1] != 'Func':
         raise SyntaxError("Función debe iniciar con Func")
-    if (p[2] not in lexer.tiposa + lexer.tiposb and
-            p[2] != 'Vacio'):
-        raise SyntaxError(f"Tipo de función inválido: {p[2]}")
+    if p[2] != 'Vacio':
+        raise SyntaxError(f"Tipo de función inválido: {p[2]}. Tiene que ser 'Vacio'")
     if p[3] != 'Principal':
         raise SyntaxError("Última función debe ser Principal")
-    p[0] = ('main', p[2], p[6])
+    # p = # p = [_, lista de sentencias]
+    p[0] = Nodes.MainNode(p[6])
 
 
 def p_func_declaration(p):
     """
-    func_declaration : PALABCLAVE (PALABCLAVE|TIPOA|TIPOB) ID DELIM param_list DELIM block
+    func_declaration : PALABCLAVE (PALABCLAVE|datatype) ID DELIM param_list DELIM block
     """
     if p[4] != '(' or p[6] != ')':
         raise SyntaxError(f"After {p[3]} you must have (...)")
@@ -81,13 +105,12 @@ def p_func_declaration(p):
         raise SyntaxError("Función debe iniciar con 'Func'")
 
     # Verificar que el tipo sea válido
-    validos = lexer.tiposa + lexer.tiposb + ['Vacio']
-    if p[2] not in validos:
-        raise SyntaxError(f"Tipo de función inválido: {p[2]}")
+    if p[2] is 'Vacio':
+        p[2] = [p[2]]
 
     # Construir el nodo AST
-    # Formato: ('func', tipo, nombre, contenido_del_bloque)
-    p[0] = ('func', p[2], p[3], p[5], p[7])
+    # Formato: ('func', tipo, nombre, parámetros, contenido_del_bloque)
+    p[0] = Nodes.FuncNode(p[2], p[3], p[5], p[7])
 
 
 def p_param_list(p):
@@ -111,19 +134,9 @@ def p_param_list(p):
 
 def p_param_element(p):
     """
-    param_element : TIPOA ID
-                  | TIPOB OPREL TIPOA OPREL ID
+    param_element : datatype ID
     """
-    if len(p) == 3:
-        # Parámetro sin tipo genérico
-        # p[1] = TIPOA, p[2] = ID
-        p[0] = ('param', p[1], p[2])
-    else:
-        if p[2] != '<' or p[4] != '>':
-            raise SyntaxError("You shoud use TypeA<TypeB> as data type")
-        # Parámetro con tipo genérico: TIPOB<TIPOA> ID
-        # p[1] = TIPOB, p[2] = '<', p[3] = TIPOA, p[4] = '>', p[5] = ID
-        p[0] = ('param_generic', p[1], p[3], p[5])
+    p[0] = (p[1], p[2])  # (TIPOS Lista, ID)
 
 
 def p_block(p):
@@ -157,7 +170,7 @@ def p_statement(p):
     """
     if len(p) == 2:
         # Es un comentario
-        p[0] = ('comment', p[1])
+        return # No hacemos nada, los comentarios se ignoran
     else:
         if p[2] != ';':
             raise SyntaxError("Use ; at the end of te line")
@@ -173,49 +186,37 @@ def p_print(p):
     if p[1] != 'imprimir':
         raise SyntaxError("Print statement must start with 'imprimir'")
     if p[2] != '(' or p[4] != ')':
-        raise SyntaxError("Syntax for print: imprimir(string | ID)")
+        raise SyntaxError("Syntax for print: imprimir(string | ID | llamada funcion)")
 
-    # p[3] puede ser una cadena o un ID
-    value = p[3]
-    token_type = None
-
-    # Detectamos el tipo
-    if isinstance(value, str):
-        # Supongamos que para strings definiste p_string para crear nodo AST como ("str", valor)
-        token_type = 'string'
-    else:
-        # Si value viene de un ID (por ejemplo, como ("id", nombre))
-        token_type = 'ID'
-
-    p[0] = ('print', token_type, p[3])
+    p[0] = ASTInterpreter.PrintNode(p[3])  # Crea un nodo AST para la impresión
 
 
+# TODO Seguir desde aca
 def p_var_declaration(p):
     """
-    var_declaration : TIPOA ID OPASI ( expression | obj_func_call)
-                    | TIPOB OPREL TIPOA OPREL ID OPASI ( expression | iterables | obj_func_call)
+    var_declaration : datatype ID OPASI ( expression | iterables | obj_func_call)
                     | TIPOB OPREL TIPOA OPREL ID OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
     """
     # Caso 1: tipo simple con expresión
     if len(p) == 5:
         if p[3] != '=':
             raise SyntaxError("Use =")
-        # p = [_, TIPOA, ID, '=', expression]
-        p[0] = ('var_decl_simple', p[1], p[2], p[4])
+        if len(p[1]) > 1:
+            p[0] = ('var_decl_generic', p[1], p[2], p[4])
+        else:
+            # p = [_, TIPOA, ID, '=', expression]
+            p[0] = ('var_decl_simple', p[1], p[2], p[4])
 
-    # Caso 2: tipo genérico con expresión
-    elif len(p) == 8:
-        if p[2] != '<' or p[4] != '>' or p[6] != '=':
-            raise SyntaxError("Use: <...> and =")
-        # p = [_, TIPOB, '<', TIPOA, '>', ID, '=', expression]
-        p[0] = ('var_decl_generic', p[1], p[3], p[5], p[7])
-
-    # Caso 3: tipo genérico con llamada genérica
+    # Caso 2: tipo genérico con llamada genérica
     elif len(p) == 14:
         if (p[2] != '<' or p[4] != '>' or p[6] != '=' or p[8] != '<' or p[10] != '>'
                 or p[11] != '(' or p[13] != ')'):
             raise SyntaxError("Use: <...> and = <...> and (...)")
         # p = [_, TIPOB, '<', TIPOA, '>', ID, '=', TIPOB, '<', TIPOA, '>', '(', arg_list, ')']
+        if p[1] != p[7]:
+            raise SyntaxError("TIPOB's deben ser iguales en la declaración")
+        if p[3] != p[9]:
+            raise SyntaxError("TIPOA's deben ser iguales en la declaración")
         p[0] = (
             'var_decl_generic_call',
             p[1],  # TIPOB contenedor
@@ -228,11 +229,35 @@ def p_var_declaration(p):
     else:
         raise SyntaxError("Declaración de variable mal formada")
 
+
+def p_item_access(p):
+    """
+    item_access : OPACC ENTERO OPACC
+                | item_access OPACC ENTERO OPACC
+    """
+    # Caso 1: acceso a un elemento por índice
+    if len(p) == 4:
+        if p[1] != '[' or p[3] != ']':
+            raise SyntaxError("You must use [index] for item access")
+        # p = [_, index]
+        p[0] = ('item_access', [p[2]])
+
+    # Caso 2: acceso a un elemento por índice en una expresión más compleja
+    elif len(p) == 5:
+        if p[1][0] != 'item_access':
+            raise SyntaxError("You must use item access for this operation")
+        if p[2] != '[' or p[4] != ']':
+            raise SyntaxError("You must use [index] for item access")
+        # p = [_, item_access, index]
+        p[0] = ('item_access', p[1][1].append(p[3]))
+
+
 def p_var_assignation(p):
     """
-    var_assignation : ID OPASI ( expression | obj_func_call | iterables)
+    var_assignation : ID OPASI ( expression | obj_func_call | iterables )
                     | ID item_access OPASI ( expression | obj_func_call | iterables)
                     | ID OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
+                    | ID item_access OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
     """
     # Caso 1: asignación simple
     if len(p) == 4:
@@ -258,31 +283,24 @@ def p_var_assignation(p):
             p[2],  # OPASI
             p[3],  # TIPOB función/objeto contenedor
             p[5],  # TIPOA función/objeto interno
-            p[8]   # arg_list
+            p[8]  # arg_list
+        )
+
+    elif len(p) == 11:
+        if (p[5] != '<' or p[7] != '>' or
+                p[8] != '(' or p[10] != ')'):
+            raise SyntaxError("Use: <...> and (...)")
+        p[0] = (
+            'var_assign_generic_item_access',
+            p[1],  # nombre de la variable
+            p[2][1],  # item_access
+            p[3],  # OPASI
+            p[4],  # TIPOB función/objeto contenedor
+            p[6],  # TIPOA función/objeto interno
+            p[9]  # arg_list
         )
     else:
-        raise SyntaxError("Asignación de variable mal formada")
-
-def p_item_access(p):
-    """
-    item_access : OPACC ENTERO OPACC
-                | item_access OPACC ENTERO OPACC
-    """
-    # Caso 1: acceso a un elemento por índice
-    if len(p) == 4:
-        if p[1] != '[' or p[3] != ']':
-            raise SyntaxError("You must use [index] for item access")
-        # p = [_, index]
-        p[0] = ('item_access', p[2])
-
-    # Caso 2: acceso a un elemento por índice en una expresión más compleja
-    elif len(p) == 5:
-        if p[1][0] != 'item_access':
-            raise SyntaxError("You must use item access for this operation")
-        if p[2] != '[' or p[4] != ']':
-            raise SyntaxError("You must use [index] for item access")
-        # p = [_, item_access, index]
-        p[0] = ('item_access', p[1][1], p[3])
+        raise SyntaxError("Var assignation wrongly formed")
 
 
 def p_iterables(p):
@@ -330,7 +348,7 @@ def p_string(p):
     string : CARACTER
               | CADENA
     """
-    p[0] = p[1]
+    p[0] = Nodes.StringNode(p[1])  # Crea un nodo AST para la cadena o carácter
 
 
 def p_bools_array(p):
@@ -618,3 +636,11 @@ if __name__ == '__main__':
             continue
         result = parser.parse(s)
         print(result)
+
+"""if __name__ == '__main__':
+    import sys
+    data = open(sys.argv[1]).read()      # tu archivo fuente
+    ast_root = parser.parse(data)        # construye AST
+    env = {}                              # entorno vacío
+    resultado = ast_root.eval(env)       # ejecutar
+    print(resultado)"""
