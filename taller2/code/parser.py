@@ -201,11 +201,7 @@ def p_var_declaration(p):
     if len(p) == 5:
         if p[3] != '=':
             raise SyntaxError("Use =")
-        if len(p[1]) > 1:
-            p[0] = ('var_decl_generic', p[1], p[2], p[4])
-        else:
-            # p = [_, TIPOA, ID, '=', expression]
-            p[0] = ('var_decl_simple', p[1], p[2], p[4])
+        p[0] = Nodes.VariableDeclaration(p[1], p[2], p[4])
 
     # Caso 2: tipo genérico con llamada genérica
     elif len(p) == 14:
@@ -217,6 +213,8 @@ def p_var_declaration(p):
             raise SyntaxError("TIPOB's deben ser iguales en la declaración")
         if p[3] != p[9]:
             raise SyntaxError("TIPOA's deben ser iguales en la declaración")
+        p[0] = Nodes.VariableDeclaration([p[1], p[3]], p[5], p[12])
+        p[0] = Nodes.GenericVariableDeclNode([p[1], p[3]], p[5], p[12])
         p[0] = (
             'var_decl_generic_call',
             p[1],  # TIPOB contenedor

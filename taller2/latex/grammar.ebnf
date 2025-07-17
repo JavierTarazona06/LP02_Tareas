@@ -8,7 +8,7 @@ datatype ::= 'TIPOA'
 main_declaration ::= 'PALABCLAVE=Func' 'PALABCLAVE=Vacio' 'PALABCLAVE=Principal' '(' ')' block
 func_declaration ::= 'PALABCLAVE=Func' ('PALABCLAVE=Vacio' | datatype) 'ID' '(' param_list ')' block
 param_list ::= (param_element (',' param_element)*)?
-param_element ::= ('TIPOA' | ('TIPOB' '<' 'TIPOA' '>')) 'ID'
+param_element ::= datatype 'ID'
 
 
 block ::= '{' statement_list '}'
