@@ -192,11 +192,11 @@ def p_print(p):
     p[0] = ASTInterpreter.PrintNode(p[3])  # Crea un nodo AST para la impresión
 
 
-# TODO Seguir desde aca
 def p_var_declaration(p):
     """
     var_declaration : datatype ID OPASI ( expression | iterables | obj_func_call | boolean | string)
                     | TIPOB OPREL TIPOA OPREL ID OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
+                    | TIPOB OPREL TIPOA DELIM TIPOB OPREL ID OPASI (obj_func_call | DELIM)
     """
     # Caso 1: tipo simple con expresión
     if len(p) == 5:
@@ -204,7 +204,27 @@ def p_var_declaration(p):
             raise SyntaxError("Use =")
         p[0] = Nodes.VariableDeclaration(p[1], p[2], p[4])
 
-    # Caso 2: tipo genérico con llamada genérica
+    # Caso 2: Diccionario con tipos específicos
+    elif len(p) == 10:
+        # Patrón: Diccionario < TipoClave , TipoValor > variable = (obj_func_call | expression)
+        if p[1] != 'Diccionario':
+            raise SyntaxError("Este patrón solo es válido para Diccionario")
+        if p[2] != '<':
+            raise SyntaxError("Use < después del tipo Diccionario")
+        if p[4] != ',':
+            raise SyntaxError("Use , para separar tipos de clave y valor")
+        if p[6] != '>':
+            raise SyntaxError("Use > para cerrar la declaración de tipos")
+        if p[8] != '=':
+            raise SyntaxError("Use = para asignación")
+        if p[9] == ';':
+            p[9] = None
+        
+        # Construir datatype como [Diccionario, TipoClave, TipoValor]
+        datatype = [p[1], p[3], p[5]]
+        p[0] = Nodes.VariableDeclaration(datatype, p[7], p[9])
+
+    # Caso 3: tipo genérico con llamada genérica (función constructora)
     elif len(p) == 14:
         if (p[2] != '<' or p[4] != '>' or p[6] != '=' or p[8] != '<' or p[10] != '>'
                 or p[11] != '(' or p[13] != ')'):
@@ -214,17 +234,11 @@ def p_var_declaration(p):
             raise SyntaxError("TIPOB's deben ser iguales en la declaración")
         if p[3] != p[9]:
             raise SyntaxError("TIPOA's deben ser iguales en la declaración")
-        p[0] = Nodes.VariableDeclaration([p[1], p[3]], p[5], p[12])
-        p[0] = Nodes.GenericVariableDeclNode([p[1], p[3]], p[5], p[12])
-        p[0] = (
-            'var_decl_generic_call',
-            p[1],  # TIPOB contenedor
-            p[3],  # TIPOA interno
-            p[5],  # nombre de la variable
-            p[7],  # TIPOB función/objeto contenedor
-            p[9],  # TIPOA función/objeto interno
-            p[12]  # arg_list
-        )
+        
+        # Para constructores genéricos, usar GenericVariableDeclNode
+        datatype = [p[1], p[3]]
+        p[0] = Nodes.GenericVariableDeclNode(datatype, p[5], p[12])
+    
     else:
         raise SyntaxError("Declaración de variable mal formada")
 
@@ -238,37 +252,32 @@ def p_item_access(p):
     if len(p) == 4:
         if p[1] != '[' or p[3] != ']':
             raise SyntaxError("You must use [index] for item access")
-        # p = [_, index]
-        p[0] = ('item_access', [p[2]])
+        # Guardar lista con un solo índice
+        p[0] = [int(p[2])]
 
     # Caso 2: acceso a un elemento por índice en una expresión más compleja
     elif len(p) == 5:
-        if p[1][0] != 'item_access':
-            raise SyntaxError("You must use item access for this operation")
         if p[2] != '[' or p[4] != ']':
             raise SyntaxError("You must use [index] for item access")
-        # p = [_, item_access, index]
-        p[0] = ('item_access', p[1][1].append(p[3]))
+        # Extender la lista existente con el nuevo índice
+        p[0] = p[1] + [int(p[3])]
 
 
 def p_var_assignation(p):
     """
-    var_assignation : ID OPASI ( expression | obj_func_call | iterables )
-                    | ID item_access OPASI ( expression | obj_func_call | iterables)
+    var_assignation : ID OPASI ( expression | obj_func_call | iterables | string | boolean)
+                    | ID item_access OPASI ( expression | obj_func_call | iterables | string | boolean)
                     | ID OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
                     | ID item_access OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
     """
     # Caso 1: asignación simple
     if len(p) == 4:
         # p = [_, ID, OPASI, expression | obj_func_call | iterables]
-        p[0] = ('var_assign_simple', p[1], p[2], p[3])
+        p[0] = Nodes.VariableAssignationSimple(p[1], p[2], p[3])
 
     # Caso 2: asignación con acceso a elemento
     elif len(p) == 5:
-        if p[2][0] != 'item_access':
-            raise SyntaxError("Use item access for assignment")
-        # p = [_, ID, item_access, OPASI, expression | obj_func_call | iterables]
-        p[0] = ('var_assign_item_access', p[1], p[2][1], p[3], p[4])
+        p[0] = Nodes.VariableAssignationItemAccess(p[1], p[2], p[3], p[4])
 
     # Caso 3: asignación con llamada genérica
     elif len(p) == 10:

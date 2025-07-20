@@ -29,9 +29,8 @@ arg_element ::= 'ID'
 id_list ::= 'ID' (',' 'ID')*
 lambda_expression ::= 'PALABCLAVE=Lambda' '(' id_list ',' expression ')'
 
-var_declaration ::= datatype 'ID' '=' ( expression | iterables | obj_func_call | boolean | string)
+var_declaration ::= datatype 'ID' '=' ( expression | iterables | obj_func_call)
                  | 'TIPOB' '<' 'TIPOA' '>' 'ID' '=' 'TIPOB' '<' 'TIPOA' '>' '(' arg_list ')'
-                 | 'TIPOB' '<' 'TIPOA'',' 'TIPOB' '>' 'ID' '=' (obj_func_call | ';')
                  
 item_access ::= ('[' 'ENTERO' ']')+
 var_assignation ::= 'ID' 'OPASI' ( expression | obj_func_call | iterables)
@@ -49,8 +48,7 @@ elements_array ::= strings_array
                  | complex_array
 strings_array ::= string (',' string)*
 string ::= 'CARACTER' | 'CADENA'
-boolean ::= 'BOOL'
-bools_array ::= boolean (',' boolean)*
+bools_array ::= 'BOOL' (',' 'BOOL')*
 ints_array ::= 'ENTERO' (',' 'ENTERO')*
 floats_array ::= 'REAL' (',' 'REAL')*
 complex_array ::= 'COMPLEJO' (',' 'COMPLEJO')*
