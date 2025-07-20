@@ -1,5 +1,5 @@
 import lexer
-import models
+import TDA
 
 
 class ProgramNode:
@@ -87,8 +87,8 @@ def check_and_convert(value, datatype):
     if not datatype:
         raise TypeError("Tipo de dato vacío o mal formado")
 
-    tipo_actual = datatype[0]
-    tipo_restante = datatype[1:]
+    tipo_actual = datatype[-1]
+    tipo_restante = datatype[:-1]
 
     if tipo_actual in lexer.tiposa:
         # Caso base: tipo simple
@@ -96,8 +96,8 @@ def check_and_convert(value, datatype):
             'Entero': int,
             'Flotante': float,
             'Complejo': complex,
-            'Cadena': str,
-            'Caracter': str,
+            'Cadena': TDA.Cadena,
+            'Caracter': TDA.Cadena,
             'Bool': bool
         }
         py_type = tipo_map.get(tipo_actual)
@@ -113,13 +113,13 @@ def check_and_convert(value, datatype):
     elif tipo_actual in lexer.tiposb:
         # Caso recursivo: contenedor
         tiposb_clases = {
-            'MatrizRachas': models.MatrizRachas,
-            'Multicotomizacion': models.Multicotomizacion,
-            'M2VClasificacion': models.M2VClasificacion,
-            'Conjunto': models.Conjunto,
-            'Arreglo': models.Arreglo,
-            'Matriz': models.Matriz,
-            'Diccionario': models.Diccionario
+            'MatrizRachas': TDA.MatrizRachas,
+            'Multicotomizacion': TDA.Multicotomizacion,
+            'M2VClasificacion': TDA.M2VClasificacion,
+            'Conjunto': TDA.Conjunto,
+            'Arreglo': TDA.Arreglo,
+            'Matriz': TDA.Matriz,
+            'Diccionario': TDA.Diccionario
         }
         expected_class = tiposb_clases.get(tipo_actual)
         if expected_class is None:
