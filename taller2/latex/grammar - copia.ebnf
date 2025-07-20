@@ -1,0 +1,59 @@
+program  ::= pre_main main_declaration comments_series
+pre_main ::= ( 'COMMENT' | func_declaration )*
+comments_series  ::=   'COMMENT'*
+
+
+main_declaration ::= 'PALABCLAVE=Func' ('PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB') 'PALABCLAVE=Principal' block
+func_declaration ::= 'PALABCLAVE=Func' ('PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB') 'ID' '(' param_list ')' block
+param_list ::= param_element (',' param_element)*
+param_element ::= ('TIPOA' | ('TIPOB' '<' 'TIPOA' '>')) 'ID'
+
+
+block ::= '{' statement_list '}'
+statement_list ::=  statement +
+statement ::= 'COMMENT'
+          | ( var_declaration | obj_func_call ) ';'
+
+
+obj_func_call ::= 'ID' '.' 'ID' '(' arg_list ')'
+arg_list ::= arg_element (',' arg_element)*
+arg_element ::= 'ID'
+              | lambda_expression
+              | string
+              | 'BOOL'
+              | number
+
+id_list ::= 'ID' (',' 'ID')*
+lambda_expression ::= 'PALABCLAVE=Lambda' '(' id_list ',' expression ')'
+
+var_declaration ::= 'TIPOA' 'ID' '=' ( expression | iterables )
+                 | 'TIPOB' '<' 'TIPOA' '>' 'ID' '=' ( expression | iterables )
+                 | 'TIPOB' '<' 'TIPOA' '>' 'ID' '=' 'TIPOB' '<' 'TIPOA' '>' '(' arg_list ')'
+
+                 
+iterables ::= '{' elements_array '}'
+            | '[' elements_array ']'
+elements_array ::= strings_array
+                 | bools_array
+                 | ints_array
+                 | floats_array
+                 | complex_array
+strings_array ::= string (',' string)*
+string ::= 'CARACTER' | 'CADENA'
+bools_array ::= 'BOOL' (',' 'BOOL')*
+ints_array ::= 'ENTERO' (',' 'ENTERO')*
+floats_array ::= 'REAL' (',' 'REAL')*
+complex_array ::= 'COMPLEJO' (',' 'COMPLEJO')*
+number ::= 'ENTERO' | 'REAL' | 'COMPLEJO'
+
+
+
+rel_expression ::= rel_term 'OPREL' rel_term
+rel_term ::= number
+           | string
+           | 'BOOL'
+           | 'ID'
+           | '(' expression ')'
+arit_expression ::= term (('+' | '-') term)*
+term ::= factor (('*' | '/' | 'FLOORDIV' | '%' | '@') factor)*
+factor ::= base ('POW' factor)?

@@ -1,16 +1,20 @@
 \documentclass{article}
 \usepackage{csquotes}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1,T2A]{fontenc}
+\usepackage{fvextra}
+\fvset{commandchars=\\\{\}, mathescape=true}
+\usepackage{xcolor}
+\usepackage{amssymb}       % define \Sha
+\usepackage{listings}
+\usepackage{listingsutf8}
 \usepackage[spanish]{babel}
 \usepackage{graphicx}
 \usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
-\usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{titletoc}
 \usepackage{adjustbox}
 
-\usepackage{listings}
 \definecolor{bg}{rgb}{0.95,0.95,0.95}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{purple}{rgb}{0.58,0,0.82}
@@ -19,6 +23,9 @@
 \definecolor{darkgreen}{rgb}{0.0,0.5,0.0}
 
 \lstdefinestyle{mypython}{
+    inputencoding=utf8,           % Indica a listings que use UTF-8
+    extendedchars=true,           % Permite caracteres extendidos
+    mathescape=true,              % Habilita modo matemático dentro de literales
     language=Python,
     backgroundcolor=\color{bg},
     basicstyle=\ttfamily\footnotesize,
@@ -38,9 +45,10 @@
     literate=
      {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
      {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
-     {ñ}{{\~n}}1 {Ñ}{{\~N}}1
+     {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {π}{{$\pi$}}1  {Ш}{{\fontencoding{T2A}\selectfont\char"DB}}1
      {¡}{{\textexclamdown}}1 {¿}{{\textquestiondown}}1
 }
+
 
 \hypersetup{
     colorlinks=true,
@@ -87,9 +95,12 @@
   {\large \textbf{Integrantes:} \par}
   \vspace{0.5cm}
   \begin{tabular}{ll}
-    Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
-    David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
-    Juan Sebastian Muñoz Lemus     & jumunozle@unal.edu.co          \\
+    Javier Andrés Tarazona Jiménez   & jtarazonaj@unal.edu.co \\
+    David Felipe Marin Rosas         & dmarinro@unal.edu.co   \\
+    Juan Sebastian Muñoz Lemus       & jumunozle@unal.edu.co          \\
+    Eder José Hernández Buelvas      & ehernandezbu@unal.edu.co          \\
+    Axel Gomez Moreno                & axgomezm@unal.edu.co          \\
+    Daniel Santiago Delgado Pinilla  & ddelgadopi@unal.edu.co          \\
   \end{tabular}
   \par\vspace{3cm}
 
@@ -108,6 +119,23 @@
 %---------------------------------------------------------------------------------
 
 \section{Introducción}\label{sec:intr}
+
+En el desarrollo de lenguajes de programación, el diseño e implementación de 
+analizadores léxicos constituye uno de los pilares fundamentales para garantizar 
+que la interpretación y procesamiento del código fuente sea precisa, robusta 
+y escalable. En este taller, se propuso no solo abordar la construcción de un 
+analizador léxico para un lenguaje de dominio específico orientado a pruebas 
+estadísticas tipo Friedman y análisis de rachas, sino también entender a profundidad 
+los retos prácticos que esto implica desde la perspectiva del diseño modular, 
+el uso de expresiones regulares y la integración de herramientas modernas en 
+Python como PLY. Mmás allá de la simple clasificación de 
+cadenas, se explora cómo el reconocimiento léxico bien estructurado sienta las 
+bases para sistemas de compilación eficientes, confiables y alineados con 
+los conceptos de programación imperativa y la abstracción de estructuras de 
+datos. Este trabajo busca que cada componente del lexer utilizado contribuya 
+de manera significativa tanto a la formación profesional como al 
+avance en la construcción de soluciones computacionales adaptadas a 
+necesidades específicas en estadística y análisis de datos experimentales.
 
 %---------------------------------------------------------------------------------
 % Marco Teórico ------------------------------------------------------------------
@@ -254,7 +282,7 @@ solapamientos:
 \section{Código Fuente}\label{sec:cod}
 
 El código fuente completo de este modelo se encuentra adjunto como 
-(Taller1.zip)
+(taller1.zip)
 y disponible en el repositorio GitHub del proyecto:
 
 \begin{center}
@@ -267,7 +295,7 @@ y disponible en el repositorio GitHub del proyecto:
 
 \section{Manual Usuario}\label{sec:man_u}
 
-El primer paso es descargar el archivo \texttt{Taller1.zip}.
+El primer paso es descargar el archivo \texttt{taller1.zip}.
 
 El repositorio contiene:
 \begin{itemize}
@@ -301,6 +329,7 @@ El repositorio contiene:
         del algoritmo de Euclides en el lenguaje propuesto
     \item[\texttt{tests/prototype3\_lex.txt}] Salida de tokens correspondiente al 
         archivo \texttt{prototype3.txt}.
+    \item [\texttt{tests/escenarioPrueba...}] Archivos relacionados a los escenarios de prueba.
   \end{description}
 \end{itemize}
 
@@ -416,7 +445,7 @@ A continuación se detalla la estructura general del código:
 
 \begin{itemize}
   \item El código usa la biblioteca \texttt{ply.lex} para definir un lexer que procesa un texto fuente y genera tokens. Cada token es una unidad léxica que representa una categoría específica del lenguaje.
-  \item El codigo cuenta con dos partes principales, en la primera se definen los tokens (\texttt{tokens}), las palabras reservadas (\texttt{reserved}) y las funciones o expresiones regulares (aquellas que empiezan por \texttt{t\_}) que definen la estructura del lenguajes; en la segunda parte, se define la función \texttt{\_\_main\_\_} en la cual se pide la dirección de un archivo que contiene el texto a ser procesado, después de leer el contenido de este archivo, se procesa y se guarda en un archivo con el mismo nombre pero sin la extensión y con la terminación \texttt{\_tokens.txt}.
+  \item El codigo cuenta con dos partes principales, en la primera se definen los tokens (\texttt{tokens}), las palabras reservadas (\texttt{reserved}) y las funciones o expresiones regulares (aquellas que empiezan por \texttt{t\_}) que definen la estructura del lenguajes, en la segunda parte, se define la función \texttt{\_\_main\_\_} en la cual se pide la dirección de un archivo que contiene el texto a ser procesado, después de leer el contenido de este archivo, se procesa y se guarda en un archivo con el mismo nombre pero sin la extensión y con la terminación \texttt{\_tokens.txt}.
   \item Al principio del codigo se declara una lista vacia de tokens que luego se va llenando con las categorías que el analizador puede reconocer, aquí también se define la variable \texttt{reserved} usada para definir las palabras clave que pertenecen a una categoria. El código se organiza en varias secciones que definen las categorías y subcategorías dentro de estas (tokens, palabras reservadas, tipos de datos, cadenas, identificadores, literales numéricos, comentarios y operadores), en cada una de estas secciones se van agregando las cadenas de caracteres que representan los tipos de tokens correspondientes a la categoría (a la lista \texttt{tokens}) y a sus subcategorías correspondientes (dentro del diccionario \texttt{reserved}), se crean las expresiones regulares o los mecanismos de reconocimiento para cada categoria bajo las funciones \texttt{t\_<nombre\_categoria>} y bajo su atributo \texttt{\_\_doc\_\_}.
 \end{itemize}
 
@@ -427,16 +456,16 @@ A continuación se detalla la estructura general del código:
 Esta sección define las palabras clave del lenguaje. Estas palabras tienen un significado especial dentro de la gramática y no pueden usarse como identificadores por el usuario. Se agrupan en una lista y se registran en un diccionario reservado para ser reconocidas durante el análisis léxico.
 
 \begin{lstlisting}[style=mypython]
-tokens.append('PALABCLAVE')
+  tokens.append('PALABCLAVE')
 
-palabras_reservadas = [
-    'Func','Principal','imprimir','Vacio','Retornar','Global',
-    'Romper','Continuar','Pasar','Sino',
-    'Si','Entonces','Para','Mientras','Lanzar','Intentar',
-    'Excepto'
-]
-reserved = { w: 'PALABCLAVE' for w in palabras_reservadas }
-\end{lstlisting}
+  palabras_reservadas = [
+      'Func','Principal','imprimir','Vacio','Retornar','Global',
+      'Romper','Continuar','Pasar','Sino',
+      'Si','Entonces','Para','Mientras','Lanzar','Intentar',
+      'Excepto'
+  ]
+  reserved = { w: 'PALABCLAVE' for w in palabras_reservadas }
+  \end{lstlisting}
 
 \subsubsection{TIPO}
 
@@ -478,7 +507,7 @@ t_CADENA.__doc__ = CADENA_PATTERN
 
 \subsubsection{ID}
 
-Los identificadores se reconocen como cualquier secuencia válida que comience con una letra o guión bajo, seguida de letras, números o guión bajo. Si el valor coincide con una palabra reservada, se clasifica como tal; si no, como \texttt{ID}.
+Los identificadores se reconocen como cualquier secuencia válida que comience con una letra o guión bajo, seguida de letras, números o guión bajo. Si el valor coincide con una palabra reservada, se clasifica como tal, si no, como \texttt{ID}.
 
 \begin{lstlisting}[style=mypython]
 tokens += ['ID', 'BOOL']
@@ -601,25 +630,36 @@ Esta sección finaliza la construcción del lexer y permite al usuario ingresar 
 Cabe recalcar que el lexer busca automaticamente la lista \texttt{tokens} y el diccionario \texttt{reserved} para identificar los tokens y palabras reservadas, respectivamente. El lexer también maneja los comentarios y espacios en blanco, ignorándolos durante el análisis léxico. Además, usa aútomaticamente las expresiones regulares definidas para cada token en las funciones que empiezan por \texttt{t\_}.
 
 \begin{lstlisting}[style=mypython]
+# Regex legible, ignora espacios en blanco
 lexer = lex.lex(reflags=lex.re.VERBOSE)
 
 if __name__ == "__main__":
+    
     while True:
-        s = input('calc> ')
+        s = input('term> ')
+        ultm_dot = s.rfind('.')
+
         if not s:
             break
-        with open(s, 'r', encoding='utf-8') as f:
-            datos = f.read()
-        lexer.input(datos)
 
-        with open(s[:-4]+'_tokens.txt', 'w', encoding='utf-8') as fout:
-            while True:
-                tok = lexer.token()
-                if not tok:
-                    break
-                fout.write(f"{tok.lineno}:{tok.lexpos}\t{tok.type}\t{tok.value}\n")
+        try:
+            with open(s, 'r', encoding='utf-8') as f:
+                datos = f.read()
+
+            lexer.input(datos)
+
+            
+            with open(s[:ultm_dot]+'_lex.txt', 'w', encoding='utf-8') as fout:
+                while True:
+                    tok = lexer.token()
+                    if not tok:
+                        break
+                    # tok.type es el nombre del token, tok.value su lexema,
+                    # tok.lineno y tok.lexpos la línea y posición
+                    fout.write(f"{tok.lineno}:{tok.lexpos}\t{tok.type}\t{tok.value}\n")
+        except FileNotFoundError:
+            print(f"No se encontró el archivo: {s}")
 \end{lstlisting}
-
 
 %---------------------------------------------------------------------------------
 % Experimentación ---------------------------------------------------------
@@ -629,12 +669,344 @@ if __name__ == "__main__":
 
 \subsection{Análisis de resultados}
 
-\subsubsection{Escenario 1: }
+\subsubsection{Escenario 1: Código correcto completo}
 
-\subsubsection{Escenario 2: }
+Este escenario tiene como propósito validar la 
+\textbf{correcta identificación de todos los tokens válidos}
+ definidos en el lenguaje de programación específico propuesto. A diferencia de escenarios de prueba centrados en errores, este busca confirmar que el analizador léxico reconoce sin inconvenientes estructuras sintácticamente bien formadas, incluyendo todos los tipos de datos, operadores, palabras clave, delimitadores y demás categorías léxicas.
 
-\subsubsection{Escenario 3: }
+\paragraph{Motivación}
 
+Durante el desarrollo de un compilador, la primera validación fundamental del analizador léxico es garantizar que todo el vocabulario del lenguaje sea correctamente reconocido cuando se usa de forma adecuada. Esto incluye:
+
+\begin{itemize}
+  \item Comprobar que no se generan falsos positivos de error en código válido.
+  \item Confirmar que cada token es identificado con su categoría correcta.
+  \item Validar que se reconoce todo el conjunto de expresiones regulares definidas en las reglas léxicas.
+\end{itemize}
+
+\textbf{Código utilizado}
+
+\begin{lstlisting}[style=mypython, caption={Programa completo con todas las categorías léxicas}]
+  
+Func Vacio Principal() {
+
+    // Declaraciones de variables simples
+    Entero contador = 0;
+    Flotante tasa = 3.14;
+    Cadena saludo = "Hola mundo!";
+    Caracter letra = 'x';
+    Bool bandera = Verdadero;
+    Complejo comp = 1.5+2.2j;
+
+    // Estructuras y TDAs
+    Arreglo<Entero> datos = [1, 2, 3, 4];
+    Conjunto<Cadena> etiquetas = {"rojo", "verde"};
+    Matriz<Flotante> tabla = [[1.1, 2.2], [3.3, 4.4]];
+    MatrizRachas<Flotante> rachas = modelo.generar();
+    Multicotomizacion<Flotante> mult = Multicotomizacion<Flotante>(etiquetas);
+    M2VClasificacion<Flotante> clasif = M2VClasificacion<Flotante>(
+        2.0, [1.0, 2.0], [0.5, 1.5]
+    );
+    Diccionario<Cadena, Entero> mapa = {"a", 1, "b", 2};
+
+    // Control de flujo
+    Si (bandera && contador <= 10) Entonces {
+        Para (Entero i = 0; i < 5; i += 1) {
+            Mientras (datos[i] != 0) {
+                imprimir("Iterando...");
+                Continuar;
+            }
+            Romper;
+        }
+    } Sino {
+        Pasar;
+    }
+
+    // Operaciones combinadas
+    contador += 1;
+    contador *= 2;
+    tasa = tasa / 2.0;
+    comp **= 2;
+    comp //= 1;
+    comp %= 0.5;
+    comp = comp + 1.0 @ 2;
+
+    // Operadores lógicos extendidos
+    bandera = NO Falso Y Verdadero O Falso || !bandera;
+
+    // Accesos y métodos
+    imprimir(tabla[0][1]);
+    imprimir(mapa["a"]);
+    imprimir(mult.cadenaMulticotomizada(datos));
+    imprimir(clasif.nDatos("0,1"));
+    imprimir(rachas.sumRachas(".,.,."));
+
+    // Cadenas interpoladas
+    Cadena mensaje = "Valor actual {contador}";
+
+    // Final
+    Retornar 0;
+}
+
+\end{lstlisting}
+
+\paragraph{Análisis técnico}
+
+Este programa simulado incorpora de forma estructurada y funcional todas las clases de tokens definidas en el analizador léxico, incluyendo:
+
+\begin{itemize}
+  \item \textbf{Palabras clave:} como \texttt{Func}, \texttt{Principal}, \texttt{Retornar}, \texttt{Mientras}, \texttt{Si}, \texttt{Entonces}, \texttt{Romper}, entre otras.
+  \item \textbf{Tipos de datos:} \texttt{Entero}, \texttt{Flotante}, \texttt{Bool}, \texttt{Cadena}, \texttt{Caracter}, \texttt{Complejo}.
+  \item \textbf{Tipos abstractos:} \texttt{Arreglo}, \texttt{Conjunto}, \texttt{Matriz}, \texttt{MatrizRachas}, \texttt{Multicotomizacion}, \texttt{M2VClasificacion}, \texttt{Diccionario}.
+  \item \textbf{Literales:} enteros negativos y positivos, flotantes, complejos, booleanos, cadenas estándar e interpoladas, caracteres.
+  \item \textbf{Operadores:} relacionales, aritméticos, lógicos, de asignación compuesta, acceso y concatenación.
+  \item \textbf{Delimitadores:} \texttt{\{, \}, (, ), [, ], ,, ;, .} todos utilizados en contextos reales.
+  \item \textbf{Comentarios:} tanto de línea (\texttt{//}) como de bloque (\texttt{/* ... */}).
+\end{itemize}
+
+\paragraph{Salida esperada del lexer}
+
+El analizador léxico debería generar una secuencia continua de tokens válidos, sin emitir mensajes de error. El archivo de salida \texttt{escenario1\_completo\_tokens.txt} debe contener líneas como:
+
+\begin{verbatim}
+1:0	PALABCLAVE	Func
+1:5	PALABCLAVE	Vacio
+1:11	PALABCLAVE	Principal
+1:20	DELIM	(
+1:21	DELIM	)
+1:23	DELIM	{
+3:30	COMMENT	// Declaraciones de variables simples
+4:72	TIPOA	Entero
+...
+9:228	OPASI	=
+...
+12:300	DELIM	,
+...
+16:500	OPREL	>
+...
+\end{verbatim}
+
+\paragraph{Comparación con compiladores reales}
+
+Este escenario es equivalente a un caso de "compilación limpia" en compiladores como Clang o GCC: si el lexer está bien definido, no debe lanzar ningún mensaje de advertencia o error. Todo el código fuente es reconocible mediante las reglas léxicas especificadas.
+
+\paragraph{Reflexiones y oportunidades de mejora}
+
+Este escenario demuestra que el lexer implementado cubre correctamente el dominio del lenguaje propuesto. Se utilizaron todos los carácteres posibles del lenguaje. Todos los carácteres son reconocidos por el analizador, no hubo ningún tipo de error. Como mejoras futuras podrían considerarse:
+
+\begin{itemize}
+  \item Agregar pruebas automatizadas que validen la categoría esperada de cada token (test unitarios).
+  \item Incorporar métricas como cantidad total de tokens reconocidos, frecuencia por tipo, etc.
+  \item Implementar una visualización del flujo de tokens como gráfico o lista jerárquica.
+\end{itemize}
+
+\paragraph{Escenarios complementarios recomendados}
+
+\begin{itemize}
+  \item Escenario con tokens ambivalentes (por ejemplo, \texttt{NO} como operador vs identificador).
+  \item Escenarios que mezclen código correcto y fragmentos incorrectos para pruebas de robustez.
+\end{itemize}
+
+\paragraph{Conclusión}
+
+Este escenario permitió confirmar que el analizador léxico reconoce de forma correcta y exhaustiva todas las estructuras válidas del lenguaje. Representa una base estable sobre la cual pueden construirse las etapas posteriores de análisis sintáctico y semántico.
+
+
+\subsubsection{Escenario 2: Código con errores léxicos}
+
+Este escenario busca evaluar la **resiliencia y precisión del analizador léxico** frente a errores comunes en la escritura de código fuente. A diferencia del Escenario 1 (en el que se probó el reconocimiento correcto de estructuras válidas), aquí se pretende identificar cómo se comporta el lexer ante errores léxicos, si puede continuar el análisis tras detectar fallos y qué tan detallados son los mensajes de error.
+
+\paragraph{Motivación}
+
+Durante la fase de desarrollo de un compilador, es fundamental validar que el analizador léxico no solo reconozca tokens válidos, sino que también sea capaz de:
+
+\begin{itemize}
+  \item Detectar patrones inválidos que no coinciden con ninguna expresión regular.
+  \item Reportar errores de forma clara y localizada (línea y columna).
+  \item Continuar procesando el código tras errores, evitando bloqueos innecesarios.
+\end{itemize}
+
+\textbf{Código utilizado}
+
+\begin{lstlisting}[style=mypython, caption={Fragmento con errores léxicos intencionados}]
+Func Vacio Principal() {
+    imprimir("Hola mundo!;  // Error: comillas no cerradas
+    Entero número = 5.67;   // Error: letra con tilde no reconocida
+    Шinvalido = Verdadero; // Error: carácter cirílico no reconocido
+    Flotante π = 3.14;      // Error: símbolo Unicode no admitido
+}
+\end{lstlisting}
+
+
+\paragraph{Análisis técnico por línea}
+
+\begin{itemize}
+  \item \textbf{Línea 2 — Cadena no cerrada:} El patrón definido para cadenas (\texttt{CADENA\_PATTERN}) espera una comilla doble de apertura y otra de cierre. En este caso, la comilla inicial no está cerrada, por lo que el analizador lanza un error tan pronto encuentra el símbolo \texttt{"}. No puede interpretar el contenido posterior como cadena válida.
+
+  \item \textbf{Línea 3 — Carácter Unicode no permitido en identificador:} La palabra \texttt{número} contiene una letra con tilde (\texttt{ú}). Como la expresión regular del token \texttt{ID} solo permite letras ASCII y las letras \texttt{ñ}/\texttt{Ñ}, el lexer lanza un error al encontrar \texttt{ú}.
+
+  \item \textbf{Línea 4 — Carácter no reconocido:} El símbolo \texttt{Ш} no forma parte de ningún token válido en el 
+  lenguaje. No está incluido en los operadores, identificadores ni literales. El analizador lo clasifica como carácter inesperado y 
+  lo omite mediante la función \texttt{t\_error()}.
+
+  \item \textbf{Línea 5 — Carácter Unicode inválido:} El símbolo $\pi$ (pi) tampoco está incluido en el conjunto permitido para identificadores. Al ser un carácter Unicode fuera del rango aceptado, el lexer lo reporta como error léxico.
+\end{itemize}
+
+\paragraph{Salida real del lexer}
+
+\begin{verbatim}
+  Error: carácter inesperado '"'
+  Error: carácter inesperado 'ú'
+  Error: carácter inesperado 'Ш'
+\end{verbatim}
+\noindent\texttt{Error: carácter inesperado '$\pi$'}
+
+
+Cada uno de estos errores fue correctamente identificado y reportado. El lexer omitió los caracteres problemáticos y continuó el análisis léxico, demostrando tolerancia a errores y permitiendo seguir procesando el archivo sin interrupciones. Esta característica es fundamental para detectar múltiples errores en una sola pasada, mejorando la experiencia de desarrollo.
+
+\paragraph{Comparación con lexers de compiladores reales}
+
+En compiladores como GCC o Clang, errores léxicos son tratados con mensajes específicos que incluyen:
+
+\begin{itemize}
+  \item Tipo de error (e.g., “string literal not terminated”).
+  \item Línea y columna.
+  \item Token problemático y sugerencia de corrección.
+\end{itemize}
+
+Nuestro lexer aún no provee estos elementos, pero al menos ofrece una detección funcional y permite continuar el análisis.
+
+\paragraph{Reflexiones y oportunidades de mejora}
+
+Este escenario sugiere varias líneas de mejora para el sistema actual:
+
+\begin{itemize}
+  \item Incorporar el número de línea y columna en los mensajes de error para facilitar el debugging.
+  \item Desarrollar un sistema de logging de errores, en lugar de imprimir en consola.
+  \item Ampliar la definición de identificadores para incluir símbolos Unicode válidos si se desea un lenguaje moderno e inclusivo.
+  \item Implementar una regla de recuperación (como ignorar hasta el siguiente delimitador válido) para no quedarse atrapado en tokens largos mal formados.
+  \item Identificar y diferenciar errores de cierre de delimitadores como \texttt{()}, \texttt{[]}, \texttt{\{\}} y comillas.
+\end{itemize}
+
+
+\paragraph{Conclusión}
+
+Este escenario permitió validar que el analizador léxico cumple su función básica de detección y reporte de errores. Si bien aún puede mejorar en términos de detalle y elegancia de los mensajes, se confirma que no bloquea la ejecución, lo que constituye una base sólida para el desarrollo de etapas posteriores del compilador.
+
+
+\subsubsection{Escenario 3:  Anidamientos Complejos }
+
+Este escenario busca comprobar la precisión y robustez del analizador léxico, enfocándose en situaciones que requieren un reconocimiento detallado de estructuras que son léxicamente complejas, como lo podrían ser los tipos genéricos anidados  y llamadas de funciones dentro de otras, asegurando que todos los delimitadores estén balanceados y que cada token sea identificado con exactitud.
+
+
+\paragraph{Motivación}
+
+
+Durante el desarrollo de un compilador, es importante verificar que el analizador léxico pueda manejar correctamente estructuras anidadas con delimitadores balanceados, llamadas a funciones dentro de otras funciones. Estas estructuras son comunes en lenguajes modernos por lo tanto el analizador lexico debe ser capaz de:
+
+\begin{itemize}
+  \item Maneja correctamente estructuras de tipos genéricos anidados.
+  \item Validar que los delimitadores como \texttt{<}, \texttt{>}, \texttt{(}, \texttt{)} están balanceados y se reconocen en el orden adecuado.
+  \item Confirmar que las llamadas de funciones anidadas generan secuencias de tokens correctas.
+\end{itemize}
+
+\textbf{Código utilizado}
+
+\begin{lstlisting}[style=mypython, caption={ Fragmento con anidamientos léxicos complejos}]
+Func Vacio Principal() {
+    Arreglo<Conjunto<Entero>> datos;        
+    resultado = procesar(funcion1(5), funcion2(funcion3()));  
+}
+\end{lstlisting}
+\paragraph{Análisis técnico por línea}
+
+\begin{itemize}
+  \item \textbf{Línea 2 - Tipo genérico anidado:} 
+    Esta línea se declara una variable con un tipo genérico anidado.  \lstinline{Arreglo} y \lstinline{Conjunto} como tokens \lstinline{TIPOB}, y \lstinline{Entero} como \lstinline{TIPOA}, según las listas de palabras reservadas definidas.
+    Los símbolos \lstinline{<} y \lstinline{>}  como operadores relacionales (\lstinline{OPREL}).
+    \lstinline{datos} como token (\lstinline{ID}) y el punto y coma final como delimitador (\lstinline{DELIM}).
+    
+  \item \textbf{Línea 3 – Llamadas de función anidadas:} 
+    En esta línea se asigna a una variable el resultado de múltiples llamadas de funciones anidadas.
+    \lstinline{resultado} como identificador (\lstinline{ID}), seguido de \lstinline{=} como operador de asignación (\lstinline{OPASI}), y \lstinline{procesar} como identificador (\lstinline{ID}), los paréntesis y la coma son reconocidos como delimitadores (\lstinline{DELIM}). 
+    \lstinline{funcion1} como identificador (\lstinline{ID}), \lstinline{5} como número entero (\lstinline{ENTERO}). 
+    Luego \lstinline{funcion2(funcion3())} con cada función reconocida como \lstinline{ID} y sus paréntesis como \lstinline{DELIM}, y el punto y coma \lstinline{;} como delimitador (\lstinline{DELIM}).
+
+\end{itemize}
+
+\paragraph{Salida esperada del lexer}
+
+Dado el código de prueba el analizador léxico debería generar una secuencia continua de tokens válidos que representen correctamente cada identificador, delimitador, operador y literal, sin emitir mensajes de error. Esto para comprobar la capacidad de manejo de estructuras anidadas complejas sin ambigüedades léxicas.
+
+\begin{verbatim}
+30:0	PALABCLAVE	Func
+30:5	PALABCLAVE	Vacio
+...
+31:29	TIPOB	Arreglo
+31:36	OPREL	<
+31:37	TIPOB	Conjunto
+31:45	OPREL	<
+31:46	TIPOA	Entero
+31:52	OPREL	>
+31:53	OPREL	>
+31:55	ID	datos2
+31:61	DELIM	;
+...
+32:75	ID	resultado
+32:85	OPASI	=
+32:87	ID	procesar
+...
+32:96	ID	funcion1
+32:104	DELIM	(
+32:105	ENTERO	5
+32:106	DELIM	)
+32:107	DELIM	,
+32:109	ID	funcion2
+32:118	ID	funcion3
+32:126	DELIM	(
+32:127	DELIM	)
+...
+\end{verbatim}
+
+\paragraph{Comparación con lexers de compiladores reales}
+
+El comportamiento del analizador lexico en este escenario es similar al de compiladores como los de C++ o Java. En estos los símbolos \lstinline{>>} suelen tratarse como dos tokens \lstinline{>} separados para evitar confusiones, especialmente en tipos genéricos anidados. Nuestro analizador aplica el mismo criterio: tokeniza cada \lstinline{>} por separado como \lstinline{OPREL}, dejando al parser la tarea de interpretar la estructura. 
+
+\paragraph{Reflexiones y oportunidades de mejora}
+Este escenario permitió comprobar nuestro analizador léxico puede manejar correctamente estructuras con anidamientos complejos, como tipos genéricos y llamadas de funciones dentro de otras funciones. Todos los tokens fueron identificados correctamente. Como posibles mejoras se proponen:
+
+\begin{itemize}
+\item Incluir validaciones adicionales para secuencias, en caso de que el lenguaje se amplíe con operadores más complejos.
+\end{itemize}
+
+\paragraph{Escenarios complementarios recomendados}
+\begin{itemize}
+\item Casos con múltiples niveles de genéricos, por ejemplo: \lstinline{Diccionario<Arreglo<Conjunto<Entero>>>}.
+\item Funciones con expresiones dentro de los argumentos que mezclen operadores aritméticos, booleanos y llamados anidados.
+\end{itemize}
+
+\paragraph{Conclusión}
+El escenario validó que el analizador léxico reconoce adecuadamente estructuras anidadas, tanto en definiciones de tipo como en llamadas a funciones. No se presentaron errores léxicos y cada símbolo fue tokenizado correctamente.
+
+
+\section{Conclusiones}
+
+La construcción de este analizador léxico permitió no solo materializar 
+los fundamentos teóricos del procesamiento de lenguajes formales, 
+sino también enfrentar y resolver desafíos reales asociados al diseño de 
+herramientas especializadas en el ámbito de la estadística computacional. 
+A través de la implementación modular y el uso de expresiones regulares robustas, 
+se logró desarrollar un sistema capaz de identificar con precisión la variedad 
+de tokens propios de un lenguaje orientado a pruebas estadísticas tipo Friedman y 
+análisis de rachas. Más allá del resultado técnico, este proceso evidenció la 
+importancia de un análisis léxico bien estructurado como base para futuras etapas 
+del compilador y como motor clave en la automatización de tareas complejas en 
+análisis de datos. En síntesis, este trabajo refuerza la necesidad de abordar 
+el desarrollo de lenguajes con rigurosidad, visión de largo plazo y una 
+mentalidad orientada a la mejora continua, siempre con el objetivo de crear 
+soluciones que respondan a necesidades concretas de la comunidad académica y 
+científica.
 
 
 \section{Referencias}

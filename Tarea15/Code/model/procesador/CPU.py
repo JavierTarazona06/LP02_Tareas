@@ -24,7 +24,7 @@ PARA_INSTRUCTION: bool = False
 def refresh():
     """
     Limpia el entorno
-    indicando que ya mo esta en
+    indicando que ya no esta en
     ejecución y que no hay una instrucción de parada
     :return:
     """
@@ -132,6 +132,10 @@ class ALU:
             ALU.registers[i] = bitarray(
                 '0' * constants.WORDS_SIZE_BITS, endian='big')
 
+        # Inicializamos la pila (SP) en la última dirección de memoria disponible, puesto que esta crece hacía abajo, cada vez que se apila se decrementa el SP y se agrega el valor en la nueva dirección a la que apunta.
+        ALU.write_register(ALU.SP, NC.natural2bitarray(
+            constants.MEMORY_SIZE-1, 64))
+
     @staticmethod
     def is_register_special(register_id: int):
         """
@@ -168,8 +172,12 @@ class ALU:
 
         if ALU.is_register_special(register_id):
             if not (
-                    caller_name == "preparate" or caller_name == "fetch"
-                    or caller_name == "modify_state_int"):
+                    caller_name == "preparate"
+                    or caller_name == "fetch"
+                    or caller_name == "modify_state_int"
+                    or caller_name == "set_up"
+                    or caller_name == "push_to_stack"
+                    or caller_name == "pop_from_stack"):
                 raise ValueError(
                     f"Registro {register_id} es especial y no se puede escribir directamente.")
 
@@ -200,6 +208,66 @@ class ALU:
 
         ALU.write_register(ALU.STATE, state)
 
+    @staticmethod
+    def push_to_stack(value: bitarray) -> None:
+        """
+        Apila un valor en la pila.
+        Decrementa el SP y luego guarda el valor en la dirección de memoria apuntada por SP.
+        :param value: Valor a apilar, debe ser un bitarray de 64 bits.
+        """
+        # Leer el SP
+        sp: int = NC.bitarray2natural(ALU.read_register(ALU.SP))
+
+        # Decrementar el SP
+        sp -= 1
+
+        # Guardar el nuevo valor del SP
+        ALU.write_register(ALU.SP, NC.natural2bitarray(sp, 64))
+
+        # Guardar el valor en la dirección de memoria apuntada por SP
+        m_bin: bitarray = NC.natural2bitarray(sp, 24)
+        bus.DirectionBus.write(m_bin)
+        bus.ControlBus.write(bus.ControlBus.WRITE_MEMORY_BIN)
+        bus.DataBus.write(value)
+        bus.action()
+
+    @staticmethod
+    def pop_from_stack(register: int) -> bitarray:
+        """
+        Desapila un valor de la pila.
+        Lee el valor de la dirección de memoria apuntada por SP y lo guarda en el registro especificado.
+        Luego incrementa el SP.
+        :param register: ID del registro donde se guardará el valor desapilado.
+        :return: El valor desapilado como un bitarray de 64 bits.
+        """
+        # Leer el SP
+        sp: int = NC.bitarray2natural(ALU.read_register(ALU.SP))
+
+        # Leer el valor de la dirección de memoria apuntada por SP
+        m_bin: bitarray = NC.natural2bitarray(sp, 24)
+        bus.DirectionBus.write(m_bin)
+        bus.ControlBus.write(bus.ControlBus.READ_MEMORY_BIN)
+        bus.action()
+        word: bitarray = bus.DataBus.read().copy()
+
+        # Guardar el valor en el registro especificado
+        ALU.write_register(register, word)
+
+        # Incrementar el SP
+        sp += 1
+        ALU.write_register(ALU.SP, NC.natural2bitarray(sp, 64))
+
+        return word
+
+    @staticmethod
+    def jump(address: bitarray) -> None:
+        """
+        Salta a la dirección especificada, sin guardar absolutamente nada, lo único que hace es poner address en el PC y además pone el registro estado en ceros.
+        :param address: Dirección a la que se saltará.
+        """
+        ALU.write_register(ALU.PC, address)
+        ALU.modify_state_int(0)
+
 
 class CU:
     """
@@ -228,7 +296,8 @@ class CU:
         # Encontrar de qué tipo es la instrucción y cuál es su opcode.
         opcodes_dict = utils.FileManager.JSON.JSON2dict(constants.OPCODES_PATH)
         length, offset = None, None
-        instr_str = str(CU.instruction_word.to01())  # Convertir a string la cadena de bits
+        # Convertir a string la cadena de bits
+        instr_str = str(CU.instruction_word.to01())
 
         for length_i, opcodes_list in opcodes_dict.items():
             for idx, opcode in enumerate(opcodes_list):
@@ -247,7 +316,8 @@ class CU:
         CU.opcode_offset = offset
 
         # Obtener la instrucción exacta
-        instr_asm_dict: dict = utils.FileManager.JSON.JSON2dict(constants.ISA_PATH)
+        instr_asm_dict: dict = utils.FileManager.JSON.JSON2dict(
+            constants.ISA_PATH)
         CU.instruction_asm = instr_asm_dict[CU.opcode_length][CU.opcode_offset]
 
         # Extract args depending on length type
@@ -275,7 +345,6 @@ class CU:
 
 
 class ISA:
-    # TODO: Refactorizar la ISA para que use bitarray y no listas de enteros, además use los metodos de después de la refactorización.
     # ------------------
     # Type Code
     # ------------------
@@ -286,6 +355,20 @@ class ISA:
             global PARA_INSTRUCTION
             PARA_INSTRUCTION = True
 
+        @staticmethod
+        def vuelve():
+            """ Vuelve desde la subrutina en la que se encuentre, primero DESAPILA para sacar el ESTADO y luego guarda el resultado desapilado en el ESTADO, después vuelve a desapilar pero para sacar y guardar el PC."""
+            # Desapilar el valor de la pila y guardarlo en el ESTADO
+            ALU.pop_from_stack(ALU.STATE)
+            ALU.pop_from_stack(ALU.PC)
+
+        @staticmethod
+        def procrastina():
+            """
+            No hace nada, sirve para no hacer nada en un ciclo de ejecución, se usa para temas de sincronización, o simplemente para que el PC se parezca un poco más a sus diseñadores.
+            """
+            return
+
     # ------------------
     # Type R
     # ------------------
@@ -293,7 +376,7 @@ class ISA:
     class R:
         @staticmethod
         def suma():
-            """ Suma de Enteros. """
+            """ Suma dos enteros guardados en los registros R0 y R1, así: R0 <- R0 + R1. """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             r_p: int = NC.bitarray2natural(CU.instruction_args[2])
 
@@ -306,7 +389,7 @@ class ISA:
 
         @staticmethod
         def resta():
-            """ Resta de Enteros. """
+            """ Resta dos enteros guardados en los registros R0 y R1, así: R0 <- R0 - R1. """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             r_p: int = NC.bitarray2natural(CU.instruction_args[2])
 
@@ -319,7 +402,7 @@ class ISA:
 
         @staticmethod
         def mult():
-            """ Multiplicación de Enteros. """
+            """ Multiplicación dos enteros guardados en los registros R0 y R1, asi: R0 <- R0 * R1. """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             r_p: int = NC.bitarray2natural(CU.instruction_args[2])
 
@@ -353,6 +436,7 @@ class ISA:
             v2: bitarray = ALU.read_register(r_p)
 
             value: bitarray = v1 & v2
+            ALU.modify_state_int(value)
             ALU.write_register(r, value)
 
         @staticmethod
@@ -365,6 +449,7 @@ class ISA:
             v2: bitarray = ALU.read_register(r_p)
 
             value: bitarray = v1 | v2
+            ALU.modify_state_int(value)
             ALU.write_register(r, value)
 
         @staticmethod
@@ -377,6 +462,7 @@ class ISA:
             v2: bitarray = ALU.read_register(r_p)
 
             value: bitarray = v1 ^ v2
+            ALU.modify_state_int(value)
             ALU.write_register(r, value)
 
         @staticmethod
@@ -434,16 +520,39 @@ class ISA:
             ALU.modify_state_int(value)
             ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
 
+        @staticmethod
+        def apila():
+            """
+            Decrementa el valor contenido en el r1 (SP) y hace push del contenido del registro R en la pila, es decir, apilamos el contenido del registro.
+            """
+            # Obtener el registro R y su contenido
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            value: int = NC.bitarray2int(ALU.read_register(r))
+
+            # Apilar el valor en la pila
+            ALU.push_to_stack(NC.int2bitarray(
+                value, constants.WORDS_SIZE_BITS, truncate=True))
+
+        def desapila():
+            """
+            Guarda el contenido de la dirección de memoria apuntada por SP en el registro R y luego incrementa el SP, basicamente hace un pop.
+            """
+            # Obtener el registro R
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+
+            # Desapilar el valor de la pila y guardarlo en el registro R
+            ALU.pop_from_stack(r)
+
     # ------------------
     # Type I
     # ------------------
 
-    class I_:
+    class I:
 
         @staticmethod
         def cargar():
             """
-            Contenido dirección de memoria a registro
+            Cargar contenido de una dirección de memoria a un registro
             """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             m_bin: bitarray = CU.instruction_args[2]
@@ -458,7 +567,7 @@ class ISA:
         @staticmethod
         def guardar():
             """
-            Contenido de un registro en una dirección de memoria
+            Guardar contenido de un registro en una dirección de memoria
             """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
             m_bin: bitarray = CU.instruction_args[2]
@@ -471,79 +580,278 @@ class ISA:
             bus.action()
 
         @staticmethod
-        def carga_inm():
+        def siRegCero():
             """
-            Cargar un entero inmediato (32 bits) al registro en
-                los bits menos significativos.
-                Lo convierte a 64 bits para dejarlo como nuevo.
+            Si el registro es cero, salta a la dirección especificada.
             """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
-            v: bitarray = CU.instruction_args[2]
+            m_bin: bitarray = CU.instruction_args[2]
 
-            v = NC.extend_bitarray(v, constants.WORDS_SIZE_BITS)
-
-            ALU.write_register(r, v)
+            if NC.bitarray2int(ALU.read_register(r)) == 0:
+                ALU.jump(m_bin)
 
         @staticmethod
-        def carga_inm_superior():
+        def siRegNCero():
             """
-            #Cargar un entero inmediato (32 bits) al registro en
-            #los bits más significativos
+            Si el registro no es cero, salta a la dirección especificada.
             """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
+            m_bin: bitarray = CU.instruction_args[2]
 
-            # Value most significant bits
-            v_m: bitarray = CU.instruction_args[2]
-            # Value less significant bits
-            v_l: bitarray = NC.truncate_bitarray_ls(ALU.read_register(r).copy(), 32)
-
-            long_bin: bitarray = v_m + v_l
-
-            ALU.write_register(r, long_bin)
+            if NC.bitarray2int(ALU.read_register(r)) != 0:
+                ALU.jump(m_bin)
 
         @staticmethod
-        def suma_inm():
+        def ICarga():
             """
-            Suma enteros el registro destino con un entero inmediato
+            Carga un valor inmediato (binario) en un registro.
             """
             r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(v_bin)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def ISuma():
+            """
+            Suma un valor inmediato (binario) al registro.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(
+                ALU.read_register(r)) + NC.bitarray2int(v_bin)
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def IResta():
+            """
+            Resta un valor inmediato (binario) al registro.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(
+                ALU.read_register(r)) - NC.bitarray2int(v_bin)
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def IMult():
+            """
+            Multiplica un valor inmediato (binario) al registro.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(
+                ALU.read_register(r)) * NC.bitarray2int(v_bin)
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def IDivi():
+            """
+            Divide un valor inmediato (binario) al registro.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: int = NC.bitarray2int(
+                ALU.read_register(r)) // NC.bitarray2int(v_bin)
+            ALU.modify_state_int(value)
+            ALU.write_register(r, NC.int2bitarray(value, 64, truncate=True))
+
+        @staticmethod
+        def IAnd():
+            """
+            Realiza una operación AND bit a bit entre el registro y un valor inmediato (binario).
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: bitarray = ALU.read_register(r) & v_bin
+            ALU.modify_state_int(value)
+            ALU.write_register(r, value)
+
+        @staticmethod
+        def IOr():
+            """
+            Realiza una operación OR bit a bit entre el registro y un valor inmediato (binario).
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: bitarray = ALU.read_register(r) | v_bin
+            ALU.modify_state_int(value)
+            ALU.write_register(r, value)
+
+        @staticmethod
+        def IXor():
+            """
+            Realiza una operación XOR bit a bit entre el registro y un valor inmediato (binario).
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
+            value: bitarray = ALU.read_register(r) ^ v_bin
+            ALU.modify_state_int(value)
+            ALU.write_register(r, value)
+
+        @staticmethod
+        def IComp():
+            """
+            Compara el registro con un valor inmediato (binario) y actualiza el estado.
+            """
+            r: int = NC.bitarray2natural(CU.instruction_args[1])
+            v_bin: bitarray = CU.instruction_args[2]
+
             v1: int = NC.bitarray2int(ALU.read_register(r))
-            v2: int = NC.bitarray2int(CU.instruction_args[2])
+            v2: int = NC.bitarray2int(v_bin)
 
-            value_result: int = v1 + v2
-            ALU.write_register(
-                r, NC.int2bitarray(
-                    value_result, constants.WORDS_SIZE_BITS,
-                    truncate=True
-                )
-            )
+            value_cmp: int = v1 - v2
+            ALU.modify_state_int(value_cmp)
 
-            ALU.modify_state_int(value_result)
+    # ------------------
+    # Type J (Control)
+    # ------------------
+    class J:
+        @staticmethod
+        def salta():
+            """
+            Salta a la dirección especificada en el registro M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+            ALU.jump(m_bin)
 
+        @staticmethod
+        def llama():
+            """
+            Llama a una subrutina, guardando primero el PC en la pila, luego el ESTADO y finalmente salta a la dirección especificada en el registro M.
+            """
+            # Guardar el PC actual en la pila
+            ALU.push_to_stack(ALU.read_register(ALU.PC))
+
+            # Guardar el ESTADO actual en la pila
+            ALU.push_to_stack(ALU.read_register(ALU.STATE))
+
+            # Saltar a la dirección especificada en M
+            m_bin: bitarray = CU.instruction_args[1]
+            ALU.jump(m_bin)
+
+        @staticmethod
+        def siCero():
+            """
+            Si el bit C del registro de ESTADO indica que el último valor procesado es cero, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.C] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siNCero():
+            """
+            Si el bit C del registro de ESTADO indica que el último valor procesado no es cero, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.C] == 0:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siPos():
+            """
+            Si el bit P del registro de ESTADO indica que el último valor procesado es positivo, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.P] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siNeg():
+            """
+            Si el bit N del registro de ESTADO indica que el último valor procesado es negativo, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.N] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siOverfl():
+            """
+            Si el bit D del registro de ESTADO indica que hubo un overflow en la última operación, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.D] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siMayor():
+            """
+            Si el bit P del registro de ESTADO indica que el último valor procesado es positivo y no es cero, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.P] == 1 and ALU.read_register(ALU.STATE)[ALU.C] == 0:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def siMenor():
+            """
+            Si el bit N del registro de ESTADO indica que el último valor procesado es negativo, salta a la dirección especificada en M.
+            """
+            m_bin: bitarray = CU.instruction_args[1]
+
+            if ALU.read_register(ALU.STATE)[ALU.N] == 1:
+                ALU.jump(m_bin)
+
+        @staticmethod
+        def interrump():
+            """
+            Guarda el PC y el ESTADO en la pila, luego salta a la dirección de interrupción especificada en M.
+            """
+            # Guardar el PC actual en la pila
+            ALU.push_to_stack(ALU.read_register(ALU.PC))
+
+            # Guardar el ESTADO actual en la pila
+            ALU.push_to_stack(ALU.read_register(ALU.STATE))
+
+            # Saltar a la dirección de interrupción especificada en M
+            m_bin: bitarray = CU.instruction_args[1]
+            ALU.jump(m_bin)
 
 # ------------------------------------
+# Operations Dictionary
 # ------------------------------------
+
 
 operations: dict[str, list[Callable[[], None]]] = {
     "64": [
-        "PROCRASTINA", "VUELVE", ISA.C.para
+        ISA.C.procrastina, ISA.C.vuelve, ISA.C.para
     ],
     "54": [
         ISA.R.suma, ISA.R.resta, ISA.R.mult, ISA.R.divi, ISA.R.y_bit_bit,
         ISA.R.o_bit_bit, ISA.R.xor_bit_bit, ISA.R.comp, ISA.R.copia
     ],
     "59": [
-        ISA.R.not_bit_bit, ISA.R.limpia, ISA.R.incr, ISA.R.decr, "APILA", "DESAPILA"
+        ISA.R.not_bit_bit, ISA.R.limpia, ISA.R.incr, ISA.R.decr, ISA.R.apila, ISA.R.desapila
     ],
     "35": [
-        ISA.I_.cargar, ISA.I_.guardar, "SIREGCERO", "SIREGNCERO"
+        ISA.I.cargar, ISA.I.guardar, ISA.I.siRegCero, ISA.I.siRegNCero
     ],
     "27": [
-        ISA.I_.carga_inm, ISA.I_.carga_inm_superior, ISA.I_.suma_inm, "IRESTA", "IMULT",
-        "IDIVI", "IAND", "IOR", "IXOR", "ICOMP"
+        ISA.I.ICarga, ISA.I.ISuma, ISA.I.IResta, ISA.I.IMult,
+        ISA.I.IDivi, ISA.I.IAnd, ISA.I.IOr, ISA.I.IXor, ISA.I.IComp
     ],
     "40": [
-        "SALTA", "LLAMA", "SICERO", "SINCERO", "SIPOS", "SINEG",
-        "SIOVERFL", "SIMAYOR", "SIMENOR", "INTERRUP"
+        ISA.J.salta, ISA.J.llama, ISA.J.siCero, ISA.J.siNCero,
+        ISA.J.siPos, ISA.J.siNeg, ISA.J.siOverfl, ISA.J.siMayor,
+        ISA.J.siMenor, ISA.J.interrump
     ]
 }
