@@ -4,6 +4,7 @@ import ASTInterpreter
 import lexer
 import ASTInterpreter as Nodes
 from lexer import tokens
+import TDA
 
 # Definir la función que corresponde al simbolo inicial
 start = "program"
@@ -194,7 +195,7 @@ def p_print(p):
 # TODO Seguir desde aca
 def p_var_declaration(p):
     """
-    var_declaration : datatype ID OPASI ( expression | iterables | obj_func_call)
+    var_declaration : datatype ID OPASI ( expression | iterables | obj_func_call | boolean | string)
                     | TIPOB OPREL TIPOA OPREL ID OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
     """
     # Caso 1: tipo simple con expresión
@@ -346,12 +347,22 @@ def p_string(p):
     string : CARACTER
               | CADENA
     """
-    p[0] = Nodes.StringNode(p[1])  # Crea un nodo AST para la cadena o carácter
+    p[0] = TDA.Cadena(p[1])
 
+def p_boolean(p):
+    """
+    boolean : BOOL
+    """
+    if p[1].lower() == "verdadero":
+        p[0] = True
+    elif p[1].lower() == "falso":
+        p[0] = False
+    else:
+        raise SyntaxError("El valor booleano debe ser verdadero o falso")
 
 def p_bools_array(p):
-    """bools_array : BOOL
-                   | bools_array DELIM BOOL"""
+    """bools_array : boolean
+                   | bools_array DELIM boolean"""
     if len(p) == 2:
         p[0] = [p[1]]
     else:
@@ -489,7 +500,7 @@ def p_rel_term(p):
     """
     rel_term : number
                 | string
-                | BOOL
+                | boolean
                 | ID
                 | DELIM expression DELIM
     """

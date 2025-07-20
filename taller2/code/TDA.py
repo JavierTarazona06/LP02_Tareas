@@ -24,6 +24,7 @@ def check_datatype(datatype: type) -> None:
     and datatype != M2VClasificacion and datatype != Diccionario):
         raise ValueError("El tipo de dato debe ser str, int, float, bool, complex, Cadena, Arreglo, Conjunto, Matriz, MatrizRachas, Multicotomizacion, M2VClasificacion o Diccionario")
 
+
 class Cadena:
     def __init__(self, value: str | None = None):
         if not value:
@@ -352,6 +353,172 @@ class Arreglo:
         return f"Arreglo({self.data})"
 
     def __str__(self):
+        return str(self.data)
+
+class Diccionario:
+    def __init__(self, key_datatype: type, value_datatype: type):
+        check_datatypeA(key_datatype)
+        check_datatypeA(value_datatype)
+        self.key_datatype = key_datatype
+        self.value_datatype = value_datatype
+        self.data = {}
+
+    def __setitem__(self, key, value):
+        """
+        Asigna un valor a una clave: diccionario[clave] = valor
+        """
+        if not isinstance(key, self.key_datatype):
+            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
+        if not isinstance(value, self.value_datatype):
+            raise ValueError(f"El valor debe ser de tipo {self.value_datatype}")
+        self.data[key] = value
+
+    def __getitem__(self, key):
+        """
+        Obtiene un valor por su clave: valor = diccionario[clave]
+        """
+        if not isinstance(key, self.key_datatype):
+            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
+        if key not in self.data:
+            raise KeyError(f"La clave {key} no existe en el diccionario")
+        return self.data[key]
+
+    def __delitem__(self, key):
+        """
+        Elimina un elemento por su clave: del diccionario[clave]
+        """
+        if not isinstance(key, self.key_datatype):
+            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
+        if key not in self.data:
+            raise KeyError(f"La clave {key} no existe en el diccionario")
+        del self.data[key]
+
+    def __contains__(self, key) -> bool:
+        """
+        Verifica si una clave existe en el diccionario: clave in diccionario
+        """
+        return key in self.data
+
+    def __len__(self) -> int:
+        """
+        Devuelve el número de elementos en el diccionario: len(diccionario)
+        """
+        return len(self.data)
+
+    def __iter__(self):
+        """
+        Permite iterar sobre las claves del diccionario
+        """
+        return iter(self.data)
+
+    def keys(self):
+        """
+        Devuelve una vista de las claves del diccionario
+        """
+        return self.data.keys()
+
+    def values(self):
+        """
+        Devuelve una vista de los valores del diccionario
+        """
+        return self.data.values()
+
+    def items(self):
+        """
+        Devuelve una vista de los pares (clave, valor) del diccionario
+        """
+        return self.data.items()
+
+    def get(self, key, default=None):
+        """
+        Obtiene un valor por su clave, devolviendo un valor por defecto si no existe
+        """
+        if not isinstance(key, self.key_datatype):
+            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
+        return self.data.get(key, default)
+
+    def pop(self, key, default=None):
+        """
+        Elimina y devuelve el valor asociado a una clave
+        """
+        if not isinstance(key, self.key_datatype):
+            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
+        
+        if key in self.data:
+            return self.data.pop(key)
+        elif default is not None:
+            return default
+        else:
+            raise KeyError(f"La clave {key} no existe en el diccionario")
+
+    def clear(self):
+        """
+        Elimina todos los elementos del diccionario
+        """
+        self.data.clear()
+
+    def update(self, other):
+        """
+        Actualiza el diccionario con elementos de otro diccionario o iterable de pares
+        """
+        if isinstance(other, Diccionario):
+            if self.key_datatype != other.key_datatype:
+                raise TypeError("Los diccionarios deben tener el mismo tipo de clave")
+            if self.value_datatype != other.value_datatype:
+                raise TypeError("Los diccionarios deben tener el mismo tipo de valor")
+            for key, value in other.items():
+                self[key] = value
+        elif isinstance(other, dict):
+            for key, value in other.items():
+                self[key] = value
+        else:
+            # Asumir que es un iterable de pares (clave, valor)
+            for key, value in other:
+                self[key] = value
+
+    def setdefault(self, key, default=None):
+        """
+        Obtiene el valor de una clave, o la establece con un valor por defecto si no existe
+        """
+        if not isinstance(key, self.key_datatype):
+            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
+        
+        if key in self.data:
+            return self.data[key]
+        else:
+            if default is not None and not isinstance(default, self.value_datatype):
+                raise ValueError(f"El valor por defecto debe ser de tipo {self.value_datatype}")
+            self.data[key] = default
+            return default
+
+    def copy(self) -> "Diccionario":
+        """
+        Crea una copia superficial del diccionario
+        """
+        nuevo = Diccionario(self.key_datatype, self.value_datatype)
+        nuevo.data = self.data.copy()
+        return nuevo
+
+    def __eq__(self, other) -> bool:
+        """
+        Compara dos diccionarios por igualdad
+        """
+        if not isinstance(other, Diccionario):
+            return NotImplemented
+        return (self.key_datatype == other.key_datatype and 
+                self.value_datatype == other.value_datatype and 
+                self.data == other.data)
+
+    def __repr__(self):
+        """
+        Representación string para debugging
+        """
+        return f"Diccionario(key_type={self.key_datatype.__name__}, value_type={self.value_datatype.__name__}, data={self.data})"
+
+    def __str__(self):
+        """
+        Representación string legible
+        """
         return str(self.data)
 
 class Matriz:
@@ -1557,172 +1724,6 @@ class Matriz:
                     lineas.append(f"  • {par.strip()}")
         
         return "\n".join(lineas)
-
-class Diccionario:
-    def __init__(self, key_datatype: type, value_datatype: type):
-        check_datatypeA(key_datatype)
-        check_datatypeA(value_datatype)
-        self.key_datatype = key_datatype
-        self.value_datatype = value_datatype
-        self.data = {}
-
-    def __setitem__(self, key, value):
-        """
-        Asigna un valor a una clave: diccionario[clave] = valor
-        """
-        if not isinstance(key, self.key_datatype):
-            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
-        if not isinstance(value, self.value_datatype):
-            raise ValueError(f"El valor debe ser de tipo {self.value_datatype}")
-        self.data[key] = value
-
-    def __getitem__(self, key):
-        """
-        Obtiene un valor por su clave: valor = diccionario[clave]
-        """
-        if not isinstance(key, self.key_datatype):
-            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
-        if key not in self.data:
-            raise KeyError(f"La clave {key} no existe en el diccionario")
-        return self.data[key]
-
-    def __delitem__(self, key):
-        """
-        Elimina un elemento por su clave: del diccionario[clave]
-        """
-        if not isinstance(key, self.key_datatype):
-            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
-        if key not in self.data:
-            raise KeyError(f"La clave {key} no existe en el diccionario")
-        del self.data[key]
-
-    def __contains__(self, key) -> bool:
-        """
-        Verifica si una clave existe en el diccionario: clave in diccionario
-        """
-        return key in self.data
-
-    def __len__(self) -> int:
-        """
-        Devuelve el número de elementos en el diccionario: len(diccionario)
-        """
-        return len(self.data)
-
-    def __iter__(self):
-        """
-        Permite iterar sobre las claves del diccionario
-        """
-        return iter(self.data)
-
-    def keys(self):
-        """
-        Devuelve una vista de las claves del diccionario
-        """
-        return self.data.keys()
-
-    def values(self):
-        """
-        Devuelve una vista de los valores del diccionario
-        """
-        return self.data.values()
-
-    def items(self):
-        """
-        Devuelve una vista de los pares (clave, valor) del diccionario
-        """
-        return self.data.items()
-
-    def get(self, key, default=None):
-        """
-        Obtiene un valor por su clave, devolviendo un valor por defecto si no existe
-        """
-        if not isinstance(key, self.key_datatype):
-            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
-        return self.data.get(key, default)
-
-    def pop(self, key, default=None):
-        """
-        Elimina y devuelve el valor asociado a una clave
-        """
-        if not isinstance(key, self.key_datatype):
-            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
-        
-        if key in self.data:
-            return self.data.pop(key)
-        elif default is not None:
-            return default
-        else:
-            raise KeyError(f"La clave {key} no existe en el diccionario")
-
-    def clear(self):
-        """
-        Elimina todos los elementos del diccionario
-        """
-        self.data.clear()
-
-    def update(self, other):
-        """
-        Actualiza el diccionario con elementos de otro diccionario o iterable de pares
-        """
-        if isinstance(other, Diccionario):
-            if self.key_datatype != other.key_datatype:
-                raise TypeError("Los diccionarios deben tener el mismo tipo de clave")
-            if self.value_datatype != other.value_datatype:
-                raise TypeError("Los diccionarios deben tener el mismo tipo de valor")
-            for key, value in other.items():
-                self[key] = value
-        elif isinstance(other, dict):
-            for key, value in other.items():
-                self[key] = value
-        else:
-            # Asumir que es un iterable de pares (clave, valor)
-            for key, value in other:
-                self[key] = value
-
-    def setdefault(self, key, default=None):
-        """
-        Obtiene el valor de una clave, o la establece con un valor por defecto si no existe
-        """
-        if not isinstance(key, self.key_datatype):
-            raise ValueError(f"La clave debe ser de tipo {self.key_datatype}")
-        
-        if key in self.data:
-            return self.data[key]
-        else:
-            if default is not None and not isinstance(default, self.value_datatype):
-                raise ValueError(f"El valor por defecto debe ser de tipo {self.value_datatype}")
-            self.data[key] = default
-            return default
-
-    def copy(self) -> "Diccionario":
-        """
-        Crea una copia superficial del diccionario
-        """
-        nuevo = Diccionario(self.key_datatype, self.value_datatype)
-        nuevo.data = self.data.copy()
-        return nuevo
-
-    def __eq__(self, other) -> bool:
-        """
-        Compara dos diccionarios por igualdad
-        """
-        if not isinstance(other, Diccionario):
-            return NotImplemented
-        return (self.key_datatype == other.key_datatype and 
-                self.value_datatype == other.value_datatype and 
-                self.data == other.data)
-
-    def __repr__(self):
-        """
-        Representación string para debugging
-        """
-        return f"Diccionario(key_type={self.key_datatype.__name__}, value_type={self.value_datatype.__name__}, data={self.data})"
-
-    def __str__(self):
-        """
-        Representación string legible
-        """
-        return str(self.data)
 
 class MatrizRachas:
     """
