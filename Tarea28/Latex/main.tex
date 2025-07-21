@@ -1,0 +1,258 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titletoc}
+\usepackage{adjustbox}
+\usepackage[spanish]{babel}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue, % Color del texto del enlace
+    urlcolor=blue % Color del enlace
+}
+
+\usepackage{longtable} % Agrega el paquete longtable
+
+\definecolor{mygreen}{RGB}{0,128,0}
+
+\usepackage{array} % Para personalizar la tabla
+\usepackage{booktabs} % Para líneas horizontales de mejor calidad
+\usepackage{graphicx} % Paquete para incluir imágenes
+\usepackage{float}
+\usepackage[section]{placeins}
+
+% Definir márgenes
+\usepackage[margin=1in]{geometry}
+
+\renewcommand{\contentsname}{\textcolor{mygreen}{Tabla de Contenidos}}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    % Logo de la Universidad
+    \includegraphics[width=0.48\textwidth]{logo_universidad.png}
+    \par\vspace{2cm}
+
+    % Nombre de la Universidad y detalles del curso
+    {\Large \textbf{Universidad Nacional de Colombia} \par}
+    \vspace{0.5cm}
+    {\large Ingeniería de Sistemas y Computación \par}
+    {\large 2025966 Lenguajes de Programación (02)\par}
+    \vspace{3cm}
+
+    % Detalles del laboratorio y actividad
+    {\large \textbf{Tarea 28} \par}
+    {\large Diseño e implementación de una calculadora para números complejos.\par}
+    \vspace{3cm}
+
+    % Lista de integrantes
+    {\large \textbf{Integrantes:} \par}
+    \vspace{0.5cm}
+    \begin{tabular}{ll}
+    Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
+    Eder  José Hernández Buelvas   & ehernandezbu@unal.edu.co \\
+    Juan Sebastián Muñoz Lemus     & jumunozle@unal.edu.co   \\
+    David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
+    \end{tabular}
+    \par\vspace{3cm}
+
+    % Fecha
+    {\large Mayo 7 de 2025 \par}
+\end{titlepage}
+
+\tableofcontents % Inserta la tabla de contenidos
+
+\newpage % Salto de página para separar la tabla de contenidos del contenido del documento
+
+% Contenido del artículo----------------------------------------------------------
+
+%---------------------------------------------------------------------------------
+% Intro --------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Introducción}\label{sec:intr}
+
+El propósito de este proyecto es diseñar y poner en funcionamiento una calculadora de expresiones que permita operar con números complejos mediante el uso de \texttt{LEX} y \texttt{YACC}. La herramienta permitirá al usuario realizar cálculos aritméticos básicos con números complejos, mostrando los resultados en cinco formas de representación: rectangular, polar, exponencial, trigonométrica y binómica. Para lograrlo, el sistema procesará expresiones ingresadas, identificará correctamente los operandos y operadores, y devolverá resultados consistentes con las reglas de precedencia y asociación.
+
+%---------------------------------------------------------------------------------
+% Marco Teórico ------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Marco Teórico}\label{sec:marc}
+
+Este apartado presenta los conceptos teóricos necesarios para la creación de una calculadora de expresiones con números complejos, haciendo uso de las herramientas \texttt{Flex} y \texttt{Bison}. Se describen las bases de los números complejos, sus distintas representaciones matemáticas y las operaciones fundamentales que se pueden realizar. Asimismo, se explica cómo \texttt{Flex} colabora en la segmentación léxica del texto de entrada y de qué forma \texttt{Bison} facilita la interpretación sintáctica y la ejecución de las operaciones solicitadas por el usuario.
+
+\subsection*{Flex: Analizador Léxico}
+
+\texttt{Flex} es una utilidad para la generación automática de analizadores léxicos que permiten identificar patrones textuales definidos mediante expresiones regulares. Resulta indispensable en la construcción de compiladores, ya que se encarga de separar el texto fuente en unidades mínimas llamadas \textit{tokens}. Además, ayuda a descartar elementos innecesarios como espacios y comentarios, optimizando el flujo de datos hacia la etapa de análisis sintáctico. Esta herramienta produce de forma automática el código en C que ejecuta estas tareas de reconocimiento, y en conjunto con \texttt{Bison}, facilita la traducción de un lenguaje de alto nivel a una estructura intermedia entendible por el compilador \cite{flex}.
+
+\subsection*{Bison: Generador de Análisis Sintáctico}
+
+\texttt{Bison} es una herramienta desarrollada por GNU como alternativa mejorada y compatible con \texttt{YACC} (Yet Another Compiler Compiler). Su objetivo es construir analizadores sintácticos basados en gramáticas libres de contexto, empleando una estrategia LALR(1). Esta metodología permite que \texttt{Bison} organice los tokens producidos por \texttt{Flex} de acuerdo con las reglas sintácticas definidas por el programador, aplicando además acciones semánticas codificadas en lenguaje C. Gracias a esto, \texttt{Bison} puede ejecutar cálculos, construir árboles de sintaxis abstracta y detectar errores durante la fase de análisis. Su integración con \texttt{Flex} hace posible crear intérpretes y compiladores robustos para múltiples lenguajes de programación y procesamiento de datos estructurados \cite{bison}.
+
+\subsection*{Representación de Números Complejos}
+
+Los números complejos se utilizan ampliamente en matemáticas, física e ingeniería, y pueden representarse de múltiples formas según la aplicación requerida. La notación rectangular o cartesiana expresa un número complejo como $a + bi$, donde $a$ es la parte real y $b$ la parte imaginaria. La forma polar utiliza la magnitud y el ángulo de fase, representándose como $r(\cos\theta + i\sin\theta)$, ideal para multiplicaciones y divisiones. La forma exponencial aplica la fórmula de Euler $re^{i\theta}$, simplificando cálculos en análisis de señales y fenómenos ondulatorios. La forma trigonométrica destaca la relación directa con las funciones trigonométricas. Por último, la forma binómica combina términos reales e imaginarios de manera directa, sin requerir conversión a coordenadas angulares, lo que resulta útil en diversas operaciones algebraicas.
+
+\subsection{Contextualización del problema}
+
+El manejo de números complejos es una necesidad recurrente en múltiples campos como la ingeniería eléctrica, la física de ondas, la teoría de control y el procesamiento de señales, donde cálculos precisos y conversiones entre diferentes formas de representación son actividades rutinarias. Sin embargo, realizar estas operaciones de forma manual puede resultar tedioso y propenso a errores, especialmente cuando se requiere transformar entre notaciones cartesiana, polar, exponencial, trigonométrica o binómica.
+
+Para automatizar estos procesos, se recurre al desarrollo de herramientas que interpreten expresiones matemáticas y ejecuten cálculos de manera fiable. En este contexto, \texttt{Flex} y \texttt{Bison} representan soluciones robustas para implementar traductores capaces de procesar lenguajes formales. Mientras \texttt{Flex} extrae la estructura básica de las expresiones, \texttt{Bison} organiza y evalúa estas entradas siguiendo reglas sintácticas predefinidas, generando resultados exactos y facilitando la conversión entre diversas formas de representación de los números complejos.
+
+%---------------------------------------------------------------------------------
+% Descripción y Justificación del Problema a Resolver ----------------------------
+%---------------------------------------------------------------------------------
+
+\section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
+
+El trabajo consiste en construir un traductor capaz de interpretar y evaluar expresiones matemáticas compuestas por números complejos expresados en diferentes notaciones. Para ello se empleará \texttt{LEX} para el reconocimiento de los elementos léxicos (operadores, paréntesis y números complejos en varias formas) mediante expresiones regulares bien definidas. Posteriormente, \texttt{YACC} se encargará de estructurar la gramática que permita la correcta interpretación de las operaciones, garantizando que se respeten las jerarquías y asociaciones de los operadores. Además, se implementarán las acciones semánticas necesarias para realizar los cálculos y convertir los resultados entre las distintas representaciones.
+
+\section*{Justificación}
+
+Desarrollar esta calculadora de números complejos mediante \texttt{LEX} y \texttt{YACC} permite aplicar de forma práctica los conceptos de análisis léxico y sintáctico, fundamentales para la construcción de compiladores, intérpretes y procesadores de lenguajes formales. Este proyecto facilita la comprensión de cómo se define un lenguaje a nivel gramatical y cómo se implementan las reglas para su interpretación y evaluación automática. Dado que los números complejos tienen múltiples aplicaciones en disciplinas como matemáticas, física e ingeniería, contar con una herramienta que permita operar y visualizar estos valores en diferentes formas contribuye a optimizar su manejo y análisis. Asimismo, el uso de estas herramientas refuerza la experiencia en tecnologías clave para el procesamiento y traducción de lenguajes.
+
+\subsection{Objetivo Principal}
+
+Desarrollar e implementar una calculadora capaz de analizar, procesar y evaluar expresiones matemáticas que involucren números complejos, utilizando \texttt{LEX} para el análisis léxico y \texttt{YACC} para la construcción de la gramática y la evaluación semántica, permitiendo la representación de los resultados en cinco formas: rectangular, polar, exponencial, trigonométrica y binómica.
+%---------------------------------------------------------------------------------
+% Diseño de la solución ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Diseño de la solución}\label{sec:dis}
+
+La solución propuesta consiste en una aplicación que funciona como una calculadora para operaciones con números complejos, desarrollada mediante el uso de \texttt{Flex} para el análisis léxico y \texttt{Bison} para el análisis sintáctico. La calculadora es capaz de interpretar expresiones matemáticas escritas en diferentes notaciones de números complejos y realizar operaciones fundamentales como suma, resta, multiplicación y división.
+
+El sistema está diseñado para que el resultado final se genere automáticamente en cinco representaciones distintas: rectangular, polar, exponencial, trigonométrica y binómica. Esta flexibilidad facilita la verificación de resultados y permite al usuario seleccionar la forma de salida más conveniente para su contexto de trabajo.
+
+\subsection{Metodología}
+El desarrollo de la aplicación se estructura en las siguientes etapas:
+
+\begin{itemize}
+    \item \textbf{Entrada de Expresiones:} El usuario introduce la expresión matemática que puede incluir números complejos expresados en cualquiera de sus formas válidas, junto con operadores aritméticos y paréntesis para definir la precedencia de las operaciones.
+    
+    \item \textbf{Análisis Léxico:} Mediante \texttt{Flex}, se lleva a cabo la identificación de los elementos léxicos presentes en la expresión. Se reconocen los números complejos, los operadores y los delimitadores, transformándolos en tokens comprensibles para la fase siguiente.
+    
+    \item \textbf{Análisis Sintáctico:} Con \texttt{Bison}, se define la gramática que describe la estructura de las expresiones permitidas. El analizador organiza los tokens de entrada de acuerdo con las reglas gramaticales y aplica acciones semánticas para calcular el resultado de la operación.
+    
+    \item \textbf{Cálculo y Conversión:} El sistema evalúa la expresión ingresada, realiza las operaciones aritméticas necesarias y convierte automáticamente el resultado final a las cinco formas de representación establecidas.
+    
+    \item \textbf{Visualización de Resultados:} Finalmente, la aplicación muestra el resultado en consola, desplegando cada forma de representación de manera clara para que el usuario pueda interpretarla y utilizarla según sus necesidades.
+\end{itemize}
+
+
+%---------------------------------------------------------------------------------
+% Código Fuente ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Código Fuente}\label{sec:cod}
+
+El código fuente de esta tarea se encuentra adjunto en el buzón 
+(28 Muñoz Lemus Juan Sebastian 02.zip)
+y disponible en el repositorio GitHub del proyecto:
+
+\begin{center}
+\url{https://github.com/JavierTarazona06/LP02_Tareas}
+\end{center}
+
+%---------------------------------------------------------------------------------
+% Manual Usuario ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Manual Usuario}\label{sec:man_u}
+
+Para compilar y ejecutar la calculadora de números complejos, el usuario debe disponer de los siguientes elementos:
+
+\begin{itemize}
+    \item Descargue los archivos para probar la calculadora \href{https://github.com/JavierTarazona06/LP02_Tareas/tree/main/Tarea28/Code}{aqui.}
+    \item Un sistema operativo compatible: Windows (con \texttt{win\_flex} y \texttt{win\_bison} instalados) o Linux (con \texttt{flex} y \texttt{bison}).
+    \item Un compilador de C, preferiblemente \texttt{gcc}.
+    \item Un editor de texto o entorno de desarrollo integrado (IDE) como \texttt{Visual Studio Code}, etc.
+\end{itemize}
+
+\subsection*{Proceso de Ejecución}
+
+Para utilizar la aplicación, siga los pasos que se describen a continuación:
+
+\begin{enumerate}
+    \item \textbf{Generar el Analizador Léxico y Sintáctico:}  
+    Abra la terminal o consola y ejecute los siguientes comandos en el directorio donde se encuentren los archivos de entrada:
+    \begin{verbatim}
+    win_flex Tarea28.l
+    win_bison -d Tarea28.y
+    \end{verbatim}
+    En sistemas Linux, utilice los comandos equivalentes con \texttt{flex} y \texttt{bison}.
+
+    \item \textbf{Compilar el Programa:}  
+    Compile los archivos generados mediante el compilador \texttt{gcc}:
+    \begin{verbatim}
+    gcc lex.yy.c y.tab.c -o Tarea28.exe -lm
+    \end{verbatim}
+    El parámetro \texttt{-lm} asegura el enlace con la biblioteca matemática para operaciones complejas.
+
+    \item \textbf{Ejecutar la Aplicación:}  
+    Ejecute el programa compilado:
+    \begin{verbatim}
+    ./Tarea28.exe
+    \end{verbatim}
+
+    \item \textbf{Ingresar Expresiones:}  
+    Una vez en ejecución, introduzca la expresión matemática que desea evaluar. La calculadora aceptará números complejos en cualquiera de las representaciones soportadas y realizará las operaciones correspondientes.
+
+    \item \textbf{Visualizar Resultados:}  
+    El sistema mostrará en pantalla el resultado de la expresión ingresada en las cinco formas de representación: cartesiana, polar, exponencial, trigonométrica y binómica.
+\end{enumerate}
+
+%---------------------------------------------------------------------------------
+% Experimentación ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Experimentación}\label{sec:exp}
+
+Para validar el rendimiento y la precisión de la calculadora de números complejos, se realizaron pruebas que combinan diversas operaciones aritméticas y verifican la correcta conversión de resultados a cada una de las cinco formas de representación. Cada escenario evalúa tanto la interpretación léxica y sintáctica de la expresión como la consistencia de los cálculos generados por el sistema.
+
+\subsection{Análisis de resultados}
+
+A continuación, se describen los escenarios de prueba utilizados para comprobar el funcionamiento de la aplicación:
+
+\subsubsection{Escenario 1:Suma de números complejos en forma rectangular}
+
+\begin{itemize}
+    \item \textbf{Expresión ingresada:} $(5 + 3i) + (2 + 7i)$
+    \item \textbf{Resultado esperado:} $7 + 10i$
+\end{itemize}
+
+
+\subsubsection{Escenario 2: Multiplicación de números complejos en forma exponencial}
+
+\begin{itemize}
+    \item \textbf{Expresión ingresada:} $4e^{i\pi/3} \times 2e^{i\pi/6}$
+    \item \textbf{Resultado esperado:} $8e^{i\pi/2}$
+\end{itemize}
+ 
+\subsubsection{Escenario 3: Conversión de forma cartesiana a polar}
+
+\begin{itemize}
+    \item \textbf{Expresión ingresada:} $2 + 2i$
+    \item \textbf{Resultado esperado:} $2\sqrt{2}e^{i\pi/4}$
+\end{itemize}
+
+\section*{Conclusiones}
+
+Los experimentos realizados confirman que la calculadora implementa de manera adecuada las operaciones aritméticas con números complejos, asegurando la conversión precisa a todas sus representaciones posibles. La correcta integración de \texttt{Flex} y \texttt{Bison} permitió garantizar que la sintaxis definida para la entrada sea interpretada conforme a las reglas gramaticales establecidas, generando resultados coherentes entre las distintas notaciones.
+
+\section{Referencias}
+\renewcommand{\refname}{}
+
+\begin{thebibliography}{9}
+
+\bibitem{ref} \label{ref:vidIntro}  J. Levine, T. Mason, D. Brown. \textit{flex: The Fast Lexical Analyzer}. GitHub. Disponible en: \url{https://github.com/westes/flex}.
+
+\bibitem{ref} \label{ref:vidTelepor}  Free Software Foundation, Inc. \textit{Bison Manual, Version 3.8.1}. GNU. Disponible en: \url{https://www.gnu.org/software/bison/manual/bison.html}
+
+\end{thebibliography}
+
+\end{document}
