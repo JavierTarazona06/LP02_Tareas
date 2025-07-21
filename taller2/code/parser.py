@@ -267,8 +267,6 @@ def p_var_assignation(p):
     """
     var_assignation : ID OPASI ( expression | obj_func_call | iterables | string | boolean)
                     | ID item_access OPASI ( expression | obj_func_call | iterables | string | boolean)
-                    | ID OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
-                    | ID item_access OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
     """
     # Caso 1: asignación simple
     if len(p) == 4:
@@ -279,34 +277,6 @@ def p_var_assignation(p):
     elif len(p) == 5:
         p[0] = Nodes.VariableAssignationItemAccess(p[1], p[2], p[3], p[4])
 
-    # Caso 3: asignación con llamada genérica
-    elif len(p) == 10:
-        if (p[4] != '<' or p[6] != '>' or
-                p[7] != '(' or p[9] != ')'):
-            raise SyntaxError("Use:  <...> and (...)")
-        # p = [_, ID, OPASI, TIPOB, TIPOA, arg_list]
-        p[0] = (
-            'var_assign_generic_call',
-            p[1],  # nombre de la variable
-            p[2],  # OPASI
-            p[3],  # TIPOB función/objeto contenedor
-            p[5],  # TIPOA función/objeto interno
-            p[8]  # arg_list
-        )
-
-    elif len(p) == 11:
-        if (p[5] != '<' or p[7] != '>' or
-                p[8] != '(' or p[10] != ')'):
-            raise SyntaxError("Use: <...> and (...)")
-        p[0] = (
-            'var_assign_generic_item_access',
-            p[1],  # nombre de la variable
-            p[2][1],  # item_access
-            p[3],  # OPASI
-            p[4],  # TIPOB función/objeto contenedor
-            p[6],  # TIPOA función/objeto interno
-            p[9]  # arg_list
-        )
     else:
         raise SyntaxError("Var assignation wrongly formed")
 
@@ -316,16 +286,51 @@ def p_iterables(p):
     iterables : OPACC elements_array OPACC
               | DELIM elements_array DELIM
     """
-    # Crea una tupla ('iterable', tipo_de_corchete, elementos)
+    # Verificar delimitadores válidos
     bracket_type = None
     if p[1] == '{' and p[3] == '}':
         bracket_type = 'set'
     elif p[1] == '[' and p[3] == ']':
         bracket_type = 'list'
+    
     if not bracket_type:
-        SyntaxError("Invalid Delimitation for iterable (list, set)")
-    p[0] = ('iterable', bracket_type, p[2])
+        raise SyntaxError("Invalid Delimitation for iterable (list, set)")
+    
+    # Verificar que elements_array sea una lista
+    if not isinstance(p[2], list):
+        raise SyntaxError(f"elements_array debe ser una lista, pero se recibió {type(p[2])}")
+    
+    # Retornar la lista directamente
+    p[0] = p[2]
 
+def p_string(p):
+    """
+    string : CARACTER
+              | CADENA
+    """
+    p[0] = TDA.Cadena(str(p[1]))
+
+def p_boolean(p):
+    """
+    boolean : BOOL
+    """
+    if p[1].lower() == "verdadero":
+        p[0] = True
+    elif p[1].lower() == "falso":
+        p[0] = False
+    else:
+        raise SyntaxError("El valor booleano debe ser verdadero o falso")
+
+def p_number(p):
+    """number : ENTERO
+              | REAL
+              | COMPLEJO"""
+    if p.slice[1].type == "ENTERO":
+        p[0] = int(p[1])
+    elif p.slice[1].type == "REAL":
+        p[0] = float(p[1])
+    else:
+        p[0] = complex(p[1])  # Asumiendo que p[1] es un string tipo '1+2j'
 
 def p_elements_array(p):
     """
@@ -335,6 +340,10 @@ def p_elements_array(p):
                       | floats_array
                       | complex_array
     """
+    # Verificar que el resultado sea una lista
+    if not isinstance(p[1], list):
+        raise SyntaxError(f"elements_array debe producir una lista, pero se recibió {type(p[1])}")
+    
     p[0] = p[1]
 
 
@@ -349,25 +358,6 @@ def p_strings_array(p):
         if p[2] != ',':
             raise SyntaxError("Use , for separation")
         p[0] = p[1] + [p[3]]
-
-
-def p_string(p):
-    """
-    string : CARACTER
-              | CADENA
-    """
-    p[0] = TDA.Cadena(p[1])
-
-def p_boolean(p):
-    """
-    boolean : BOOL
-    """
-    if p[1].lower() == "verdadero":
-        p[0] = True
-    elif p[1].lower() == "falso":
-        p[0] = False
-    else:
-        raise SyntaxError("El valor booleano debe ser verdadero o falso")
 
 def p_bools_array(p):
     """bools_array : boolean
@@ -413,27 +403,25 @@ def p_complex_array(p):
         p[0] = p[1] + [complex(p[3])]
 
 
-def p_number(p):
-    """number : ENTERO
-              | REAL
-              | COMPLEJO"""
-    if p.slice[1].type == "ENTERO":
-        p[0] = int(p[1])
-    elif p.slice[1].type == "REAL":
-        p[0] = float(p[1])
-    else:
-        p[0] = complex(p[1])  # Asumiendo que p[1] es un string tipo '1+2j'
-
-
-def p_obj_func_call(p):
+def p_lambda_expression(p):
     """
-    obj_func_call : ID OPACC ID DELIM arg_list DELIM
+    lambda_expression : PALABCLAVE DELIM id_list DELIM expression DELIM
     """
-    if p[2] != '.' or p[4] != '(' or p[6] != ')':
-        raise SyntaxError("You must use . and (...) for function calls")
-    # p[1] es el nombre del objeto, p[3] es el método, p[5] es la lista de argumentos
-    p[0] = ('func_call', p[1], p[3], p[5])
+    if p[2] != '(' or p[4] != ',' or p[6] != ')':
+        raise SyntaxError("La expresión lambda debe tener: (id1, id2, ..., expression)")
+    if p[1] != 'Lambda':
+        raise SyntaxError("La expresión lambda debe tener: 'Lambda'")
+    
+    # Crear y retornar un LambdaNode en lugar de una tupla
+    p[0] = Nodes.LambdaNode(p[3], p[5])
 
+def p_arg_element(p):
+    """arg_element : ID
+                   | lambda_expression
+                   | string
+                   | boolean
+                   | number"""
+    p[0] = p[1]
 
 def p_arg_list(p):
     """
@@ -454,13 +442,15 @@ def p_arg_list(p):
         p[0] = p[1] + [p[3]]
 
 
-def p_arg_element(p):
-    """arg_element : ID
-                   | lambda_expression
-                   | string
-                   | BOOL
-                   | number"""
-    p[0] = p[1]
+def p_obj_func_call(p):
+    """
+    obj_func_call : ID OPACC ID DELIM arg_list DELIM
+    """
+    if p[2] != '.' or p[4] != '(' or p[6] != ')':
+        raise SyntaxError("You must use . and (...) for function calls")
+    
+    # Crear y retornar un ObjFunctionCall en lugar de una tupla
+    p[0] = Nodes.ObjFunctionCall(p[1], p[3], p[5])
 
 
 def p_id_list(p):
@@ -470,22 +460,11 @@ def p_id_list(p):
     """
     # ID
     if len(p) == 2:
-        p[0] = [p[1]]
+        p[0] = [str(p[1])]
     else:
         if p[2] != ',':
             raise SyntaxError("Use , for separating identifiers")
-        p[0] = p[1] + [p[3]]
-
-
-def p_lambda_expression(p):
-    """
-    lambda_expression : PALABCLAVE DELIM id_list DELIM expression DELIM
-    """
-    if p[2] != '(' or p[4] != ',' or p[6] != ')':
-        raise SyntaxError("La expresión lambda debe tener: (id1, id2, ..., expression)")
-    if p[1] != 'Lambda':
-        raise SyntaxError("La expresión lambda debe tener: 'Lambda'")
-    p[0] = ('lambda', p[3], p[5])
+        p[0] = p[1] + [str(p[3])]
 
 
 def p_expression(p):
@@ -501,8 +480,8 @@ def p_rel_expression(p):
     """
     rel_expression : rel_term OPREL rel_term
     """
-    # p[1]: expresión izquierda, p[2]: operador relacional, p[3]: expresión derecha
-    p[0] = ('relop', p[2], p[1], p[3])
+    # Crear y retornar un RelExpressionNode en lugar de evaluar directamente
+    p[0] = Nodes.RelExpressionNode(p[1], p[3], p[2])
 
 
 def p_rel_term(p):

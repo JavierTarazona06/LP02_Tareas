@@ -202,6 +202,38 @@ def language_type_list_to_python_type(datatype_list: list[str]):
         return language_type_to_python_type(main_type)
 
 # =============================================================================
+# UTILITY FUNCTION FOR ENVIRONMENT VARIABLE LOOKUP
+# =============================================================================
+
+def get_variable_from_env(env, variable_id: str):
+    """
+    Busca una variable en el entorno y retorna su tipo de dato y valor.
+    
+    Args:
+        env: Entorno de ejecución (diccionario con 'data_local' y 'data')
+        variable_id: ID de la variable a buscar
+        
+    Returns:
+        tuple: (datatype, value) donde datatype es lista de tipos y value es el valor
+        
+    Raises:
+        ValueError: Si la variable no está definida en el entorno
+    """
+    # Primero buscar en data_local (variables locales)
+    if variable_id in env.get('data_local', {}):
+        datatype, value = env['data_local'][variable_id]
+        return datatype, value
+    
+    # Luego buscar en data (variables globales)
+    elif variable_id in env.get('data', {}):
+        datatype, value = env['data'][variable_id]
+        return datatype, value
+    
+    # Si no se encuentra en ningún lado, lanzar error
+    else:
+        raise ValueError(f"Variable '{variable_id}' no está definida en el entorno")
+
+# =============================================================================
 
 class ProgramNode:
     def __init__(self, statements: list):
@@ -271,6 +303,295 @@ class PrintNode:
         value = self.expression.eval(env)
         print(value)  # Assuming the expression has an eval method
 
+
+class LambdaNode:
+    def __init__(self, param_list: list[str], expression):
+        """
+        Constructor para expresiones lambda.
+        
+        Args:
+            param_list: Lista de nombres de parámetros (IDs)
+            expression: Expresión a evaluar cuando se llame la lambda
+        """
+        self.param_list = param_list
+        self.expression = expression
+
+    def __repr__(self):
+        return f"LambdaNode(param_list={self.param_list}, expression={self.expression})"
+
+    def eval(self, env):
+        """
+        Evalúa la expresión lambda y retorna una función callable.
+        
+        Returns:
+            function: Función que puede ser llamada con argumentos
+        """
+        # Capturar el entorno actual para crear un closure
+        captured_env = env.copy()
+        
+        def lambda_function(*args):
+            """
+            Función lambda generada que puede ser llamada con argumentos.
+            
+            Args:
+                *args: Argumentos pasados a la lambda
+                
+            Returns:
+                Resultado de evaluar la expresión con los parámetros sustituidos
+            """
+            # Verificar que el número de argumentos coincida con el número de parámetros
+            if len(args) != len(self.param_list):
+                raise ValueError(f"Lambda esperaba {len(self.param_list)} argumentos, pero recibió {len(args)}")
+            
+            # Crear un nuevo entorno para la evaluación de la lambda
+            lambda_env = captured_env.copy()
+            
+            # Si no existe data_local, crearlo
+            if 'data_local' not in lambda_env:
+                lambda_env['data_local'] = {}
+            
+            # Crear una copia del data_local para no modificar el original
+            lambda_env['data_local'] = lambda_env['data_local'].copy()
+            
+            # Asignar los argumentos a los parámetros en el entorno local
+            for param_name, arg_value in zip(self.param_list, args):
+                # Inferir el tipo del argumento
+                arg_type = self._infer_argument_type(arg_value)
+                lambda_env['data_local'][param_name] = (arg_type, arg_value)
+            
+            # Evaluar la expresión en el entorno con los parámetros asignados
+            try:
+                if hasattr(self.expression, 'eval'):
+                    result = self.expression.eval(lambda_env)
+                else:
+                    # Si la expresión no tiene método eval, retornarla directamente
+                    result = self.expression
+                return result
+            except Exception as e:
+                raise RuntimeError(f"Error evaluando lambda: {e}")
+        
+        # Agregar metadatos a la función para debugging
+        lambda_function.__name__ = f"lambda({', '.join(self.param_list)})"
+        lambda_function.__doc__ = f"Lambda function with parameters: {self.param_list}"
+        lambda_function.param_list = self.param_list
+        lambda_function.expression = self.expression
+        
+        return lambda_function
+    
+    def _infer_argument_type(self, value):
+        """
+        Infiere el tipo del lenguaje basado en el valor del argumento.
+        
+        Args:
+            value: Valor del argumento
+            
+        Returns:
+            list[str]: Lista con el tipo inferido
+        """
+        # Mapeo de tipos Python a tipos del lenguaje
+        if isinstance(value, int):
+            return ['Entero']
+        elif isinstance(value, float):
+            return ['Flotante']
+        elif isinstance(value, bool):
+            return ['Bool']
+        elif isinstance(value, complex):
+            return ['Complejo']
+        elif isinstance(value, str):
+            return ['Cadena']
+        elif isinstance(value, TDA.Cadena):
+            return ['Cadena']
+        elif isinstance(value, TDA.Arreglo):
+            # Para Arreglos, usar el tipo interno si está disponible
+            if hasattr(value, 'datatype'):
+                inner_type = python_type_to_language_type_list(value.datatype)
+                return ['Arreglo'] + inner_type
+            else:
+                return ['Arreglo', 'Entero']  # Default fallback
+        elif isinstance(value, TDA.Conjunto):
+            # Para Conjuntos, usar el tipo interno si está disponible
+            if hasattr(value, 'datatype'):
+                inner_type = python_type_to_language_type_list(value.datatype)
+                return ['Conjunto'] + inner_type
+            else:
+                return ['Conjunto', 'Entero']  # Default fallback
+        elif isinstance(value, TDA.Diccionario):
+            # Para Diccionarios, usar los tipos de clave y valor si están disponibles
+            if hasattr(value, 'key_datatype') and hasattr(value, 'value_datatype'):
+                key_type = python_type_to_language_type_list(value.key_datatype)
+                value_type = python_type_to_language_type_list(value.value_datatype)
+                return ['Diccionario'] + key_type + value_type
+            else:
+                return ['Diccionario', 'Cadena', 'Entero']  # Default fallback
+        elif isinstance(value, (TDA.Matriz, TDA.MatrizRachas, TDA.Multicotomizacion, TDA.M2VClasificacion)):
+            # Para otros tipos TDA, usar el nombre de la clase
+            class_name = value.__class__.__name__
+            if hasattr(value, 'datatype'):
+                inner_type = python_type_to_language_type_list(value.datatype)
+                return [class_name] + inner_type
+            else:
+                return [class_name]
+        else:
+            # Para tipos no reconocidos, asumir Entero
+            return ['Entero']
+
+
+class ObjFunctionCall:
+    def __init__(self, ID: str, ID_funcion: str, arg_list: list):
+        """
+        Constructor para llamadas a métodos de objetos.
+        
+        Args:
+            ID: Nombre del objeto en el entorno
+            ID_funcion: Nombre del método a llamar
+            arg_list: Lista de argumentos para el método
+        """
+        self.ID = ID
+        self.ID_funcion = ID_funcion
+        self.arg_list = arg_list
+
+    def __repr__(self):
+        return f"ObjFunctionCall(ID={self.ID}, ID_funcion={self.ID_funcion}, arg_list={self.arg_list})"
+
+    def eval(self, env):
+        """
+        Evalúa la llamada al método del objeto.
+        
+        Args:
+            env: Entorno de ejecución
+            
+        Returns:
+            Resultado de la llamada al método
+            
+        Raises:
+            ValueError: Si el objeto no existe
+            AttributeError: Si el método no existe en el objeto
+            TypeError: Si los argumentos son inválidos
+        """
+        # Verificar que el objeto existe en el entorno y obtenerlo
+        try:
+            datatype, obj_value = get_variable_from_env(env, self.ID)
+            # Determinar la fuente para actualizaciones posteriores
+            if self.ID in env.get('data_local', {}):
+                source = 'data_local'
+            else:
+                source = 'data'
+        except ValueError:
+            raise ValueError(f"Objeto '{self.ID}' no está definido en el entorno")
+        
+        # Validar que el objeto no sea None
+        if obj_value is None:
+            raise ValueError(f"Objeto '{self.ID}' tiene valor None, no se pueden llamar métodos")
+        
+        # Evaluar los argumentos de la lista
+        evaluated_args = []
+        for i, arg in enumerate(self.arg_list):
+            try:
+                if hasattr(arg, 'eval'):
+                    # Es una expresión que necesita evaluación
+                    evaluated_arg = arg.eval(env)
+                elif callable(arg):
+                    # Es una función (como lambda)
+                    evaluated_arg = arg
+                elif isinstance(arg, str):
+                    # Es un ID (identificador de variable), buscar en el entorno
+                    datatype, value = get_variable_from_env(env, arg)
+                    evaluated_arg = value
+                else:
+                    # Es un valor literal (int, float, bool, etc.)
+                    evaluated_arg = arg
+                evaluated_args.append(evaluated_arg)
+            except Exception as e:
+                raise ValueError(f"Error evaluando argumento {i+1}: {e}")
+        
+        # Verificar que el método existe en el objeto
+        if not hasattr(obj_value, self.ID_funcion):
+            available_methods = [method for method in dir(obj_value) if not method.startswith('_')]
+            raise AttributeError(f"Objeto '{self.ID}' de tipo {type(obj_value).__name__} no tiene método '{self.ID_funcion}'. "
+                               f"Métodos disponibles: {available_methods}")
+        
+        # Intentar llamar al método directamente con los argumentos evaluados
+        try:
+            result = getattr(obj_value, self.ID_funcion)(*evaluated_args)
+            
+            # Manejar métodos que modifican el objeto in-place (como pushback, add, etc.)
+            # y retornan None, actualizando el objeto en el entorno
+            if result is None and self._is_mutating_method(self.ID_funcion):
+                # El método modificó el objeto, actualizar en el entorno
+                if source == 'data_local':
+                    env['data_local'][self.ID] = (datatype, obj_value)
+                else:
+                    env['data'][self.ID] = (datatype, obj_value)
+                
+                # Retornar el objeto para permitir chaining o simplemente None
+                return obj_value
+            
+            return result
+            
+        except TypeError as e:
+            # Error de argumentos (número incorrecto, tipos incorrectos, etc.)
+            raise TypeError(f"Error llamando método '{self.ID_funcion}' en objeto '{self.ID}': {e}")
+        except AttributeError as e:
+            # El método no es callable o no existe (doble verificación)
+            raise AttributeError(f"'{self.ID_funcion}' no es un método callable en el objeto '{self.ID}': {e}")
+        except Exception as e:
+            # Otros errores durante la ejecución del método
+            raise RuntimeError(f"Error ejecutando método '{self.ID_funcion}' en objeto '{self.ID}': {e}")
+    
+    def _is_mutating_method(self, method_name: str) -> bool:
+        """
+        Determina si un método es mutante (modifica el objeto in-place).
+        
+        Args:
+            method_name: Nombre del método
+            
+        Returns:
+            bool: True si el método modifica el objeto
+        """
+        # Lista de métodos conocidos que modifican objetos TDA
+        mutating_methods = {
+            # Métodos de Arreglo
+            'pushback', 'pushfront', 'popback', 'popfront', 'insert', 'delete',
+            
+            # Métodos de Conjunto  
+            'add', 'remove',
+            
+            # Métodos de Diccionario
+            'pop', 'clear', 'update', 'setdefault',
+            
+            # Métodos de Matriz
+            'modificar',
+            
+            # Métodos de MatrizRachas
+            'modificaRacha',
+            
+            # Métodos de Multicotomizacion
+            'agnadeRegla', 'eliminarRegla',
+            
+            # Métodos de M2VClasificacion
+            'modificar',
+            
+            # Métodos generales que suelen ser mutantes
+            'append', 'extend', 'sort', 'reverse'
+        }
+        
+        return method_name in mutating_methods
+    
+    def _validate_argument_types(self, method, args):
+        """
+        Valida los tipos de argumentos para el método (opcional, para mayor robustez).
+        
+        Args:
+            method: Método a llamar
+            args: Argumentos evaluados
+            
+        Note:
+            Esta función podría extenderse para validar tipos específicos
+            basándose en anotaciones o documentación de métodos TDA.
+        """
+        # Esta función podría implementarse para validación adicional
+        # Por ahora, delegamos la validación al método mismo
+        pass
 
 def handle_type_a_conversion(datatype_str: str, value):
     """
@@ -876,16 +1197,11 @@ class VariableAssignationSimple:
         """
         Evaluates simple variable assignments with support for compound operators.
         """
-        if self.ID not in env['data_local'].keys() and self.ID not in env['data'].keys():
-            raise ValueError(f"'{self.ID}' no definida hasta el momento")
-        
         # Obtener el tipo de dato y valor actual de la variable existente
-        if self.ID in env['data_local'].keys():
-            datatype = env['data_local'][self.ID][0]
-            current_value = env['data_local'][self.ID][1]
-        else:
-            datatype = env['data'][self.ID][0]
-            current_value = env['data'][self.ID][1]
+        try:
+            datatype, current_value = get_variable_from_env(env, self.ID)
+        except ValueError:
+            raise ValueError(f"'{self.ID}' no definida hasta el momento")
         
         try:
             new_value = self.expression.eval(env)
@@ -992,12 +1308,10 @@ class VariableAssignationItemAccess:
             raise ValueError(f"'{self.ID}' no definida hasta el momento")
         
         # Obtener el tipo de dato y valor actual de la variable existente
-        if self.ID in env['data_local'].keys():
-            datatype = env['data_local'][self.ID][0]
-            container = env['data_local'][self.ID][1]
-        else:
-            datatype = env['data'][self.ID][0]
-            container = env['data'][self.ID][1]
+        try:
+            datatype, container = get_variable_from_env(env, self.ID)
+        except ValueError:
+            raise ValueError(f"'{self.ID}' no definida hasta el momento")
         
         # Evaluar la nueva expresión
         try:
@@ -1157,3 +1471,80 @@ class VariableAssignationItemAccess:
         
         # Para otros casos o tipos no reconocidos
         return None
+
+# =============================================================================
+
+class RelExpressionNode:
+    def __init__(self, termino1, termino2, oprel: str):
+        """
+        Nodo AST para expresiones relacionales.
+        
+        Args:
+            termino1: Primer término de la comparación (puede ser valor literal, ID, o expresión)
+            termino2: Segundo término de la comparación (puede ser valor literal, ID, o expresión)
+            oprel: Operador relacional como string ("<=", ">=", "==", "!=", "<", ">")
+        """
+        self.termino1 = termino1
+        self.termino2 = termino2
+        self.oprel = oprel
+
+    def __repr__(self):
+        return f"RelExpressionNode(termino1={self.termino1}, termino2={self.termino2}, oprel={self.oprel})"
+
+    def eval(self, env):
+        """
+        Evalúa la expresión relacional.
+        
+        Args:
+            env: Entorno de ejecución
+            
+        Returns:
+            bool: Resultado de la comparación relacional
+            
+        Raises:
+            ValueError: Si las variables no están definidas
+            TypeError: Si los tipos no son comparables
+            SyntaxError: Si el operador no es válido
+        """
+        # Evaluar termino1
+        if isinstance(self.termino1, str):
+            # Es un ID (identificador de variable), buscar en el entorno
+            datatype, valor1 = get_variable_from_env(env, self.termino1)
+        elif hasattr(self.termino1, 'eval'):
+            # Es una expresión que necesita evaluación
+            valor1 = self.termino1.eval(env)
+        else:
+            # Es un valor literal
+            valor1 = self.termino1
+        
+        # Evaluar termino2
+        if isinstance(self.termino2, str):
+            # Es un ID (identificador de variable), buscar en el entorno
+            datatype, valor2 = get_variable_from_env(env, self.termino2)
+        elif hasattr(self.termino2, 'eval'):
+            # Es una expresión que necesita evaluación
+            valor2 = self.termino2.eval(env)
+        else:
+            # Es un valor literal
+            valor2 = self.termino2
+        
+        # Aplicar el operador relacional específico
+        try:
+            if self.oprel == '<':
+                return valor1 < valor2
+            elif self.oprel == '>':
+                return valor1 > valor2
+            elif self.oprel == '<=':
+                return valor1 <= valor2
+            elif self.oprel == '>=':
+                return valor1 >= valor2
+            elif self.oprel == '==':
+                return valor1 == valor2
+            elif self.oprel == '!=':
+                return valor1 != valor2
+            else:
+                raise SyntaxError(f"Operador relacional '{self.oprel}' no reconocido")
+        except Exception as e:
+            raise TypeError(f"No se puede aplicar operador '{self.oprel}' entre {type(valor1).__name__} y {type(valor2).__name__}: {e}")
+
+# =============================================================================
