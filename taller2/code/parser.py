@@ -168,6 +168,7 @@ def p_statement(p):
               | var_assignation DELIM
               | obj_func_call DELIM
               | print DELIM
+              | func_call DELIM
     """
     if len(p) == 2:
         # Es un comentario
@@ -452,6 +453,16 @@ def p_obj_func_call(p):
     # Crear y retornar un ObjFunctionCall en lugar de una tupla
     p[0] = Nodes.ObjFunctionCall(p[1], p[3], p[5])
 
+# TODO Crea el Nodo FuncionCall
+def p_func_call(p):
+    """
+    func_call : ID DELIM arg_list DELIM
+    """
+    if p[2] != '(' or p[4] != ')':
+        raise SyntaxError("You must use . and (...) for function calls")
+    
+    p[0] = Nodes.FunctionCall(p[1], p[3])
+
 
 def p_id_list(p):
     """
@@ -512,7 +523,7 @@ def p_arit_expression(p):
         p[0] = p[1]  # caso base: solo un term
     else:
         # oparit1 es '+', '-'
-        p[0] = ('binoparit', p[2], p[1], p[3])
+        p[0] = Nodes.AritExpressionNode(p[1], p[3], p[2])
 
 
 def p_term(p):
@@ -524,7 +535,7 @@ def p_term(p):
         p[0] = p[1]
     else:
         # oparit2 es '*', '/', '//', '%', '@'
-        p[0] = ('binoparit', p[2], p[1], p[3])
+        p[0] = Nodes.AritExpressionNode(p[1], p[3], p[2])
 
 
 def p_factor(p):
@@ -534,9 +545,10 @@ def p_factor(p):
     if len(p) == 2:
         p[0] = p[1]
     elif p[1] == '-':
-        p[0] = ('uminus', p[2])
+        p[0] = Nodes.MinusNode(p[2])
     else:
-        p[0] = ('binoparit', p[1], p[3])
+        # **
+        p[0] = Nodes.AritExpressionNode(p[1], p[3], p[2])
 
 
 def p_base(p):
@@ -564,7 +576,7 @@ def p_log_expression(p):
         p[0] = p[1]
     else:
         # OPLOG1 es '&&', '||'
-        p[0] = ('binoplog', p[2], p[1], p[3])
+        p[0] = Nodes.LogExpressionNode(p[1], p[3], p[2])
 
 
 def p_log_term(p):
@@ -576,12 +588,12 @@ def p_log_term(p):
         p[0] = p[1]  # caso base: solo un log_base
     else:
         # OPLOG2 es '!'
-        p[0] = ('oplogneg', p[1], p[2])  # operador unario de negación lógica
+        p[0] = Nodes.LogExpressionNode(p[1], None, p[2])
 
 
 def p_log_base(p):
     """
-    log_base : BOOL
+    log_base : boolean
               | ID
               | DELIM log_expression DELIM
     """

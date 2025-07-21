@@ -235,6 +235,73 @@ def get_variable_from_env(env, variable_id: str):
 
 # =============================================================================
 
+class Server:
+    def __init__(self):
+        """
+        Los nombre de funciones también son clave de env
+        Los tipos de datos se guardan como 
+        """
+        self.env: dict[str, any] = {}
+        self.env['data_local']: dict = {} # Las variables son ID: (datatype, value)
+        self.env['data']: dict = {} # Las variables son ID: (datatype, value)
+        self.env['stack']: list[tuple[str, list, dict]] = [] # Se guarda (func_ID, porgramNodes, data)
+        self.env['program_iterator']: list = [] # Se guarda ProgramNode como lista de nodos
+
+    def add_function(self, ID: str, datatypes: list[str], params: dict[str, tuple[list, str]], body: list):
+        self.env[ID] = {
+            "datatypes": datatypes,
+            "params": params, # lista de ID: (datatype, ID)
+            "body": body,
+        }
+
+    def program_action(self):
+        if len(self.env['program_iterator']) > 0:
+            statement = self.env['program_iterator'].pop(0)
+            statement.eval(self.env)
+            self.program_action()
+        else:
+            self.env['stack'].pop()
+            if len(self.env['stack']) > 0:
+                func_ID: str = self.env['stack'][-1][0]
+                program_nodes: list = self.env['stack'][-1][1]
+                data: dict = self.env['stack'][-1][2]
+            else:
+                raise ValueError("No function to switch to")
+
+            if not func_ID in self.env:
+                raise ValueError(f"Function '{func_ID}' not found")
+
+            if program_nodes is not None:
+                self.env['program_iterator'].extend(program_nodes)
+
+            if data is not None:
+                self.env['data_local'].update(data)
+            else:
+                self.env['data_local'] = {}
+
+    def start_program(self, program_nodes: list):
+        self.env['stack'].append(('Principal', None, {}))
+        self.env['program_iterator'].extend(program_nodes)
+        self.program_action()
+
+    def swicth_function(self, func_ID: str):
+        if not func_ID in self.env:
+            raise ValueError(f"Function '{func_ID}' not found")
+        if len(self.env['stack']) == 0:
+            raise ValueError("No function to switch to")
+
+        prev_function_ID = self.env['stack'][-1][0]
+        self.env['stack'][-1][1] = self.env['program_iterator']
+        self.env[prev_function_ID]['data'] = self.env['data_local']
+
+        self.env['program_iterator'] = []
+        self.env['data_local'] = {}
+
+        self.env['stack'].append((func_ID, None))
+        self.env['program_iterator'].extend(self.env[func_ID]['body'])
+        
+
+
 class ProgramNode:
     def __init__(self, statements: list):
         self.statements = statements
@@ -1546,5 +1613,219 @@ class RelExpressionNode:
                 raise SyntaxError(f"Operador relacional '{self.oprel}' no reconocido")
         except Exception as e:
             raise TypeError(f"No se puede aplicar operador '{self.oprel}' entre {type(valor1).__name__} y {type(valor2).__name__}: {e}")
+
+
+class AritExpressionNode:
+    def __init__(self, termino1, termino2, oparit: str):
+        """
+        Nodo AST para expresiones aritméticas.
+        
+        Args:
+            termino1: Primer término de la operación (puede ser valor literal, ID, o expresión)
+            termino2: Segundo término de la operación (puede ser valor literal, ID, o expresión)
+            oparit: Operador aritmético como string ("+", "-", "*", "/", "//", "%", "@")
+        """
+        self.termino1 = termino1
+        self.termino2 = termino2
+        self.oparit = oparit
+
+    def __repr__(self):
+        return f"AritExpressionNode(termino1={self.termino1}, termino2={self.termino2}, oparit={self.oparit})"
+
+    def eval(self, env):
+        """
+        Evalúa la expresión aritmética.
+        
+        Args:
+            env: Entorno de ejecución
+            
+        Returns:
+            Resultado de la operación aritmética
+            
+        Raises:
+            ValueError: Si las variables no están definidas
+            TypeError: Si los tipos no son compatibles para la operación
+            SyntaxError: Si el operador no es válido
+            ZeroDivisionError: Si hay división por cero
+        """
+        # Evaluar termino1
+        if isinstance(self.termino1, str):
+            # Es un ID (identificador de variable), buscar en el entorno
+            datatype, valor1 = get_variable_from_env(env, self.termino1)
+        elif hasattr(self.termino1, 'eval'):
+            # Es una expresión que necesita evaluación
+            valor1 = self.termino1.eval(env)
+        else:
+            # Es un valor literal
+            valor1 = self.termino1
+        
+        # Evaluar termino2
+        if isinstance(self.termino2, str):
+            # Es un ID (identificador de variable), buscar en el entorno
+            datatype, valor2 = get_variable_from_env(env, self.termino2)
+        elif hasattr(self.termino2, 'eval'):
+            # Es una expresión que necesita evaluación
+            valor2 = self.termino2.eval(env)
+        else:
+            # Es un valor literal
+            valor2 = self.termino2
+        
+        # Aplicar el operador aritmético específico
+        try:
+            if self.oparit == '+':
+                return valor1 + valor2
+            elif self.oparit == '-':
+                return valor1 - valor2
+            elif self.oparit == '*':
+                return valor1 * valor2
+            elif self.oparit == '/':
+                if valor2 == 0:
+                    raise ZeroDivisionError("División por cero")
+                return valor1 / valor2
+            elif self.oparit == '//':
+                if valor2 == 0:
+                    raise ZeroDivisionError("División entera por cero")
+                return valor1 // valor2
+            elif self.oparit == '%':
+                if valor2 == 0:
+                    raise ZeroDivisionError("Módulo por cero")
+                return valor1 % valor2
+            elif self.oparit == '@':
+                return valor1 @ valor2
+            elif self.oparit == '**':
+                return valor1 ** valor2
+            else:
+                raise SyntaxError(f"Operador aritmético '{self.oparit}' no reconocido")
+        except ZeroDivisionError:
+            # Re-lanzar errores de división por cero tal como son
+            raise
+        except Exception as e:
+            raise TypeError(f"No se puede aplicar operador '{self.oparit}' entre {type(valor1).__name__} y {type(valor2).__name__}: {e}")
+
+
+class MinusNode:
+    def __init__(self, factor):
+        """
+        Nodo AST para la negación unaria (operador menos unario).
+        
+        Args:
+            factor: Término a negar (puede ser valor literal, ID, o expresión)
+        """
+        self.factor = factor
+
+    def __repr__(self):
+        return f"MinusNode(factor={self.factor})"
+
+    def eval(self, env):
+        """
+        Evalúa la negación unaria.
+        
+        Args:
+            env: Entorno de ejecución
+            
+        Returns:
+            Valor negativo del factor
+            
+        Raises:
+            ValueError: Si la variable no está definida
+            TypeError: Si el valor no se puede negar
+        """
+        # Evaluar el factor
+        if isinstance(self.factor, str):
+            # Es un ID (identificador de variable), buscar en el entorno
+            datatype, valor = get_variable_from_env(env, self.factor)
+        elif hasattr(self.factor, 'eval'):
+            # Es una expresión que necesita evaluación
+            valor = self.factor.eval(env)
+        else:
+            # Es un valor literal
+            valor = self.factor
+        
+        # Aplicar la negación (multiplicar por -1)
+        try:
+            return -valor
+        except Exception as e:
+            raise TypeError(f"No se puede negar el valor de tipo {type(valor).__name__}: {e}")
+
+
+class LogExpressionNode:
+    def __init__(self, termino1, termino2, opLOG: str):
+        """
+        Nodo AST para expresiones lógicas.
+        
+        Args:
+            termino1: Primer término de la operación lógica (puede ser valor literal, ID, o expresión)
+            termino2: Segundo término de la operación lógica (puede ser valor literal, ID, o expresión, o None para operaciones unarias)
+            opLOG: Operador lógico como string ("&&", "||", "!")
+        """
+        self.termino1 = termino1
+        self.termino2 = termino2
+        self.opLOG = opLOG
+
+    def __repr__(self):
+        return f"LogExpressionNode(termino1={self.termino1}, termino2={self.termino2}, opLOG={self.opLOG})"
+
+    def eval(self, env):
+        """
+        Evalúa la expresión lógica.
+        
+        Args:
+            env: Entorno de ejecución
+            
+        Returns:
+            bool: Resultado de la operación lógica
+            
+        Raises:
+            ValueError: Si las variables no están definidas
+            TypeError: Si los valores no se pueden usar en operaciones lógicas
+            SyntaxError: Si el operador no es válido
+        """
+        # Evaluar termino1
+        if isinstance(self.termino1, str):
+            # Es un ID (identificador de variable), buscar en el entorno
+            datatype, valor1 = get_variable_from_env(env, self.termino1)
+        elif hasattr(self.termino1, 'eval'):
+            # Es una expresión que necesita evaluación
+            valor1 = self.termino1.eval(env)
+        else:
+            # Es un valor literal
+            valor1 = self.termino1
+        
+        # Verificar si es operación unaria (termino2 es None)
+        if self.termino2 is None:
+            # Operación unaria - negación lógica
+            try:
+                if self.opLOG == '!':
+                    # NOT lógico - negar el valor como booleano
+                    return not bool(valor1)
+                else:
+                    raise SyntaxError(f"Operador lógico unario '{self.opLOG}' no reconocido")
+            except Exception as e:
+                raise TypeError(f"No se puede aplicar operador lógico unario '{self.opLOG}' a {type(valor1).__name__}: {e}")
+        
+        else:
+            # Operación binaria - evaluar termino2
+            if isinstance(self.termino2, str):
+                # Es un ID (identificador de variable), buscar en el entorno
+                datatype, valor2 = get_variable_from_env(env, self.termino2)
+            elif hasattr(self.termino2, 'eval'):
+                # Es una expresión que necesita evaluación
+                valor2 = self.termino2.eval(env)
+            else:
+                # Es un valor literal
+                valor2 = self.termino2
+            
+            # Aplicar el operador lógico binario específico
+            try:
+                if self.opLOG == '&&':
+                    # AND lógico - evaluar como booleanos
+                    return bool(valor1) and bool(valor2)
+                elif self.opLOG == '||':
+                    # OR lógico - evaluar como booleanos
+                    return bool(valor1) or bool(valor2)
+                else:
+                    raise SyntaxError(f"Operador lógico binario '{self.opLOG}' no reconocido")
+            except Exception as e:
+                raise TypeError(f"No se puede aplicar operador lógico '{self.opLOG}' entre {type(valor1).__name__} y {type(valor2).__name__}: {e}")
 
 # =============================================================================
