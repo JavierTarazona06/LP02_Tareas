@@ -1,10 +1,12 @@
-from utils import FileManager
-from controller import computer
-print("!")
+# main.py
+
+from view.interfaz import SimuladorComputador  # ✅ Nombre de la clase corregido
+from controller import computer  # Importa el backend para inicialización
 
 if __name__ == '__main__':
+    # Inicializa la emulación desde el backend
     computer.Action.start_emulation()
-    machine_code_str:str = FileManager.TXT.read_file_as_str(r"Ejemplos/suma.in")
-    computer.Action.load_machine_code(machine_code_str, 5)
-    computer.Action.execute_progam(5)
-    computer.Action.stop_emulation(True, True, "bin")
+
+    # Lanza la interfaz gráfica
+    app = SimuladorComputador()
+    app.mainloop()
