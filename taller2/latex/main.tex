@@ -164,81 +164,74 @@ y disponible en el repositorio GitHub del proyecto:
 
 \section{Manual Usuario}\label{sec:man_u}
 
-El primer paso es descargar el archivo \texttt{taller1.zip}.
+\subsection{Clonar el repositorio}
 
-El repositorio contiene:
-\begin{itemize}
-  \item \textbf{Código principal}
-  \begin{description}
-    \item[\texttt{a\_lexico.py}] Código principal del analizador léxico: 
-      define la lista de tokens, patrones (regex) y funciones \texttt{t\_…} que definen patrones
-      para cada categoría, y construye el lexer con PLY.
-  \end{description}
-
-  \item \textbf{Otros}
-  \begin{description}
-    \item[\texttt{InstallationGuide.md}] Guía paso a paso (Markdown) para crear y 
-      activar el entorno virtual y luego instalar las dependencias necesarias con 
-      \texttt{pip install -r requirements.txt}.
-    \item[\texttt{requirements.txt}] Lista de dependencias del proyecto 
-      (principalmente la versión de \texttt{ply} necesaria para ejecutar el analizador).
-  \end{description}
-
-  \item \textbf{Testing}
-  \begin{description}
-    \item[\texttt{tests/prototype1.txt}] Primer caso de prueba...
-  \end{description}
-\end{itemize}
-
-
-Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un 
-entorno virtual utilizando Python 3.10. o superior. Para ello, ejecute el siguiente 
-comando en 
-la terminal o línea de comandos:
-
-\begin{itemize}
-  \item En Windows:
-        \begin{verbatim}
-    python3.12 -m venv nombre_del_entorno
-  \end{verbatim}
-  \item En macOS o Linux:
-        \begin{verbatim}
-    python3.12 -m venv nombre_del_entorno
-  \end{verbatim}
-\end{itemize}
-
-Donde \texttt{nombre\_del\_entorno} es el nombre que desea asignar a su entorno virtual.
-A continuación, active el entorno virtual:
-
-\begin{itemize}
-  \item En Windows:
-        \begin{verbatim}
-    .\nombre_del_entorno\Scripts\activate
-  \end{verbatim}
-  \item En macOS o Linux:
-        \begin{verbatim}
-    source nombre_del_entorno/bin/activate
-  \end{verbatim}
-\end{itemize}
-
-Asegúrese de tener el entorno virtual activado. 
-A continuación, descargue las dependencias necesarias 
-(en este caso, únicamente \texttt{PLY} para gestionar \texttt{Lex}):
+Abra una terminal y ejecute:
 
 \begin{verbatim}
-    pip install -r requirements.txt
+git clone https://github.com/JavierTarazona06/LP02_Tareas.git
+cd LP02_Tareas/taller2/code
 \end{verbatim}
 
-Una vez activo y el entorno instalado, puede ejecutar el archivo 
-principal con el siguiente comando:
+\subsection{Crear y activar el entorno virtual}
 
-\begin{center}
-  \begin{adjustbox}{minipage=\linewidth, center}
-  \begin{verbatim}
-    python a_lexico.py
-  \end{verbatim}
-  \end{adjustbox}
-\end{center}
+\textbf{En Windows:}
+\begin{verbatim}
+python -m venv .venv
+.venv\Scripts\activate
+\end{verbatim}
+
+\textbf{En macOS o Linux:}
+\begin{verbatim}
+python3 -m venv .venv
+source .venv/bin/activate
+\end{verbatim}
+
+\subsection{Instalar dependencias}
+El proyecto requiere únicamente el paquete \texttt{PLY} (Python Lex-Yacc):
+
+\begin{verbatim}
+pip install ply
+\end{verbatim}
+
+O si tienes un archivo \texttt{requirements.txt}:
+\begin{verbatim}
+pip install -r requirements.txt
+\end{verbatim}
+
+\subsection{Ejecutar un programa}
+Coloca tu archivo fuente (por ejemplo, \texttt{tests/prototype1.txt}) en la carpeta \texttt{code/tests/}.
+
+Para ejecutar el parser e intérprete sobre tu archivo fuente:
+\begin{verbatim}
+python parser.py tests/prototype1.txt
+\end{verbatim}
+
+Si no especificas un archivo, por defecto se usará \texttt{tests/prototype1.txt}.
+
+\subsection{¿Qué hace el comando?}
+\begin{itemize}
+    \item Analiza el archivo fuente.
+    \item Construye el árbol de sintaxis abstracta (AST).
+    \item Ejecuta el programa.
+    \item Guarda el AST en un archivo binario (\texttt{ast\_guardado.pickle}).
+\end{itemize}
+
+\subsection{Ejemplo de archivo fuente}
+Crea un archivo \texttt{tests/prototype1.txt} con el siguiente contenido:
+
+\begin{verbatim}
+Func Vacio Principal() {
+    Entero x = 5;
+    imprimir(x);
+}
+\end{verbatim}
+
+\subsection{Notas adicionales}
+\begin{itemize}
+    \item Si ves errores de módulos, asegúrate de tener el entorno virtual activado y las dependencias instaladas.
+    \item El intérprete imprime los resultados en la consola.
+\end{itemize}
 
 
 %---------------------------------------------------------------------------------
@@ -247,6 +240,71 @@ principal con el siguiente comando:
 
 \section{Manual Técnico}\label{sec:man_t}
 
+\subsection{Estructura del Proyecto}
+
+El proyecto está organizado de la siguiente manera:
+
+\begin{itemize}
+    \item \textbf{code/} \\ Carpeta principal del código fuente.
+    \begin{itemize}
+        \item \texttt{lexer.py}: Analizador léxico (tokens y reglas).
+        \item \texttt{parser.py}: Analizador sintáctico y punto de entrada principal.
+        \item \texttt{ASTInterpreter.py}: Definición de nodos AST y lógica de interpretación/ejecución.
+        \item \texttt{TDA.py}: Tipos de datos abstractos usados por el lenguaje.
+        \item \texttt{semantic\_analyzer.py}: (Opcional) Análisis semántico adicional.
+        \item \texttt{tests/}: Casos de prueba de entrada.
+    \end{itemize}
+    \item \textbf{latex/} \\ Documentación y archivos LaTeX.
+\end{itemize}
+
+\subsection{Archivos Principales}
+
+\begin{description}
+    \item[lexer.py] Define los tokens, expresiones regulares y reglas de análisis léxico usando PLY.
+    \item[parser.py] Define la gramática, las reglas de producción y la construcción del AST. También contiene el punto de entrada para ejecutar el parser e intérprete.
+    \item[ASTInterpreter.py] Implementa los nodos del AST, el entorno de ejecución y la lógica de evaluación de cada nodo (declaraciones, expresiones, ciclos, funciones, etc.).
+    \item[TDA.py] Implementa los tipos de datos abstractos (arreglos, conjuntos, diccionarios, matrices, etc.) usados por el lenguaje.
+    \item[tests/prototypeX.txt] Archivos de prueba con programas de ejemplo escritos en el lenguaje diseñado.
+\end{description}
+
+\subsection{Flujo de Ejecución}
+
+\begin{enumerate}
+    \item El usuario ejecuta \texttt{parser.py} con un archivo fuente como argumento.
+    \item El archivo fuente es leído y procesado por el lexer y parser (PLY), construyendo el AST.
+    \item El nodo raíz del AST es evaluado, lo que inicia la ejecución del programa.
+    \item El entorno de ejecución (\texttt{env}) gestiona variables, funciones y el flujo de control.
+    \item Los resultados y salidas se imprimen en consola.
+\end{enumerate}
+
+\subsection{Extensión y Mantenimiento}
+
+\begin{itemize}
+    \item Para agregar nuevas construcciones al lenguaje, modifica \texttt{parser.py} (reglas de gramática) y \texttt{ASTInterpreter.py} (nodos y lógica de evaluación).
+    \item Para agregar nuevos tipos de datos, implementa la clase correspondiente en \texttt{TDA.py} y actualiza las reglas de conversión en \texttt{ASTInterpreter.py}.
+    \item Para depuración, puedes imprimir el AST generado o el entorno de ejecución en cualquier punto del código.
+    \item Los errores sintácticos y semánticos se reportan con mensajes claros en consola.
+\end{itemize}
+
+\subsection{Dependencias}
+
+\begin{itemize}
+    \item \textbf{Python 3.10+}
+    \item \textbf{PLY} (Python Lex-Yacc)
+\end{itemize}
+
+\subsection{Notas de Depuración}
+
+\begin{itemize}
+    \item Si el parser no reconoce una construcción, revisa la definición de tokens y reglas en \texttt{lexer.py} y \texttt{parser.py}.
+    \item Si el AST no se comporta como esperas, imprime los nodos y el entorno en \texttt{ASTInterpreter.py}.
+    \item Usa los archivos de prueba en \texttt{tests/} para validar cambios y nuevas funcionalidades.
+\end{itemize}
+
+
+%---------------------------------------------------------------------------------
+% Experimentación ---------------------------------------------------------
+%---------------------------------------------------------------------------------
 
 \section{Experimentación}\label{sec:exp}
 
@@ -264,62 +322,6 @@ principal con el siguiente comando:
 
 
 \section{Conclusiones}
-
-
-\section{Gramáticas}\label{sec:grammar}
-
-A continuación se describen los análisis sintácticos por categorías:
-
-\subsection{Definiciones Generales}
-
-\subsubsection*{Programa}
-
-\begin{verbatim}
-program ::= ('COMMENT' | func_declaration)* main_declaration
-\end{verbatim}
-
-Define la estructura general de un programa válido en el lenguaje. 
-Permite que haya cualquier cantidad de comentarios y llamadas
-definiciones de funciones (func\_call) al inicio, 
-pero siempre debe finalizar con una llamada a la función principal 
-(main\_call).
-
-\subsubsection*{Main Call}
-
-\begin{verbatim}
-main_declaration
-  ::= 'PALABCLAVE=Func' 
-        ( 'PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB' ) 
-        'PALABCLAVE=Principal' block
-\end{verbatim}
-
-\begin{itemize}
-    \item Detecta la definición \texttt{Func <tipo> Principal <block>}.
-    \item Valida cada parte:
-    \begin{itemize}
-        \item \texttt{Func} al inicio,
-        \item un tipo permitido,
-        \item nombre \texttt{Principal}.
-    \end{itemize}
-    \item Genera un nodo AST \texttt{('main', tipo, block)} para uso 
-      posterior.
-\end{itemize}
-
-\subsubsection*{Function Call}
-
-\begin{verbatim}
-func_declaration 
-      ::= 'PALABCLAVE=Func' 
-          ('PALABCLAVE=Vacio' | 'TIPOA' | 'TIPOB') 
-          'ID' block
-\end{verbatim}
-
-\begin{itemize}
-    \item Comprueba que empiece con \texttt{Func}.
-    \item Verifica que el tipo sea válido.
-    \item Construye y devuelve el nodo AST con el nombre y contenido del block.
-\end{itemize}
-
 
 
 \section{Referencias}

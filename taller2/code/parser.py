@@ -1,3 +1,6 @@
+import sys
+import pickle
+
 import ply.yacc as yacc
 
 import ASTInterpreter
@@ -73,9 +76,16 @@ def p_main_declaration(p):
     p[0] = Nodes.MainNode(p[6])
 
 
+def p_func_type(p):
+    """
+    func_type : PALABCLAVE
+              | datatype
+    """
+    p[0] = p[1]
+
 def p_func_declaration(p):
     """
-    func_declaration : PALABCLAVE (PALABCLAVE|datatype) ID DELIM param_list DELIM block
+    func_declaration : PALABCLAVE func_type ID DELIM param_list DELIM block
     """
     if p[4] != '(' or p[6] != ')':
         raise SyntaxError(f"After {p[3]} you must have (...)")
@@ -85,7 +95,7 @@ def p_func_declaration(p):
         raise SyntaxError("Función debe iniciar con 'Func'")
 
     # Verificar que el tipo sea válido
-    if p[2] is 'Vacio':
+    if p[2] == 'Vacio':
         p[2] = []
 
     p[0] = Nodes.FuncNode(p[2], p[3], p[5], p[7])
@@ -185,9 +195,17 @@ def p_statement(p):
         p[0] = p[1]
 
 
+def p_print_content(p):
+    """
+    print_content : string
+                  | ID
+                  | obj_func_call
+    """
+    p[0] = p[1]
+
 def p_print(p):
     """
-    print : PALABCLAVE DELIM (string | ID | obj_func_call) DELIM
+    print : PALABCLAVE DELIM print_content DELIM
     """
     # Validaciones semánticas
     if p[1] != 'imprimir':
@@ -198,11 +216,21 @@ def p_print(p):
     p[0] = ASTInterpreter.PrintNode(p[3])  # Crea un nodo AST para la impresión
 
 
+def p_var_decl_value(p):
+    """
+    var_decl_value : expression
+                   | iterables
+                   | obj_func_call
+                   | boolean
+                   | string
+    """
+    p[0] = p[1]
+
 def p_var_declaration(p):
     """
-    var_declaration : datatype ID OPASI ( expression | iterables | obj_func_call | boolean | string)
+    var_declaration : datatype ID OPASI var_decl_value
                     | TIPOB OPREL TIPOA OPREL ID OPASI TIPOB OPREL TIPOA OPREL DELIM arg_list DELIM
-                    | TIPOB OPREL TIPOA DELIM TIPOB OPREL ID OPASI (obj_func_call | DELIM)
+                    | TIPOB OPREL TIPOA DELIM TIPOB OPREL ID OPASI var_decl_value
     """
     # Caso 1: tipo simple con expresión
     if len(p) == 5:
@@ -269,10 +297,20 @@ def p_item_access(p):
         p[0] = p[1] + [int(p[3])]
 
 
+def p_var_assign_value(p):
+    """
+    var_assign_value : expression
+                     | obj_func_call
+                     | iterables
+                     | string
+                     | boolean
+    """
+    p[0] = p[1]
+
 def p_var_assignation(p):
     """
-    var_assignation : ID OPASI ( expression | obj_func_call | iterables | string | boolean )
-                    | ID item_access OPASI ( expression | obj_func_call | iterables | string | boolean  )
+    var_assignation : ID OPASI var_assign_value
+                    | ID item_access OPASI var_assign_value
     """
     # Caso 1: asignación simple
     if len(p) == 4:
@@ -412,7 +450,7 @@ def p_complex_array(p):
 
 def p_id_list(p):
     """
-    id_list: ID
+    id_list : ID
             | id_list DELIM ID
     """
     # ID
@@ -490,7 +528,7 @@ def p_func_call(p):
 
 def p_expression(p):
     """
-    expression: rel_expression
+    expression : rel_expression
                 | arit_expression
                 | log_expression
     """
@@ -591,7 +629,7 @@ def p_log_expression(p):
 
 def p_log_term(p):
     """
-    log_term: log_base
+    log_term : log_base
                 | OPLOG2 log_base %prec OPLOG2
     """
     if len(p) == 2:
@@ -734,6 +772,38 @@ def p_error(p):
 parser = yacc.yacc(debug=True)
 
 if __name__ == '__main__':
+    # Obtener el archivo fuente
+    if len(sys.argv) > 1:
+        source_file = sys.argv[1]
+    else:
+        # Archivo por defecto si no se especifica
+        source_file = 'tests/prototype1.txt'
+    
+    try:
+        data = open(source_file).read()      # tu archivo fuente
+        print(f"Parseando archivo: {source_file}")
+        ast_root = parser.parse(data)        # construye AST
+
+        # Guardar el AST
+        with open('ast_guardado.pickle', 'wb') as f:
+            pickle.dump(ast_root, f)
+        print("AST guardado en 'ast_guardado.pickle'")
+
+        if ast_root is not None:
+            print("Ejecutando AST...")
+            ast_root.eval()
+            print("Ejecución completada")
+        else:
+            raise SyntaxError("Error sintáctico cerca de EOF")
+            
+    except FileNotFoundError:
+        print(f"Error: No se encontró el archivo '{source_file}'")
+        print("Uso: python parser.py [archivo_fuente]")
+    except Exception as e:
+        print(f"Error: {e}")
+
+"""
+if __name__ == '__main__':
     while True:
         try:
             s = input('>> ')
@@ -743,11 +813,4 @@ if __name__ == '__main__':
             continue
         result = parser.parse(s)
         print(result)
-
-"""if __name__ == '__main__':
-    import sys
-    data = open(sys.argv[1]).read()      # tu archivo fuente
-    ast_root = parser.parse(data)        # construye AST
-    env = {}                              # entorno vacío
-    resultado = ast_root.eval(env)       # ejecutar
-    print(resultado)"""
+"""

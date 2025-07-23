@@ -669,32 +669,32 @@ def create_variables(variables_dict: dict[str, tuple[list[str], any]], env=None)
                 raise ValueError(f"'{variable_id}' ya está definida. No se puede definir variable con el mismo ID (nombre)")
             
             # Usar la misma lógica que VariableDeclaration.eval() para convertir/validar el valor
-            # Caso A: Tipo básico (un solo elemento en datatype)
+        # Caso A: Tipo básico (un solo elemento en datatype)
             if len(datatype) == 1:
                 tipo_basico = datatype[0]
-                # Verificar que sea un tipo básico válido
-                tipos_basicos = ['Entero', 'Flotante', 'Bool', 'Complejo', 'Cadena', 'Caracter']
-                if tipo_basico in tipos_basicos:
+            # Verificar que sea un tipo básico válido
+            tipos_basicos = ['Entero', 'Flotante', 'Bool', 'Complejo', 'Cadena', 'Caracter']
+            if tipo_basico in tipos_basicos:
                     converted_value = handle_type_a_conversion(tipo_basico, value)
-                else:
-                    raise TypeError(f"Tipo básico '{tipo_basico}' no reconocido")
-            
-            # Caso B: Tipos contenedores Arreglo/Conjunto (más de un elemento en datatype)
+            else:
+                raise TypeError(f"Tipo básico '{tipo_basico}' no reconocido")
+        
+        # Caso B: Tipos contenedores Arreglo/Conjunto (más de un elemento en datatype)
             elif len(datatype) > 1:
                 tipo_principal = datatype[0]
-                
-                if tipo_principal in ['Arreglo', 'Conjunto']:
-                    # Manejar Arreglos y Conjuntos anidados
+            
+            if tipo_principal in ['Arreglo', 'Conjunto']:
+                # Manejar Arreglos y Conjuntos anidados
                     converted_value = handle_nested_containers(datatype, value)
-                elif tipo_principal in ['Matriz', 'MatrizRachas', 'Multicotomizacion', 'M2VClasificacion', 'Diccionario']:
-                    # Caso C: Manejar contenedores especiales
+            elif tipo_principal in ['Matriz', 'MatrizRachas', 'Multicotomizacion', 'M2VClasificacion', 'Diccionario']:
+                # Caso C: Manejar contenedores especiales
                     converted_value = handle_special_containers(datatype, value)
-                else:
-                    raise TypeError(f"Tipo contenedor '{tipo_principal}' no implementado")
-            
             else:
-                raise TypeError("Declaración de tipo vacía o mal formada")
-            
+                raise TypeError(f"Tipo contenedor '{tipo_principal}' no implementado")
+        
+        else:
+            raise TypeError("Declaración de tipo vacía o mal formada")
+
             # Guardar la variable en el entorno local
             if 'data_local' not in env:
                 env['data_local'] = {}

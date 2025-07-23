@@ -6,11 +6,10 @@ Func Entero Euclides(Entero a, Entero b){
 		a = b;
 		b = r;
 	}
-	Retornar a
+	imprimir(a);
 }
 
 Func Vacio Principal(){
 	Entero res = Euclides(48,18);
-	imprimir(res);
 	// 6
 }
