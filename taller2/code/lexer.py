@@ -153,7 +153,7 @@ tokens += ['OPREL', 'OPASI', 'OPASIU', 'OPACC',
            'OPLOG2', 'OPLOG1']
 
 OPREL_PATTERN = r'(?:<=|>=|==|!=|<|>)'  # <= >= == != < >
-OPASI_PATTERN = r'(?:\*\*=|//=|\+=|-=|\*=|/=|%=|@=|=)'  # **= //= += -= *= /= %= @=
+OPASI_PATTERN = r'(?:\*\*=|//=|\+=|-=|\*=|/=|%=|@=|=)'  # **= //= += -= *= /= %= @= = 
 OPASIU_PATTERN = r'(?:\+\+|--)'  # ++ --
 OPACC_PATTERN = r'[\[\]\.]'  # [ ] .
 OPARIT_PATTERN3 = r'(?:\*\*)'  # **
