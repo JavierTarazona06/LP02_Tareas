@@ -1,13 +1,18 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import ttk, scrolledtext, filedialog
+
+from controller.computer import Action, Data
 
 
 class SimuladorComputador(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Simulador de Computador")
-        self.geometry("1600x1000")
+        self.geometry("1000x600")
         self._crear_scroll_general()
+
+        # Inicializar el backend
+        Action.start_emulation()
 
     def _crear_scroll_general(self):
         contenedor = tk.Frame(self)
@@ -16,7 +21,7 @@ class SimuladorComputador(tk.Tk):
         canvas = tk.Canvas(contenedor, bg='gray90')
         scrollbar = ttk.Scrollbar(
             contenedor, orient="vertical", command=canvas.yview)
-        self.scroll_frame = tk.Frame(canvas, bg='gray70')
+        self.scroll_frame = tk.Frame(canvas, bg='gray80')
 
         self.scroll_frame.bind(
             "<Configure>",
@@ -29,154 +34,93 @@ class SimuladorComputador(tk.Tk):
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        self._crear_secciones()
-
-    def _crear_secciones(self):
         self._crear_area_codigo()
-        self._crear_area_memoria()
-        self._crear_area_registros()
         self._crear_area_ejecucion()
 
     def _crear_area_codigo(self):
-        frame = ttk.LabelFrame(self.scroll_frame, text="Código", padding=10)
-        frame.grid(row=0, column=0, padx=10, pady=10, sticky="n")
+        frame = ttk.LabelFrame(self.scroll_frame, text="Código Ensamblador o Binario", padding=10)
+        frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        labels = ["Código de Alto Nivel", "Código Ensamblador",
-                  "Código Máquina Relocalizable"]
-        self.code_texts = []
-        self.line_numbers = []
+        ttk.Label(frame, text="Código:").pack(anchor="w")
+        self.codigo_text = scrolledtext.ScrolledText(frame, width=80, height=20)
+        self.codigo_text.pack()
 
-        for col, label in enumerate(labels):
-            ttk.Label(frame, text=label).grid(row=0, column=col)
+        btn_frame = tk.Frame(frame)
+        btn_frame.pack(fill="x", pady=5)
 
-            # Line numbers widget
-            ln = tk.Text(frame, width=4, height=30, padx=4, takefocus=0,
-                         border=0, background='gray90', state='disabled')
-            ln.grid(row=1, column=col, sticky="nsw", padx=(0, 0))
-            self.line_numbers.append(ln)
+        self.btn_cargar_archivo = ttk.Button(
+            btn_frame, text="Cargar desde Archivo", command=self._cargar_archivo)
+        self.btn_cargar_archivo.pack(side="left", padx=5)
 
-            # Editable code widget
-            txt = tk.Text(frame, width=28, height=30, wrap="none")
-            txt.grid(row=1, column=col, padx=(30, 5))
-            self.code_texts.append(txt)
+        ttk.Label(btn_frame, text="Dirección de carga (hex):").pack(side="left")
+        self.direccion_carga = ttk.Entry(btn_frame, width=10)
+        self.direccion_carga.pack(side="left", padx=5)
 
-            # Bindings for scrolling and updating line numbers
-            txt.bind('<KeyRelease>', self._update_all_line_numbers)
-            txt.bind('<MouseWheel>', self._on_mousewheel)
-            txt.bind('<Button-4>', self._on_mousewheel)  # Linux scroll up
-            txt.bind('<Button-5>', self._on_mousewheel)  # Linux scroll down
-            txt.bind('<Configure>', self._update_all_line_numbers)
-            txt.bind('<Return>', self._update_all_line_numbers)
-            txt.bind('<BackSpace>', self._update_all_line_numbers)
-            txt.bind('<<Paste>>', self._update_all_line_numbers)
-            txt.bind('<<Cut>>', self._update_all_line_numbers)
+        self.btn_enlazar = ttk.Button(
+            btn_frame, text="Cargar a Memoria", command=self._enlazar_codigo)
+        self.btn_enlazar.pack(side="left", padx=5)
 
-            # Synchronize scroll between code and line numbers
-            txt['yscrollcommand'] = lambda *args, idx=col: self._sync_scroll(
-                idx, *args)
+    def _cargar_archivo(self):
+        filepath = filedialog.askopenfilename(
+            title="Seleccionar archivo de código",
+               filetypes=(("Archivos de texto", "*.txt"),("Archivos de configuración", "*.in"),("Todos los archivos", "*.*")
+    )
+        )
+        if filepath:
+            with open(filepath, "r", encoding="utf-8") as file:
+                contenido = file.read()
+                self.codigo_text.delete(1.0, tk.END)
+                self.codigo_text.insert(tk.END, contenido)
 
-        self._update_all_line_numbers()
-
-    def _update_all_line_numbers(self, event=None):
-        for txt, ln in zip(self.code_texts, self.line_numbers):
-            ln.config(state='normal')
-            ln.delete('1.0', tk.END)
-            # Get the number of lines in the code widget
-            line_count = int(txt.index('end-1c').split('.')[0])
-            # Generate line numbers for each line
-            line_numbers_string = "\n".join(str(i)
-                                            for i in range(1, line_count + 1))
-            ln.insert('1.0', line_numbers_string)
-            ln.config(state='disabled')
-
-    def _on_mousewheel(self, event):
-        # Determine scroll direction
-        if event.num == 5 or event.delta < 0:
-            delta = 1
-        elif event.num == 4 or event.delta > 0:
-            delta = -1
+    def _enlazar_codigo(self):
+        codigo = self.codigo_text.get(1.0, tk.END).strip()
+        direccion = self.direccion_carga.get()
+        if codigo and direccion:
+            try:
+                direccion_int = int(direccion, 16)
+                Action.load_machine_code(codigo, direccion_int)
+                tk.messagebox.showinfo("Éxito", "Código cargado correctamente en la memoria.")
+            except Exception as e:
+                tk.messagebox.showerror("Error", f"No se pudo cargar: {e}")
         else:
-            delta = 0
-
-        for txt, ln in zip(self.code_texts, self.line_numbers):
-            txt.yview_scroll(delta, "units")
-            ln.yview_scroll(delta, "units")
-        return "break"
-
-    def _sync_scroll(self, idx, *args):
-        # Synchronize yview for all code and line number widgets
-        for i, (txt, ln) in enumerate(zip(self.code_texts, self.line_numbers)):
-            if len(args) == 2 and all(self._is_float(a) for a in args):
-                # Called from yscrollcommand, use yview_moveto
-                txt.yview_moveto(float(args[0]))
-                ln.yview_moveto(float(args[0]))
-            else:
-                # Called from scroll events, use yview
-                txt.yview(*args)
-                ln.yview(*args)
-
-    def _is_float(self, value):
-        try:
-            float(value)
-            return True
-        except Exception:
-            return False
-
-    def _crear_area_memoria(self):
-        frame = ttk.LabelFrame(
-            self.scroll_frame, text="Área de Memoria (16MiB, 4 bloques)", padding=10)
-        frame.grid(row=0, column=1, padx=10, pady=10, sticky="n")
-
-        self.areas_memoria = {}
-
-        nombres = ["CODE", "E/S", "DATOS", "PILA"]
-        for i, nombre in enumerate(nombres):
-            sub_frame = ttk.LabelFrame(frame, text=f"Área {nombre}")
-            sub_frame.grid(row=i//2, column=i % 2, padx=5, pady=5)
-            area = scrolledtext.ScrolledText(sub_frame, width=42, height=12)
-            area.pack()
-            self.areas_memoria[nombre] = area
-
-    def _crear_area_registros(self):
-        frame = ttk.LabelFrame(
-            self.scroll_frame, text="Registros (64 bits)", padding=10)
-        frame.grid(row=1, column=0, padx=10, pady=10, sticky="w")
-
-        especiales = ["PC", "SP", "IR", "ESTADO"]
-        for i, nombre in enumerate(especiales):
-            ttk.Label(frame, text=nombre).grid(row=i, column=0, sticky="w")
-            ttk.Entry(frame, width=20).grid(row=i, column=1)
-
-        for i in range(28):
-            ttk.Label(frame, text=f"R{i+4}").grid(row=i %
-                                                  14, column=(i // 14) * 2 + 2, sticky="w")
-            ttk.Entry(frame, width=20).grid(row=i %
-                                            14, column=(i // 14) * 2 + 3)
+            tk.messagebox.showwarning("Atención", "Falta código o dirección.")
 
     def _crear_area_ejecucion(self):
-        frame = ttk.LabelFrame(
-            self.scroll_frame, text="Ejecutar Programa", padding=10)
-        frame.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        frame = ttk.LabelFrame(self.scroll_frame, text="Ejecutar Programa", padding=10)
+        frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-        ttk.Label(frame, text="Dirección de inicio (hex):").grid(
-            row=0, column=0, sticky="w")
+        ttk.Label(frame, text="Dirección de inicio (hex):").pack(anchor="w")
         self.dir_inicio = ttk.Entry(frame, width=15)
-        self.dir_inicio.grid(row=0, column=1)
+        self.dir_inicio.pack(anchor="w", pady=5)
 
         self.btn_ejecutar = ttk.Button(
-            frame, text="Ejecutar", command=self._ejecutar_programa)
-        self.btn_ejecutar.grid(row=1, column=0, columnspan=2, pady=10)
+            frame, text="Ejecutar Programa", command=self._ejecutar_programa)
+        self.btn_ejecutar.pack(pady=5)
 
-        self.output_ejecucion = scrolledtext.ScrolledText(
-            frame, width=85, height=8)
-        self.output_ejecucion.grid(row=2, column=0, columnspan=3)
+        self.output_ejecucion = scrolledtext.ScrolledText(frame, width=100, height=10)
+        self.output_ejecucion.pack()
 
     def _ejecutar_programa(self):
-        direccion = self.dir_inicio.get()
-        self.output_ejecucion.insert(
-            tk.END, f"Ejecutando programa desde la dirección: {direccion}\n")
-        # Aquí iría la llamada al backend
-        # backend.ejecutar_desde(int(direccion, 16))
+      direccion = self.dir_inicio.get()
+      if direccion:
+        try:
+            direccion_int = int(direccion, 16)
+            Action.execute_progam(direccion_int)
+            self.output_ejecucion.insert(
+                tk.END, f"Programa ejecutado desde dirección {direccion}.\n")
+
+            # ✅ Leer solo la posición de resultado:
+            direccion_resultado = 131072
+            resultado = Data.Memory_D.get_memory_content(direccion_resultado, "decimal")
+
+            self.output_ejecucion.insert(
+                tk.END, f"Resultado guardado en memoria[{direccion_resultado}]: {resultado}\n")
+
+        except Exception as e:
+            self.output_ejecucion.insert(tk.END, f"Error: {e}\n")
+      else:
+          self.output_ejecucion.insert(tk.END, "Dirección de inicio vacía.\n")
+
 
 
 if __name__ == "__main__":
