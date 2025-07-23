@@ -120,13 +120,66 @@
 
 \section{Introducción}\label{sec:intr}
 
+En la actualidad, el análisis estadístico desempeña un papel fundamental en la toma de decisiones dentro de diversos campos de la investigación científica y aplicada. La correcta interpretación de datos experimentales, especialmente aquellos organizados en estructuras de clasificación de dos vías, requiere herramientas especializadas que permitan automatizar cálculos complejos y minimizar el margen de error humano.
 
+El presente trabajo tiene como objetivo principal el diseño y construcción de un lenguaje de programación de propósito específico, enfocado en la aplicación de pruebas estadísticas de tipo Friedman y en el análisis de rachas, facilitando la ejecución de procedimientos estadísticos robustos. Este lenguaje se desarrollará bajo el paradigma imperativo, incorporando estructuras de control básicas y soporte para tipos de datos abstractos como variables, arreglos y matrices.
+
+Para lograr este propósito, se propone una solución integral que abarca desde la definición formal de la gramática del lenguaje en notación E-BNF, el diseño de diagramas de sintaxis, la descripción semántica de cada producción, hasta la implementación práctica del compilador utilizando herramientas como FLEX para el análisis léxico y YACC para el análisis sintáctico y la ejecución de acciones semánticas.
+
+Este proyecto no solo contribuye a resolver una necesidad específica del ámbito estadístico, sino que también permite a los estudiantes afianzar sus conocimientos en teoría de lenguajes, compiladores y programación, integrando aspectos teóricos y prácticos en un caso de aplicación real.
 %---------------------------------------------------------------------------------
 % Marco Teórico ------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 
-\section{Marco Teórico}\label{sec:marc}
+\section{Marco Teórico}
 
+\subsection*{Lenguajes de Programación de Propósito Específico}
+
+Los lenguajes de programación de propósito específico (DSL, por sus siglas en inglés: \textit{Domain Specific Language}) son lenguajes diseñados para resolver problemas particulares dentro de un dominio limitado de aplicación. A diferencia de los lenguajes de propósito general (GPL), que ofrecen herramientas amplias para múltiples tipos de problemas, los DSL permiten expresar soluciones de manera más directa y eficiente dentro de un campo de especialidad. En el contexto del presente taller, se propone el diseño de un lenguaje de propósito específico orientado al análisis estadístico de dos vías de clasificación, haciendo uso de conceptos como las rachas y las pruebas estadísticas de Friedman.
+
+\subsection*{Clasificación de Dos Vías y Pruebas de Friedman}
+
+La clasificación de dos vías es una técnica estadística utilizada para analizar datos que pueden organizarse en una tabla de doble entrada, considerando dos factores de clasificación. Esta metodología es frecuente en el diseño de experimentos y el análisis no paramétrico, donde se evalúa la influencia de dos factores independientes sobre una variable de respuesta.
+
+Dentro de este marco, la prueba de Friedman es una prueba no paramétrica empleada para detectar diferencias significativas entre grupos relacionados. Es especialmente útil como alternativa a la prueba ANOVA de medidas repetidas, cuando no se cumplen los supuestos de normalidad o igualdad de varianzas. La prueba de Friedman se basa en la clasificación de las observaciones y el cálculo de estadísticos de rachas y rangos para establecer la significancia de las diferencias encontradas.
+
+\subsection*{Concepto de Rachas}
+
+El análisis de rachas es un procedimiento estadístico que evalúa la secuencia de datos para identificar patrones de agrupamiento o alternancia. Una racha se define como una sucesión de resultados similares dentro de una secuencia. Por ejemplo, en una serie de clasificaciones o rangos, las rachas permiten identificar tendencias sistemáticas o aleatoriedad. Este concepto es relevante para validar la independencia de las observaciones o para detectar sesgos en la clasificación de datos.
+
+\subsection*{Gramáticas Libres de Contexto (GLC) y Notación E-BNF}
+
+El diseño de lenguajes de programación requiere la definición formal de su sintaxis mediante gramáticas formales. En este taller se propone el uso de gramáticas libres de contexto (GLC) expresadas en notación E-BNF (\textit{Extended Backus-Naur Form}). Esta notación extiende la notación BNF tradicional para describir de forma más legible y compacta estructuras repetitivas, opciones y secuencias dentro de una gramática.
+
+Una GLC está compuesta por:
+\begin{itemize}
+    \item Un conjunto finito de símbolos terminales (tokens).
+    \item Un conjunto finito de símbolos no terminales.
+    \item Un símbolo de inicio.
+    \item Un conjunto finito de reglas de producción que definen cómo los símbolos no terminales pueden ser reemplazados por secuencias de símbolos terminales y no terminales.
+\end{itemize}
+
+\subsection*{Análisis Léxico y Sintáctico}
+
+El análisis léxico corresponde a la fase del compilador responsable de dividir el texto fuente en tokens significativos, eliminando espacios en blanco y comentarios. En este taller, se hará uso de la herramienta \texttt{FLEX} para construir el analizador léxico. 
+
+El análisis sintáctico, por su parte, valida que la secuencia de tokens se ajuste a las reglas definidas por la gramática, construyendo un árbol de derivación o árbol sintáctico. Para este fin se utilizará \texttt{YACC}, una herramienta para generar analizadores sintácticos basados en gramáticas libres de contexto.
+
+\subsection*{Semántica y Acciones Asociadas}
+
+Además de la sintaxis, un lenguaje de programación requiere definir el significado de sus construcciones. La semántica describe el comportamiento interno del compilador o intérprete al reconocer patrones sintácticos específicos. En este proyecto, se describirá la semántica de cada producción mediante acciones en lenguaje natural y se diseñará su estructura en diagramas UML.
+
+\subsection*{Estructuras de Control y Tipos de Datos Abstractos}
+
+El lenguaje propuesto debe soportar estructuras básicas del paradigma imperativo: secuencia, selección (estructuras condicionales) e iteración (bucles). Asimismo, debe permitir la definición y manipulación de variables, arreglos y matrices como tipos de datos abstractos que faciliten la implementación de procedimientos estadísticos complejos.
+
+\subsection*{Implementación en YACC}
+
+Finalmente, la implementación se realizará mediante \texttt{YACC} (Yet Another Compiler Compiler) o su equivalente en Java o Python. Esto permitirá no solo verificar la validez sintáctica de los programas escritos en el nuevo lenguaje, sino también ejecutar las acciones semánticas requeridas para procesar datos estadísticos y producir resultados coherentes con los métodos de clasificación de dos vías y pruebas de Friedman.
+
+\subsection*{Pruebas y Validación}
+
+Como parte del proceso de validación, se desarrollarán programas de prueba que demuestren la cobertura y robustez de la gramática diseñada, así como la correcta implementación de sus acciones semánticas. Las pruebas de escritorio verificarán que los programas sean aceptados por el compilador y produzcan los resultados esperados.
 
 
 %---------------------------------------------------------------------------------
@@ -135,7 +188,23 @@
 
 \section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
 
+\section*{Descripción del Problema}
 
+El problema planteado consiste en apoyar a un profesional del campo de la estadística matemática en el diseño y construcción de un lenguaje de programación de propósito específico, orientado a facilitar el análisis de datos mediante la técnica de clasificación de dos vías y la aplicación de pruebas estadísticas del tipo Friedman. 
+
+El lenguaje debe construirse bajo el paradigma imperativo, integrando estructuras de control básicas como secuencia, selección e iteración. Además, debe permitir la definición y manipulación de variables, arreglos y matrices, elementos esenciales para el tratamiento de grandes volúmenes de datos estadísticos. 
+
+Se requiere diseñar una gramática libre de contexto (GLC) en notación E-BNF que describa de forma clara y completa la sintaxis del lenguaje, así como desarrollar los diagramas de sintaxis correspondientes. Igualmente, se debe detallar la interpretación semántica de cada producción de la gramática y plasmarla en diagramas UML, asegurando una implementación coherente mediante el uso de YACC (o sus equivalentes en Java o Python).  
+
+Finalmente, se deben construir casos de prueba representativos para validar el correcto funcionamiento del lenguaje, tanto en su fase de análisis sintáctico como en la ejecución de las acciones semánticas.
+
+\section*{Justificación}
+
+El desarrollo de un lenguaje de propósito específico enfocado en el análisis estadístico de dos vías y pruebas de Friedman surge de la necesidad de automatizar procesos estadísticos repetitivos y complejos que, realizados manualmente, resultan propensos a errores y demandan un alto consumo de tiempo y recursos.
+
+Al contar con un lenguaje adaptado a las particularidades de este campo, se facilita la tarea de los investigadores y analistas estadísticos, permitiéndoles escribir programas que describan de forma directa sus experimentos y análisis, sin necesidad de recurrir a lenguajes de propósito general que requieren más tiempo de desarrollo y validación.
+
+Asimismo, este proyecto fortalece las competencias de los estudiantes en la construcción de compiladores, abarcando desde el diseño de gramáticas libres de contexto hasta la implementación de analizadores léxicos y sintácticos, integrando conocimientos de teoría de lenguajes, análisis léxico y semántico, y automatización de tareas mediante herramientas como FLEX y YACC.
 
 %---------------------------------------------------------------------------------
 % Diseño de la solución ---------------------------------------------------------
@@ -264,6 +333,16 @@ principal con el siguiente comando:
 
 
 \section{Conclusiones}
+
+\begin{itemize}
+    \item La construcción de un lenguaje de propósito específico orientado a la estadística permite optimizar procesos de análisis de datos, reduciendo tiempos y minimizando errores humanos.
+    
+    \item El diseño de una gramática libre de contexto, acompañado de diagramas de sintaxis y UML, proporciona una base sólida para la implementación de compiladores eficientes y mantenibles.
+    
+    \item La integración de herramientas como FLEX y YACC en la construcción del compilador refuerza habilidades prácticas en el desarrollo de analizadores léxicos y sintácticos, permitiendo validar la coherencia entre la sintaxis y la semántica del lenguaje propuesto.
+    
+    \item La elaboración de casos de prueba complejos garantiza que el lenguaje diseñado es funcional, robusto y capaz de resolver problemas reales en el ámbito de la estadística matemática.
+\end{itemize}
 
 
 \section{Gramáticas}\label{sec:grammar}
