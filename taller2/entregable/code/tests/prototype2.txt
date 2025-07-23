@@ -1,0 +1,47 @@
+// Pruebas tipo Friedman
+
+Func Vacio Principal{
+	Entero nBloques, nTratamientos = 5, 3;	
+	Matriz<Flotante> matrizFried = Matriz<Flotante>(Bloques, nTratamientos);
+	
+	Arreglo<Flotante> arr = [12.0, 15.0, 10.0]; 
+	matrizFried[0] = arr;
+	matrizFried[1] = [8.0, 9.0, 7.0];
+	matrizFried[2] = [20.0, 18.0, 22.0];
+	matrizFried[3] = [11.0, 14.0, 13.0];
+	matrizFried[4] = [9.0, 8.0, 12.0];	
+	
+	Matriz<Entero> matrizRangos = matrizFried.traeRangos();
+	/*
+		[[2, 3, 1]
+		 [2, 3, 1]
+		 [2, 1, 3]
+		 [1, 3, 2]
+		 [2, 1, 3]]
+	*/
+	
+	Arreglo<Entero> sumaRangos = matrizFried.sumaRangos();
+	// [9, 11, 10]
+	Arreglo<Entero> sumaRangos = matrizFried.sumaRangos(1);
+	// 11
+	
+	Arreglo<Entero> sumaRangos = matrizFried.promRangos(1);
+	// 11/5
+	
+	Flotante estadFried = matrizFried.estadFriedman();
+	// 0.4
+	
+	// Grados de libertad
+	Flotante estadFried = matrizFried.estadFriedmanGL();
+	
+	Flotante imanDaven = matrizFried.imanDavenPort();
+	
+	// Grados de libertad
+	Flotante imanDaven = matrizFried.imanDavenPortGL();
+	
+	Flotante coefKendall = matrizFried.coefConcordKendall();
+	Flotante varExp = matrizFried.varianzaExplicada();
+	Flotante alpha = 0.05;
+	Flotante varExp = matrizFried.nemenyi(alpha);	
+	
+}

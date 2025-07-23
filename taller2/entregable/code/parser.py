@@ -7,7 +7,6 @@ import ASTInterpreter
 import lexer
 import ASTInterpreter as Nodes
 from lexer import tokens
-from lexer import lexer as lexer_obj
 import TDA
 
 # TODO: Manejar los retornos de las funciones y que puedan estar como var assigantion y en print
@@ -759,16 +758,14 @@ def p_while_statement(p):
 # ------------------------------------------------------------------------------
 
 def p_error(p):
-    if not p:
-        print("Error sintáctico cerca de EOF")
-        return
-    print("Error sintáctico cerca de", p.value)
-    # Ignorar tokens hasta encontrar ';' o '}'
+    print("Error sintáctico cerca de", p.value if p else 'EOF')
+    # Ignorar tokens hasta encontrar ';'
     while True:
         tok = parser.token()
         if not tok or tok.type == ';' or tok.type == '}':
             break
-    parser.errok()
+    parser.errok()  # Restablece el estado de error, para que el parser pueda seguir
+    return tok  # Re-inyecta el token ';' como próximo lookahead
 
 
 # Construir el parser
@@ -785,7 +782,7 @@ if __name__ == '__main__':
     try:
         data = open(source_file).read()      # tu archivo fuente
         print(f"Parseando archivo: {source_file}")
-        ast_root = parser.parse(data, lexer = lexer_obj)        # construye AST
+        ast_root = parser.parse(data)        # construye AST
 
         # Guardar el AST
         with open('ast_guardado.pickle', 'wb') as f:
