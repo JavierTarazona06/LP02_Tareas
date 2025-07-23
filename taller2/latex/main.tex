@@ -209,7 +209,75 @@ Asimismo, este proyecto fortalece las competencias de los estudiantes en la cons
 %---------------------------------------------------------------------------------
 % Diseño de la solución ---------------------------------------------------------
 %---------------------------------------------------------------------------------
+\section{Diseño solucion Parser}
 
+La solución está dividida en varios componentes modulares, cada uno con una responsabilidad clara, siguiendo un flujo de procesamiento bien definido.
+
+\begin{enumerate}
+    \item \textbf{Analizador Léxico (\texttt{lexer.py})}: Responsable de leer el código fuente y dividirlo en una secuencia de "tokens" o componentes léxicos. Por ejemplo, la línea \texttt{Entero miVar = 10;} se convierte en tokens como \texttt{TIPOA('Entero')}, \texttt{ID('miVar')}, \texttt{OPASI('=')}, etc.
+
+    \item \textbf{Analizador Sintáctico (\texttt{parser.py})}: Utiliza PLY (YACC) para definir la gramática del lenguaje. Su función es verificar si la secuencia de tokens es sintácticamente correcta y construir un \textbf{Árbol de Sintaxis Abstracta (AST)} que representa la estructura del código.
+
+    \item \textbf{Árbol de Sintaxis Abstracta y Nodos (\texttt{ASTInterpreter.py})}: Define las clases que representan cada construcción del lenguaje (variables, operaciones, bucles). El parser crea instancias de estos nodos para construir el AST. La raíz del árbol es un \texttt{ProgramNode}.
+
+    \item \textbf{Intérprete (Lógica en \texttt{ASTInterpreter.py})}: Recorre el AST nodo por nodo y ejecuta la lógica correspondiente. Mantiene un "entorno" o tabla de símbolos para almacenar las variables y sus valores durante la ejecución.
+
+    \item \textbf{Tipos de Datos Abstractos (\texttt{TDA.py})}: Módulo auxiliar para definir implementaciones personalizadas de tipos de datos, como \texttt{TDA.Cadena}, permitiendo añadir funcionalidades específicas a los tipos del lenguaje.
+\end{enumerate}
+
+El flujo general es: \\
+\texttt{Código Fuente} $\rightarrow$ \texttt{Lexer} $\rightarrow$ \texttt{Tokens} $\rightarrow$ \texttt{Parser} $\rightarrow$ \texttt{AST} $\rightarrow$ \texttt{Intérprete} $\rightarrow$ \texttt{Resultado}.
+
+
+
+
+\subsection{Diseño del Lenguaje}
+
+La gramática definida en \texttt{parser.py} da forma a un lenguaje con las siguientes características:
+
+\subsubsection{Estructura del Programa}
+\begin{itemize}
+    \item Un programa debe contener una función principal obligatoria: \texttt{Func Vacio Principal () \{ ... \}}.
+    \item Se pueden declarar otras funciones antes de la función \texttt{Principal}.
+    \item Los comentarios se ignoran durante el análisis.
+\end{itemize}
+
+\subsubsection{Tipos de Datos}
+\begin{itemize}
+    \item \textbf{Primitivos (\texttt{TIPOA})}: Soporta \texttt{Entero}, \texttt{Real}, \texttt{Complejo}, \texttt{Booleano} y \texttt{Caracter}.
+    \item \textbf{Genéricos / Contenedores (\texttt{TIPOB})}: Admite tipos que contienen otros tipos usando la sintaxis \texttt{<>}, como \texttt{Lista<Entero>} o \texttt{Diccionario<Cadena, Entero>}.
+\end{itemize}
+
+\subsubsection{Variables}
+\begin{itemize}
+    \item \textbf{Declaración}: \texttt{tipo nombre = valor;}. Ejemplo: \texttt{Entero miNumero = 10;}.
+    \item \textbf{Asignación}: \texttt{nombre = nuevoValor;} o para elementos de colección: \texttt{miLista[0] = 20;}.
+\end{itemize}
+
+\subsubsection{Funciones}
+\begin{itemize}
+    \item \textbf{Declaración}: \texttt{Func tipoRetorno nombre (params) \{ ... \}}.
+    \item \textbf{Llamada a Funciones}: \texttt{nombreFuncion(args);}.
+    \item \textbf{Llamada a Métodos de Objetos}: Usa la notación de punto, ej. \texttt{miLista.agregar(5);}.
+\end{itemize}
+
+\subsubsection{Estructuras de Control}
+\begin{itemize}
+    \item \textbf{Condicional}: \texttt{Si (cond) \{...\} Sino (cond) \{...\} Entonces \{...\} }.
+    \item \textbf{Bucle Para}: \texttt{Para (Entero i = 0; i < 10; i = i + 1) \{ ... \}}.
+    \item \textbf{Bucle Mientras}: \texttt{Mientras (condicion) \{ ... \}}.
+\end{itemize}
+
+\subsubsection{Expresiones}
+El parser maneja correctamente la precedencia de operadores para evaluar expresiones aritméticas, lógicas y relacionales.
+
+\subsubsection{Entrada/Salida}
+La función \texttt{imprimir()} se utiliza para mostrar valores en la consola. Ejemplo: \texttt{imprimir("Hola");}.
+\\\\
+
+\textbf{Conclusión del Diseño}
+
+El diseño es \textbf{robusto y extensible}. La separación de responsabilidades, especialmente la creación del AST como un paso intermedio, es la clave. Este enfoque desacopla el análisis sintáctico de la ejecución, lo que permitiría, por ejemplo, cambiar el intérprete por un generador de código para compilar el lenguaje a otro formato sin modificar el parser.
 \section{Diseño de la solución}\label{sec:dis}
 
 La solución se estructura en las siguientes capas semánticas:
