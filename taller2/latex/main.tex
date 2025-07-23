@@ -212,6 +212,96 @@ Asimismo, este proyecto fortalece las competencias de los estudiantes en la cons
 
 \section{Diseño de la solución}\label{sec:dis}
 
+La solución se estructura en las siguientes capas semánticas:
+
+\begin{enumerate}
+  \item \textbf{Construcción del AST a partir de PLY}  
+    \begin{itemize}
+      \item Cada regla de la gramática en \texttt{parser.py} (por ejemplo \texttt{p\_program}, \texttt{p\_main\_declaration}, \texttt{p\_func\_declaration}, \ldots) invoca constructores de nodos definidos en \texttt{ASTInterpreter.py}.
+      \item Clases de nodo principales:
+        \begin{itemize}
+          \item \texttt{ProgramNode()} (\texttt{p\_program})
+          \item \texttt{MainNode(statements)} (\texttt{p\_main\_declaration})
+          \item \texttt{FuncNode(datatypes, ID, params, body)} (\texttt{p\_func\_declaration})
+          \item \texttt{PrintNode(expression)} (\texttt{p\_print})
+          \item \texttt{VariableDeclaration(datatype, ID, expression)} y \texttt{GenericVariableDeclNode(datatype, ID, arg\_list)} (\texttt{p\_var\_declaration})
+          \item Asignaciones: \texttt{VariableAssignationSimple} y \texttt{VariableAssignationItemAccess} (\texttt{p\_var\_assignation})
+          \item Expresiones: \texttt{RelExpressionNode}, \texttt{AritExpressionNode}, \texttt{MinusNode}, \texttt{LogExpressionNode}
+          \item Control de flujo: \texttt{SelectionNode}, \texttt{ForNode}, \texttt{WhileNode}
+          \item Funciones de orden superior: \texttt{LambdaNode}, \texttt{ObjFunctionCall}, \texttt{FunctionCall}
+        \end{itemize}
+      \item El parser invoca \texttt{parser.parse()} para obtener un AST puro, sin ejecutar nada.
+    \end{itemize}
+
+  \item \textbf{Manejo de entorno y alcances (\texttt{Server} y utilidades)}  
+    \begin{itemize}
+      \item La clase \texttt{Server} (en \texttt{lexer.py}) mantiene:
+        \begin{itemize}
+          \item \texttt{env['data\_local']} y \texttt{env['data']} para variables locales y globales.
+          \item \texttt{env['stack']} y \texttt{env['program\_iterator']} para gestionar llamadas/retornos de funciones.
+        \end{itemize}
+      \item Ciclo de vida de ejecución:
+        \begin{itemize}
+          \item \texttt{Server.start\_program()} crea variables de \texttt{Principal} con \texttt{create\_variables(...)} y arranca \texttt{program\_action()}.
+          \item \texttt{Server.program\_action()} itera \texttt{program\_iterator}, invocando \texttt{.eval(env)} en cada nodo.
+          \item \texttt{Server.swicth\_function(ID)} salva el estado actual en \texttt{env['stack']} y crea un nuevo \texttt{data\_local}.
+        \end{itemize}
+      \item Búsqueda y definición de variables:
+        \begin{itemize}
+          \item \texttt{get\_variable\_from\_env(env, ID)} busca en \texttt{data\_local} y \texttt{data}.
+          \item \texttt{create\_variables(dict, env)} y \texttt{update\_variables(...)} usan la lógica de \texttt{VariableDeclaration.eval} y \texttt{handle\_\*} para validar y convertir valores.
+        \end{itemize}
+    \end{itemize}
+
+  \item \textbf{Chequeo de tipos y coherencia semántica}  
+    \begin{itemize}
+      \item Mapeos de tipos:
+        \begin{itemize}
+          \item Python→lenguaje: \texttt{python\_type\_to\_language\_type\_list()}, \texttt{python\_type\_to\_language\_type\_string()}.
+          \item Lenguaje→Python: \texttt{language\_type\_to\_python\_type()}, \texttt{language\_type\_list\_to\_python\_type()}.
+        \end{itemize}
+      \item Conversión y validación de valores en \texttt{.eval(env)} de nodos:
+        \begin{itemize}
+          \item Básicos: \texttt{handle\_type\_a\_conversion(datatype\_str, value)}.
+          \item Contenedores anidados: \texttt{handle\_nested\_containers(datatypes, value)}.
+          \item Contenedores especiales (\texttt{Diccionario}, \texttt{Matriz}, \ldots): \texttt{handle\_special\_containers()}, \texttt{handle\_diccionario\_case()}, \texttt{handle\_tda\_containers\_case()}.
+        \end{itemize}
+      \item Cada nodo implementa un método \texttt{eval(env)} que:
+        \begin{itemize}
+          \item Evalúa subexpresiones o recupera literales.
+          \item Llama a las utilidades \texttt{handle\_\*} para garantizar tipado.
+          \item Usa \texttt{create\_variables} / \texttt{update\_variables} para declaraciones y asignaciones.
+          \item Lanza \texttt{ValueError}, \texttt{TypeError} o \texttt{IndexError} en errores semánticos.
+        \end{itemize}
+    \end{itemize}
+
+  \item \textbf{Generación de código intermedio (próximos pasos)}  
+    \begin{itemize}
+      \item Actualmente el intérprete ejecuta directamente el AST. Para un compilador:
+        \begin{itemize}
+          \item Añadir \texttt{emit()} en cada clase de nodo (ej. en \texttt{AritExpressionNode}, \texttt{VariableDeclaration}, …).
+          \item Mantener una lista global \texttt{QuadList} y un generador de temporales \texttt{new\_temp()}.
+          \item Ejemplo prototipo:
+            \begin{lstlisting}[language=Python]
+def emit(self):
+    left = self.termino1.addr
+    right = self.termino2.addr
+    self.addr = new_temp()
+    QuadList.append((self.oparit, left, right, self.addr))
+            \end{lstlisting}
+        \end{itemize}
+    \end{itemize}
+
+  \item \textbf{Manejo de errores semánticos}  
+    \begin{itemize}
+      \item Reemplazar \texttt{print()} por excepciones o acumulación en una lista de errores.
+      \item En el lexer/parser: \texttt{t\_error} y \texttt{p\_error} deben lanzar o registrar errores.
+      \item En la fase semántica: capturar errores de tipo e índice en los \texttt{.eval(env)} y al final presentar un informe único.
+      \item Eventual implementación de \texttt{semanticError(msg,pos)} para centralizar mensajes.
+    \end{itemize}
+\end{enumerate}
+
+
 
 %---------------------------------------------------------------------------------
 % Código Fuente ---------------------------------------------------------
