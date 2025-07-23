@@ -1,7 +1,6 @@
 // Algoritmo de Euclides
 
 Func Entero Euclides(Entero a, Entero b){
-	Entero r = 0;
 	Mientras (b != 0){
 		r = a % b;
 		a = b;

@@ -105,7 +105,7 @@
   \par\vspace{3cm}
 
   % Fecha
-  {\large Junio 24 de 2025 \par}
+  {\large Junio 22 de 2025 \par}
 \end{titlepage}
 
 \tableofcontents % Inserta la tabla de contenidos
@@ -188,7 +188,7 @@ Como parte del proceso de validación, se desarrollarán programas de prueba que
 
 \section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
 
-\section*{Descripción del Problema}
+\subsection*{Descripción del Problema}
 
 El problema planteado consiste en apoyar a un profesional del campo de la estadística matemática en el diseño y construcción de un lenguaje de programación de propósito específico, orientado a facilitar el análisis de datos mediante la técnica de clasificación de dos vías y la aplicación de pruebas estadísticas del tipo Friedman. 
 
@@ -198,7 +198,7 @@ Se requiere diseñar una gramática libre de contexto (GLC) en notación E-BNF q
 
 Finalmente, se deben construir casos de prueba representativos para validar el correcto funcionamiento del lenguaje, tanto en su fase de análisis sintáctico como en la ejecución de las acciones semánticas.
 
-\section*{Justificación}
+\subsection*{Justificación}
 
 El desarrollo de un lenguaje de propósito específico enfocado en el análisis estadístico de dos vías y pruebas de Friedman surge de la necesidad de automatizar procesos estadísticos repetitivos y complejos que, realizados manualmente, resultan propensos a errores y demandan un alto consumo de tiempo y recursos.
 
@@ -209,7 +209,8 @@ Asimismo, este proyecto fortalece las competencias de los estudiantes en la cons
 %---------------------------------------------------------------------------------
 % Diseño de la solución ---------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Diseño solucion Parser}
+\section{Diseño solucion}
+\subsection{Parser}
 
 La solución está dividida en varios componentes modulares, cada uno con una responsabilidad clara, siguiendo un flujo de procesamiento bien definido.
 
@@ -278,7 +279,7 @@ La función \texttt{imprimir()} se utiliza para mostrar valores en la consola. E
 \textbf{Conclusión del Diseño}
 
 El diseño es \textbf{robusto y extensible}. La separación de responsabilidades, especialmente la creación del AST como un paso intermedio, es la clave. Este enfoque desacopla el análisis sintáctico de la ejecución, lo que permitiría, por ejemplo, cambiar el intérprete por un generador de código para compilar el lenguaje a otro formato sin modificar el parser.
-\section{Diseño de la solución}\label{sec:dis}
+\subsection{Analizador Semántico}\label{sec:dis}
 
 La solución se estructura en las siguientes capas semánticas:
 
@@ -482,7 +483,12 @@ El proyecto está organizado de la siguiente manera:
         \item \texttt{tests/}: Casos de prueba de entrada.
     \end{itemize}
     \item \textbf{latex/} \\ Documentación y archivos LaTeX.
+    \item \textbf{latex/grammar.ebnf} \\ \textbf{Archivo adjunto con los diagramas y la gramática formal del lenguaje.}
 \end{itemize}
+
+\subsection*{Nota sobre los diagramas de gramática}
+
+Los diagramas y la descripción formal de la gramática del lenguaje se encuentran en el archivo adjunto \texttt{grammar.ebnf} dentro de la carpeta \texttt{latex/}.
 
 \subsection{Archivos Principales}
 
@@ -556,8 +562,7 @@ El proyecto está organizado de la siguiente manera:
     \item El diseño de una gramática libre de contexto, acompañado de diagramas de sintaxis y UML, proporciona una base sólida para la implementación de compiladores eficientes y mantenibles.
     
     \item La integración de herramientas como FLEX y YACC en la construcción del compilador refuerza habilidades prácticas en el desarrollo de analizadores léxicos y sintácticos, permitiendo validar la coherencia entre la sintaxis y la semántica del lenguaje propuesto.
-    
-    \item La elaboración de casos de prueba complejos garantiza que el lenguaje diseñado es funcional, robusto y capaz de resolver problemas reales en el ámbito de la estadística matemática.
+  
 \end{itemize}
 
 
