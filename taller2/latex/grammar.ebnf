@@ -14,7 +14,7 @@ param_element ::= datatype 'ID'
 block ::= '{' statement_list '}'
 statement_list ::=  statement +
 statement ::= 'COMMENT'
-          | ( var_declaration | var_assignation | obj_func_call | print | func_call) ';'
+          | ( var_declaration | var_assignation | obj_func_call | print | func_call | selection_statement | for_statement | while_statement) ';'
           
 print ::= 'imprimir' '(' (string | 'ID' | obj_func_call) ')'
 
@@ -35,8 +35,8 @@ var_declaration ::= datatype 'ID' '=' ( expression | iterables | obj_func_call |
                  | 'TIPOB' '<' 'TIPOA'',' 'TIPOB' '>' 'ID' '=' (obj_func_call | ';')
                  
 item_access ::= ('[' 'ENTERO' ']')+
-var_assignation ::= 'ID' 'OPASI' ( expression | obj_func_call | iterables| boolean | string )
-                | 'ID' item_access 'OPASI' ( expression | obj_func_call | iterables | boolean | string )
+var_assignation ::= 'ID' 'OPASI' ( expression | obj_func_call | iterables| boolean | string | func_call )
+                | 'ID' item_access 'OPASI' ( expression | obj_func_call | iterables | boolean | string | func_call )
 
                  
 iterables ::= '{' elements_array '}'
@@ -81,3 +81,20 @@ log_term ::= '!'? log_base
 log_base ::= BOOL
            | ID
            | '(' log_expression ')'
+           
+           
+selection_statement      ::= si_branch sino_branches entonces_branch_opt
+
+si_branch               ::= 'Si' 'DELIM=(' selection_condition 'DELIM=)' block
+
+sino_branches           ::= sino_branches sino_branch
+
+sino_branch             ::= "Sino" "DELIM=(" selection_condition "DELIM=)" block
+
+entonces_branch_opt     ::= ('Entonces' block) ?
+
+selection_condition     ::= log_expression | rel_expression
+
+for_statement ::= 'PALABCLAVE=Para' 'DELIM=(' var_declaration 'DELIM=;' rel_expression 'DELIM=;' var_assignation 'DELIM=)' block
+
+while_statement ::= 'PALABCLAVE=Mientras' 'DELIM=(' rel_expression 'DELIM=)' block

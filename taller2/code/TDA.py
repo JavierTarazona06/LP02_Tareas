@@ -1731,7 +1731,7 @@ class MatrizRachas:
     Cada celda de la matriz es una cadena de rachas.
     Cada racha es una cadena de caracteres.
     """
-    def __init__(self, bloques, tratamientos):
+    def __init__(self, bloques: Arreglo, tratamientos: Arreglo):
         self.datatype = Cadena
         self.bloques = bloques
         self.tratamientos = tratamientos

@@ -7,7 +7,7 @@ import lexer
 # UTILITY FUNCTIONS FOR TYPE CONVERSION
 # =============================================================================
 
-def python_type_to_language_type_list(python_type):
+def python_type_to_language_type_list(python_type):  
     """
     Convierte un tipo Python a lista de tipos del lenguaje, manejando tipos anidados recursivamente.
     
@@ -200,465 +200,6 @@ def language_type_list_to_python_type(datatype_list: list[str]):
     else:
         # Otros tipos especiales
         return language_type_to_python_type(main_type)
-
-# =============================================================================
-# UTILITY FUNCTION FOR ENVIRONMENT VARIABLE LOOKUP
-# =============================================================================
-
-def get_variable_from_env(env, variable_id: str):
-    """
-    Busca una variable en el entorno y retorna su tipo de dato y valor.
-    
-    Args:
-        env: Entorno de ejecución (diccionario con 'data_local' y 'data')
-        variable_id: ID de la variable a buscar
-        
-    Returns:
-        tuple: (datatype, value) donde datatype es lista de tipos y value es el valor
-        
-    Raises:
-        ValueError: Si la variable no está definida en el entorno
-    """
-    # Primero buscar en data_local (variables locales)
-    if variable_id in env.get('data_local', {}):
-        datatype, value = env['data_local'][variable_id]
-        return datatype, value
-    
-    # Luego buscar en data (variables globales)
-    elif variable_id in env.get('data', {}):
-        datatype, value = env['data'][variable_id]
-        return datatype, value
-    
-    # Si no se encuentra en ningún lado, lanzar error
-    else:
-        raise ValueError(f"Variable '{variable_id}' no está definida en el entorno")
-
-# =============================================================================
-
-class Server:
-    def __init__(self):
-        """
-        Los nombre de funciones también son clave de env
-        Los tipos de datos se guardan como 
-        """
-        self.env: dict[str, any] = {}
-        self.env['data_local']: dict = {} # Las variables son ID: (datatype, value)
-        self.env['data']: dict = {} # Las variables son ID: (datatype, value)
-        self.env['stack']: list[tuple[str, list, dict]] = [] # Se guarda (func_ID, porgramNodes, data)
-        self.env['program_iterator']: list = [] # Se guarda ProgramNode como lista de nodos
-
-    def add_function(self, ID: str, datatypes: list[str], params: dict[str, tuple[list, str]], body: list):
-        self.env[ID] = {
-            "datatypes": datatypes,
-            "params": params, # lista de ID: (datatype, ID)
-            "body": body,
-        }
-
-    def program_action(self):
-        if len(self.env['program_iterator']) > 0:
-            statement = self.env['program_iterator'].pop(0)
-            statement.eval(self.env)
-            self.program_action()
-        else:
-            self.env['stack'].pop()
-            if len(self.env['stack']) > 0:
-                func_ID: str = self.env['stack'][-1][0]
-                program_nodes: list = self.env['stack'][-1][1]
-                data: dict = self.env['stack'][-1][2]
-            else:
-                raise ValueError("No function to switch to")
-
-            if not func_ID in self.env:
-                raise ValueError(f"Function '{func_ID}' not found")
-
-            if program_nodes is not None:
-                self.env['program_iterator'].extend(program_nodes)
-
-            if data is not None:
-                self.env['data_local'].update(data)
-            else:
-                self.env['data_local'] = {}
-
-    def start_program(self, program_nodes: list):
-        self.env['stack'].append(('Principal', None, {}))
-        self.env['program_iterator'].extend(program_nodes)
-        self.program_action()
-
-    def swicth_function(self, func_ID: str):
-        if not func_ID in self.env:
-            raise ValueError(f"Function '{func_ID}' not found")
-        if len(self.env['stack']) == 0:
-            raise ValueError("No function to switch to")
-
-        prev_function_ID = self.env['stack'][-1][0]
-        self.env['stack'][-1][1] = self.env['program_iterator']
-        self.env[prev_function_ID]['data'] = self.env['data_local']
-
-        self.env['program_iterator'] = []
-        self.env['data_local'] = {}
-
-        self.env['stack'].append((func_ID, None))
-        self.env['program_iterator'].extend(self.env[func_ID]['body'])
-        
-
-
-class ProgramNode:
-    def __init__(self, statements: list):
-        self.statements = statements
-
-    def __repr__(self):
-        return f"ProgramNode(statements={self.statements})"
-
-    def eval(self, env):
-        env['data_local'] = []
-        env['data'] = []
-        env["stack"] = []
-        for statement in self.statements:
-            statement.eval(env)
-
-
-class MainNode:
-    def __init__(self, statements: list):
-        self.statements = statements
-
-    def __repr__(self):
-        return f"MainNode(statements={self.statements})"
-
-    def eval(self, env):
-        env['stack'] = ['Principal']
-        for statement in self.statements:
-            statement.eval(env)
-
-
-class FuncNode:
-    def __init__(self, datatypes: list[str], ID: str,
-                 params: list[tuple[list, str]], body: list):
-        self.datatypes = datatypes
-        self.ID = ID
-        self.params = params
-        self.body = body
-
-    def __repr__(self):
-        return f"FuncNode(datatypes={self.datatypes}, ID={self.ID}, params={self.params}, body={self.body})"
-
-    def eval(self, env):
-        """
-        Adds the function to the environment.
-        """
-        if self.ID in env:
-            raise ValueError(f"'{self.ID}' already defined. Can't define function with the same ID (name)")
-        func_dict = {
-            "datatypes": self.datatypes,
-            "params": self.params,
-            "body": self.body,
-            "data": None
-        }
-        env[self.ID] = func_dict
-
-
-class PrintNode:
-    def __init__(self, expression):
-        self.expression = expression
-
-    def __repr__(self):
-        return f"PrintNode(expression={self.expression})"
-
-    def eval(self, env):
-        """
-        Evaluates the expression and prints the result.
-        """
-        value = self.expression.eval(env)
-        print(value)  # Assuming the expression has an eval method
-
-
-class LambdaNode:
-    def __init__(self, param_list: list[str], expression):
-        """
-        Constructor para expresiones lambda.
-        
-        Args:
-            param_list: Lista de nombres de parámetros (IDs)
-            expression: Expresión a evaluar cuando se llame la lambda
-        """
-        self.param_list = param_list
-        self.expression = expression
-
-    def __repr__(self):
-        return f"LambdaNode(param_list={self.param_list}, expression={self.expression})"
-
-    def eval(self, env):
-        """
-        Evalúa la expresión lambda y retorna una función callable.
-        
-        Returns:
-            function: Función que puede ser llamada con argumentos
-        """
-        # Capturar el entorno actual para crear un closure
-        captured_env = env.copy()
-        
-        def lambda_function(*args):
-            """
-            Función lambda generada que puede ser llamada con argumentos.
-            
-            Args:
-                *args: Argumentos pasados a la lambda
-                
-            Returns:
-                Resultado de evaluar la expresión con los parámetros sustituidos
-            """
-            # Verificar que el número de argumentos coincida con el número de parámetros
-            if len(args) != len(self.param_list):
-                raise ValueError(f"Lambda esperaba {len(self.param_list)} argumentos, pero recibió {len(args)}")
-            
-            # Crear un nuevo entorno para la evaluación de la lambda
-            lambda_env = captured_env.copy()
-            
-            # Si no existe data_local, crearlo
-            if 'data_local' not in lambda_env:
-                lambda_env['data_local'] = {}
-            
-            # Crear una copia del data_local para no modificar el original
-            lambda_env['data_local'] = lambda_env['data_local'].copy()
-            
-            # Asignar los argumentos a los parámetros en el entorno local
-            for param_name, arg_value in zip(self.param_list, args):
-                # Inferir el tipo del argumento
-                arg_type = self._infer_argument_type(arg_value)
-                lambda_env['data_local'][param_name] = (arg_type, arg_value)
-            
-            # Evaluar la expresión en el entorno con los parámetros asignados
-            try:
-                if hasattr(self.expression, 'eval'):
-                    result = self.expression.eval(lambda_env)
-                else:
-                    # Si la expresión no tiene método eval, retornarla directamente
-                    result = self.expression
-                return result
-            except Exception as e:
-                raise RuntimeError(f"Error evaluando lambda: {e}")
-        
-        # Agregar metadatos a la función para debugging
-        lambda_function.__name__ = f"lambda({', '.join(self.param_list)})"
-        lambda_function.__doc__ = f"Lambda function with parameters: {self.param_list}"
-        lambda_function.param_list = self.param_list
-        lambda_function.expression = self.expression
-        
-        return lambda_function
-    
-    def _infer_argument_type(self, value):
-        """
-        Infiere el tipo del lenguaje basado en el valor del argumento.
-        
-        Args:
-            value: Valor del argumento
-            
-        Returns:
-            list[str]: Lista con el tipo inferido
-        """
-        # Mapeo de tipos Python a tipos del lenguaje
-        if isinstance(value, int):
-            return ['Entero']
-        elif isinstance(value, float):
-            return ['Flotante']
-        elif isinstance(value, bool):
-            return ['Bool']
-        elif isinstance(value, complex):
-            return ['Complejo']
-        elif isinstance(value, str):
-            return ['Cadena']
-        elif isinstance(value, TDA.Cadena):
-            return ['Cadena']
-        elif isinstance(value, TDA.Arreglo):
-            # Para Arreglos, usar el tipo interno si está disponible
-            if hasattr(value, 'datatype'):
-                inner_type = python_type_to_language_type_list(value.datatype)
-                return ['Arreglo'] + inner_type
-            else:
-                return ['Arreglo', 'Entero']  # Default fallback
-        elif isinstance(value, TDA.Conjunto):
-            # Para Conjuntos, usar el tipo interno si está disponible
-            if hasattr(value, 'datatype'):
-                inner_type = python_type_to_language_type_list(value.datatype)
-                return ['Conjunto'] + inner_type
-            else:
-                return ['Conjunto', 'Entero']  # Default fallback
-        elif isinstance(value, TDA.Diccionario):
-            # Para Diccionarios, usar los tipos de clave y valor si están disponibles
-            if hasattr(value, 'key_datatype') and hasattr(value, 'value_datatype'):
-                key_type = python_type_to_language_type_list(value.key_datatype)
-                value_type = python_type_to_language_type_list(value.value_datatype)
-                return ['Diccionario'] + key_type + value_type
-            else:
-                return ['Diccionario', 'Cadena', 'Entero']  # Default fallback
-        elif isinstance(value, (TDA.Matriz, TDA.MatrizRachas, TDA.Multicotomizacion, TDA.M2VClasificacion)):
-            # Para otros tipos TDA, usar el nombre de la clase
-            class_name = value.__class__.__name__
-            if hasattr(value, 'datatype'):
-                inner_type = python_type_to_language_type_list(value.datatype)
-                return [class_name] + inner_type
-            else:
-                return [class_name]
-        else:
-            # Para tipos no reconocidos, asumir Entero
-            return ['Entero']
-
-
-class ObjFunctionCall:
-    def __init__(self, ID: str, ID_funcion: str, arg_list: list):
-        """
-        Constructor para llamadas a métodos de objetos.
-        
-        Args:
-            ID: Nombre del objeto en el entorno
-            ID_funcion: Nombre del método a llamar
-            arg_list: Lista de argumentos para el método
-        """
-        self.ID = ID
-        self.ID_funcion = ID_funcion
-        self.arg_list = arg_list
-
-    def __repr__(self):
-        return f"ObjFunctionCall(ID={self.ID}, ID_funcion={self.ID_funcion}, arg_list={self.arg_list})"
-
-    def eval(self, env):
-        """
-        Evalúa la llamada al método del objeto.
-        
-        Args:
-            env: Entorno de ejecución
-            
-        Returns:
-            Resultado de la llamada al método
-            
-        Raises:
-            ValueError: Si el objeto no existe
-            AttributeError: Si el método no existe en el objeto
-            TypeError: Si los argumentos son inválidos
-        """
-        # Verificar que el objeto existe en el entorno y obtenerlo
-        try:
-            datatype, obj_value = get_variable_from_env(env, self.ID)
-            # Determinar la fuente para actualizaciones posteriores
-            if self.ID in env.get('data_local', {}):
-                source = 'data_local'
-            else:
-                source = 'data'
-        except ValueError:
-            raise ValueError(f"Objeto '{self.ID}' no está definido en el entorno")
-        
-        # Validar que el objeto no sea None
-        if obj_value is None:
-            raise ValueError(f"Objeto '{self.ID}' tiene valor None, no se pueden llamar métodos")
-        
-        # Evaluar los argumentos de la lista
-        evaluated_args = []
-        for i, arg in enumerate(self.arg_list):
-            try:
-                if hasattr(arg, 'eval'):
-                    # Es una expresión que necesita evaluación
-                    evaluated_arg = arg.eval(env)
-                elif callable(arg):
-                    # Es una función (como lambda)
-                    evaluated_arg = arg
-                elif isinstance(arg, str):
-                    # Es un ID (identificador de variable), buscar en el entorno
-                    datatype, value = get_variable_from_env(env, arg)
-                    evaluated_arg = value
-                else:
-                    # Es un valor literal (int, float, bool, etc.)
-                    evaluated_arg = arg
-                evaluated_args.append(evaluated_arg)
-            except Exception as e:
-                raise ValueError(f"Error evaluando argumento {i+1}: {e}")
-        
-        # Verificar que el método existe en el objeto
-        if not hasattr(obj_value, self.ID_funcion):
-            available_methods = [method for method in dir(obj_value) if not method.startswith('_')]
-            raise AttributeError(f"Objeto '{self.ID}' de tipo {type(obj_value).__name__} no tiene método '{self.ID_funcion}'. "
-                               f"Métodos disponibles: {available_methods}")
-        
-        # Intentar llamar al método directamente con los argumentos evaluados
-        try:
-            result = getattr(obj_value, self.ID_funcion)(*evaluated_args)
-            
-            # Manejar métodos que modifican el objeto in-place (como pushback, add, etc.)
-            # y retornan None, actualizando el objeto en el entorno
-            if result is None and self._is_mutating_method(self.ID_funcion):
-                # El método modificó el objeto, actualizar en el entorno
-                if source == 'data_local':
-                    env['data_local'][self.ID] = (datatype, obj_value)
-                else:
-                    env['data'][self.ID] = (datatype, obj_value)
-                
-                # Retornar el objeto para permitir chaining o simplemente None
-                return obj_value
-            
-            return result
-            
-        except TypeError as e:
-            # Error de argumentos (número incorrecto, tipos incorrectos, etc.)
-            raise TypeError(f"Error llamando método '{self.ID_funcion}' en objeto '{self.ID}': {e}")
-        except AttributeError as e:
-            # El método no es callable o no existe (doble verificación)
-            raise AttributeError(f"'{self.ID_funcion}' no es un método callable en el objeto '{self.ID}': {e}")
-        except Exception as e:
-            # Otros errores durante la ejecución del método
-            raise RuntimeError(f"Error ejecutando método '{self.ID_funcion}' en objeto '{self.ID}': {e}")
-    
-    def _is_mutating_method(self, method_name: str) -> bool:
-        """
-        Determina si un método es mutante (modifica el objeto in-place).
-        
-        Args:
-            method_name: Nombre del método
-            
-        Returns:
-            bool: True si el método modifica el objeto
-        """
-        # Lista de métodos conocidos que modifican objetos TDA
-        mutating_methods = {
-            # Métodos de Arreglo
-            'pushback', 'pushfront', 'popback', 'popfront', 'insert', 'delete',
-            
-            # Métodos de Conjunto  
-            'add', 'remove',
-            
-            # Métodos de Diccionario
-            'pop', 'clear', 'update', 'setdefault',
-            
-            # Métodos de Matriz
-            'modificar',
-            
-            # Métodos de MatrizRachas
-            'modificaRacha',
-            
-            # Métodos de Multicotomizacion
-            'agnadeRegla', 'eliminarRegla',
-            
-            # Métodos de M2VClasificacion
-            'modificar',
-            
-            # Métodos generales que suelen ser mutantes
-            'append', 'extend', 'sort', 'reverse'
-        }
-        
-        return method_name in mutating_methods
-    
-    def _validate_argument_types(self, method, args):
-        """
-        Valida los tipos de argumentos para el método (opcional, para mayor robustez).
-        
-        Args:
-            method: Método a llamar
-            args: Argumentos evaluados
-            
-        Note:
-            Esta función podría extenderse para validar tipos específicos
-            basándose en anotaciones o documentación de métodos TDA.
-        """
-        # Esta función podría implementarse para validación adicional
-        # Por ahora, delegamos la validación al método mismo
-        pass
 
 def handle_type_a_conversion(datatype_str: str, value):
     """
@@ -1058,6 +599,360 @@ def handle_tda_containers_case(datatypes: list[str], value):
     
     return value
 
+# =============================================================================
+# UTILITY FUNCTION FOR ENVIRONMENT VARIABLE LOOKUP
+# =============================================================================
+
+def get_variable_from_env(env, variable_id: str):
+    """
+    Busca una variable en el entorno y retorna su tipo de dato y valor.
+    
+    Args:
+        env: Entorno de ejecución (diccionario con 'data_local' y 'data')
+        variable_id: ID de la variable a buscar
+        
+    Returns:
+        tuple: (datatype, value) donde datatype es lista de tipos y value es el valor
+        
+    Raises:
+        ValueError: Si la variable no está definida en el entorno
+    """
+    # Primero buscar en data_local (variables locales)
+    if variable_id in env.get('data_local', {}):
+        datatype, value = env['data_local'][variable_id]
+        return datatype, value
+    
+    # Luego buscar en data (variables globales)
+    elif variable_id in env.get('data', {}):
+        datatype, value = env['data'][variable_id]
+        return datatype, value
+    
+    # Si no se encuentra en ningún lado, lanzar error
+    else:
+        raise ValueError(f"Variable '{variable_id}' no está definida en el entorno")
+
+def create_variables(variables_dict: dict[str, tuple[list[str], any]], env=None):
+    """
+    Crea variables en el entorno usando la lógica existente de VariableDeclaration.
+    En data_local se guardan las variables locales.
+    En data se guardan las variables globales. Pero aun no se implementa.
+
+    Args:
+        variables_dict: Diccionario con clave ID (str) y valor (datatype: list[str], value: any)
+        env: Entorno de ejecución (opcional, si no se proporciona usa SERVER.env)
+        
+    Returns:
+        dict: Diccionario con los resultados de la creación de variables
+            - 'success': Lista de IDs de variables creadas exitosamente
+            - 'errors': Lista de tuplas (ID, error) para variables que fallaron
+            
+    Examples:
+        variables = {
+            'x': (['Entero'], 42),
+            'arr': (['Arreglo', 'Entero'], [1, 2, 3]),
+            'mat': (['Matriz', 'Flotante'], None)
+        }
+        result = crear_variables(variables_dict, env)
+    """
+    if env is None:
+        env = SERVER.env
+    
+    results = {
+        'success': [],
+        'errors': []
+    }
+    
+    for variable_id, (datatype, value) in variables_dict.items():
+        try:
+            # Verificar que la variable no esté ya definida
+            if variable_id in env.get('data_local', {}) or variable_id in env.get('data', {}):
+                raise ValueError(f"'{variable_id}' ya está definida. No se puede definir variable con el mismo ID (nombre)")
+            
+            # Usar la misma lógica que VariableDeclaration.eval() para convertir/validar el valor
+            # Caso A: Tipo básico (un solo elemento en datatype)
+            if len(datatype) == 1:
+                tipo_basico = datatype[0]
+                # Verificar que sea un tipo básico válido
+                tipos_basicos = ['Entero', 'Flotante', 'Bool', 'Complejo', 'Cadena', 'Caracter']
+                if tipo_basico in tipos_basicos:
+                    converted_value = handle_type_a_conversion(tipo_basico, value)
+                else:
+                    raise TypeError(f"Tipo básico '{tipo_basico}' no reconocido")
+            
+            # Caso B: Tipos contenedores Arreglo/Conjunto (más de un elemento en datatype)
+            elif len(datatype) > 1:
+                tipo_principal = datatype[0]
+                
+                if tipo_principal in ['Arreglo', 'Conjunto']:
+                    # Manejar Arreglos y Conjuntos anidados
+                    converted_value = handle_nested_containers(datatype, value)
+                elif tipo_principal in ['Matriz', 'MatrizRachas', 'Multicotomizacion', 'M2VClasificacion', 'Diccionario']:
+                    # Caso C: Manejar contenedores especiales
+                    converted_value = handle_special_containers(datatype, value)
+                else:
+                    raise TypeError(f"Tipo contenedor '{tipo_principal}' no implementado")
+            
+            else:
+                raise TypeError("Declaración de tipo vacía o mal formada")
+            
+            # Guardar la variable en el entorno local
+            if 'data_local' not in env:
+                env['data_local'] = {}
+            env['data_local'][variable_id] = (datatype, converted_value)
+            
+            results['success'].append(variable_id)
+            
+        except Exception as e:
+            results['errors'].append((variable_id, str(e)))
+
+    # Si hay errores, lanzar error
+    if len(results['errors']) > 0:
+        raise ValueError(f"Error al crear variables: {results['errors']}")
+    
+    return results
+
+def update_variables(variables_dict: dict[str, tuple[list[str], any]], env=None):
+    """
+    Actualiza variables en el entorno usando la lógica existente de VariableDeclaration.
+    En data_local se guardan las variables locales.
+    En data se guardan las variables globales. Pero aun no se implementa.
+
+    Args:
+        variables_dict: Diccionario con clave ID (str) y valor (datatype: list[str], value: any)
+        env: Entorno de ejecución (opcional, si no se proporciona usa SERVER.env)
+        
+    Returns:
+        dict: Diccionario con los resultados de la creación de variables
+            - 'success': Lista de IDs de variables creadas exitosamente
+            - 'errors': Lista de tuplas (ID, error) para variables que fallaron
+            
+    Examples:
+        variables = {
+            'x': (['Entero'], 42),
+            'arr': (['Arreglo', 'Entero'], [1, 2, 3]),
+            'mat': (['Matriz', 'Flotante'], None)
+        }
+        result = crear_variables(variables_dict, env)
+    """
+    if env is None:
+        env = SERVER.env
+    
+    results = {
+        'success': [],
+        'errors': []
+    }
+    
+    for variable_id, (datatype, value) in variables_dict.items():
+        try:
+            # Verificar que la variable no esté ya definida
+            if not (variable_id in env.get('data_local', {}) or variable_id in env.get('data', {})):
+                raise ValueError(f"'{variable_id}' no está definida. No se puede actualizar variable que no existe")
+            
+            # Usar la misma lógica que VariableDeclaration.eval() para convertir/validar el valor
+            # Caso A: Tipo básico (un solo elemento en datatype)
+            if len(datatype) == 1:
+                tipo_basico = datatype[0]
+                # Verificar que sea un tipo básico válido
+                tipos_basicos = ['Entero', 'Flotante', 'Bool', 'Complejo', 'Cadena', 'Caracter']
+                if tipo_basico in tipos_basicos:
+                    converted_value = handle_type_a_conversion(tipo_basico, value)
+                else:
+                    raise TypeError(f"Tipo básico '{tipo_basico}' no reconocido")
+            
+            # Caso B: Tipos contenedores Arreglo/Conjunto (más de un elemento en datatype)
+            elif len(datatype) > 1:
+                tipo_principal = datatype[0]
+                
+                if tipo_principal in ['Arreglo', 'Conjunto']:
+                    # Manejar Arreglos y Conjuntos anidados
+                    converted_value = handle_nested_containers(datatype, value)
+                elif tipo_principal in ['Matriz', 'MatrizRachas', 'Multicotomizacion', 'M2VClasificacion', 'Diccionario']:
+                    # Caso C: Manejar contenedores especiales
+                    converted_value = handle_special_containers(datatype, value)
+                else:
+                    raise TypeError(f"Tipo contenedor '{tipo_principal}' no implementado")
+            
+            else:
+                raise TypeError("Declaración de tipo vacía o mal formada")
+            
+            # Guardar la variable en el entorno local
+            env['data_local'][variable_id] = (datatype, converted_value)
+            
+            results['success'].append(variable_id)
+            
+        except Exception as e:
+            results['errors'].append((variable_id, str(e)))
+
+    # Si hay errores, lanzar error
+    if len(results['errors']) > 0:
+        raise ValueError(f"Error al crear variables: {results['errors']}")
+    
+    return results
+
+
+# =============================================================================
+
+class Server:
+    def __init__(self):
+        """
+        Los nombre de funciones también son clave de env
+        Los tipos de datos se guardan como 
+        """
+        self.env: dict[str, any] = {}
+        self.env['data_local']: dict = {} # Las variables son ID: (datatype, value)
+        self.env['data']: dict = {} # Las variables son ID: (datatype, value)
+        self.env['stack']: list[tuple[str, list, dict]] = [] # Se guarda (func_ID, porgramNodes, data)
+        self.env['program_iterator']: list = [] # Se guarda ProgramNode como lista de nodos
+
+    def add_function(self, ID: str, datatypes: list[str], params: dict[str, tuple[list, any]], body: list):
+        # Validar que el ID sea un string
+        if not isinstance(ID, str):
+            raise ValueError("ID de función inválido")
+        # Validar que los datatypes sean una lista de strings
+        if not isinstance(datatypes, list):
+            raise ValueError("Datatypes de función inválidos")
+        # Validar que los parámetros que se ve le van a pasar al server sean validos
+        for param_id, (datatype, value) in params.items():
+            if not isinstance(param_id, str):
+                raise ValueError("Parámetro inválido")
+            if not isinstance(datatype, list):
+                raise ValueError("Tipo de parámetro inválido")
+            if not isinstance(value, str):
+                raise ValueError("Valor de parámetro inválido")
+        # Validar que el body sea una lista de program Nodes
+        if not isinstance(body, list):
+            raise ValueError("Body de función inválido")
+
+        self.env[ID] = {
+            "datatypes": datatypes, # Lista de datatypes
+            "params": params, # Diccionario de ID: (datatype, value)
+            "body": body, # Lista de program Nodes
+        }
+
+    def program_action(self):
+        if len(self.env['program_iterator']) > 0:
+            statement = self.env['program_iterator'].pop(0)
+            statement.eval(self.env)
+            self.program_action()
+        else:
+            self.env['stack'].pop()
+            if len(self.env['stack']) > 0:
+                func_ID: str = self.env['stack'][-1][0]
+                program_nodes: list = self.env['stack'][-1][1]
+                data: dict = self.env['stack'][-1][2]
+            else:
+                raise ValueError("No function to switch to")
+
+            if not func_ID in self.env:
+                raise ValueError(f"Function '{func_ID}' not found")
+
+            if program_nodes is not None:
+                self.env['program_iterator'].extend(program_nodes)
+            else:
+                warnings.warn(f"Function '{func_ID}' has no body")
+            
+            self.env['data_local'] = {}
+            if data is not None:
+                self.env['data_local'].update(data)
+
+            self.program_action()
+
+    def start_program(self):
+        if ('Principal' not in self.env.keys()):
+            raise ValueError("Principal function not found")
+
+        create_variables(self.env['Principal']['params'], self.env)
+        program_nodes = self.env['Principal']['body']
+        self.env['program_iterator'].extend(program_nodes)
+
+        self.env['stack'].append(('Principal', program_nodes, {}))
+
+        self.program_action()
+
+    def swicth_function(self, func_ID: str):
+        # Validar que el ID de la función sea un string
+        if not isinstance(func_ID, str):
+            raise ValueError("ID de función  no es String")
+
+        # Validar que la función exista
+        if not func_ID in self.env:
+            raise ValueError(f"Function '{func_ID}' not found")
+        if len(self.env['stack']) == 0:
+            raise ValueError("No function to switch to")
+
+        # En el stack en el espacio de la funcion actual, la previa, se guarde
+        #prev_function_ID = self.env['stack'][-1][0]
+        self.env['stack'][-1][1] = self.env['program_iterator']
+        self.env['stack'][-1][2] = self.env['data_local']
+
+        # Limpias para la nueva función    
+        self.env['program_iterator'] = []
+        self.env['data_local'] = {}
+
+        # Procesar parámetros de la función, los crea como variables en data_local del env
+        create_variables(self.env[func_ID]['params'], self.env)
+
+        self.env['stack'].append((func_ID, None, {}))
+        self.env['program_iterator'].extend(self.env[func_ID]['body'])
+        
+
+SERVER = Server()
+
+class ProgramNode:
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return f"ProgramNode()"
+
+    def eval(self):
+        SERVER.start_program()
+
+
+class MainNode:
+    def __init__(self, statements: list):
+        self.statements = statements
+        SERVER.add_function('Principal', [], {}, self.statements)
+
+    def __repr__(self):
+        return f"MainNode(statements={self.statements})"
+
+
+class FuncNode:
+    def __init__(self, datatypes: list[str], ID: str,
+                 params: dict[str, tuple[list, any]], body: list):
+        self.datatypes = datatypes
+        self.ID = ID
+        self.params = params
+        self.body = body
+
+        # Añade la función al servidor
+        SERVER.add_function(ID, datatypes, params, body)
+
+    def __repr__(self):
+        return f"FuncNode(datatypes={self.datatypes}, ID={self.ID}, params={self.params}, body={self.body})"
+
+
+class PrintNode:
+    def __init__(self, expression):
+        self.expression = expression
+
+    def __repr__(self):
+        return f"PrintNode(expression={self.expression})"
+
+    def eval(self, env):
+        """
+        Evaluates the expression and prints the result.
+        """
+        # Si expression tiene metodo eval, evalua, sino imprime literalmente
+        if hasattr(self.expression, 'eval'):
+            value = self.expression.eval(env)
+        else:
+            value = self.expression
+
+        print(value)
+
+
 class VariableDeclaration:
     def __init__(self, datatype: list[str], ID: str, expression):
         self.datatype = datatype
@@ -1071,43 +966,15 @@ class VariableDeclaration:
         """
         Adds the variable to the environment.
         """
-        if self.ID in env['data_local'].keys() or self.ID in env['data'].keys():
-            raise ValueError(f"'{self.ID}' already defined. Can't define variable with the same ID (name)")
-
         try:
             value = self.expression.eval(env)
         except AttributeError:
             value = self.expression
             warnings.warn(f"Expression {self.expression} does not have an eval method, using expression directly")
 
-        # Caso A: Tipo básico (un solo elemento en datatype)
-        if len(self.datatype) == 1:
-            tipo_basico = self.datatype[0]
-            # Verificar que sea un tipo básico válido
-            tipos_basicos = ['Entero', 'Flotante', 'Bool', 'Complejo', 'Cadena', 'Caracter']
-            if tipo_basico in tipos_basicos:
-                value = handle_type_a_conversion(tipo_basico, value)
-            else:
-                raise TypeError(f"Tipo básico '{tipo_basico}' no reconocido")
-        
-        # Caso B: Tipos contenedores Arreglo/Conjunto (más de un elemento en datatype)
-        elif len(self.datatype) > 1:
-            tipo_principal = self.datatype[0]
-            
-            if tipo_principal in ['Arreglo', 'Conjunto']:
-                # Manejar Arreglos y Conjuntos anidados
-                value = handle_nested_containers(self.datatype, value)
-            elif tipo_principal in ['Matriz', 'MatrizRachas', 'Multicotomizacion', 'M2VClasificacion', 'Diccionario']:
-                # Caso C: Manejar contenedores especiales
-                value = handle_special_containers(self.datatype, value)
-            else:
-                raise TypeError(f"Tipo contenedor '{tipo_principal}' no implementado")
-        
-        else:
-            raise TypeError("Declaración de tipo vacía o mal formada")
-
-        env['data_local'][self.ID] = (self.datatype, value)  # Guarda el valor convertido o validado
-
+        # Guarda la variable en el entorno, y trata de validar o convertir el value
+        variable_dict = {self.ID: (self.datatype, value)}
+        create_variables(variable_dict, env)
 
 class GenericVariableDeclNode:
     def __init__(self, datatype: list[str], ID: str, arg_list: list):
@@ -1323,38 +1190,7 @@ class VariableAssignationSimple:
         else:
             raise ValueError(f"Operador '{self.operator}' no reconocido")
         
-        # Convertir value al tipo correcto usando la misma lógica que VariableDeclaration
-        # Caso A: Tipo básico (un solo elemento en datatype)
-        if len(datatype) == 1:
-            tipo_basico = datatype[0]
-            # Verificar que sea un tipo básico válido
-            tipos_basicos = ['Entero', 'Flotante', 'Bool', 'Complejo', 'Cadena', 'Caracter']
-            if tipo_basico in tipos_basicos:
-                value = handle_type_a_conversion(tipo_basico, value)
-            else:
-                raise TypeError(f"Tipo básico '{tipo_basico}' no reconocido")
-        
-        # Caso B: Tipos contenedores Arreglo/Conjunto (más de un elemento en datatype)
-        elif len(datatype) > 1:
-            tipo_principal = datatype[0]
-            
-            if tipo_principal in ['Arreglo', 'Conjunto']:
-                # Manejar Arreglos y Conjuntos anidados
-                value = handle_nested_containers(datatype, value)
-            elif tipo_principal in ['Matriz', 'MatrizRachas', 'Multicotomizacion', 'M2VClasificacion', 'Diccionario']:
-                # Caso C: Manejar contenedores especiales
-                value = handle_special_containers(datatype, value)
-            else:
-                raise TypeError(f"Tipo contenedor '{tipo_principal}' no implementado")
-        
-        else:
-            raise TypeError("Declaración de tipo vacía o mal formada")
-        
-        # Actualizar la variable con el valor convertido, manteniendo el mismo datatype
-        if self.ID in env['data_local'].keys():
-            env['data_local'][self.ID] = (datatype, value)
-        else:
-            env['data'][self.ID] = (datatype, value)
+        update_variables({self.ID: (datatype, value)}, env)
 
 class VariableAssignationItemAccess:
     def __init__(self, ID: str, item_access: list[int], 
@@ -1538,6 +1374,344 @@ class VariableAssignationItemAccess:
         
         # Para otros casos o tipos no reconocidos
         return None
+
+# =============================================================================
+
+class LambdaNode:
+    def __init__(self, param_list: list[str], expression):
+        """
+        Constructor para expresiones lambda.
+        
+        Args:
+            param_list: Lista de nombres de parámetros (IDs)
+            expression: Expresión a evaluar cuando se llame la lambda
+        """
+        self.param_list: list[str] = param_list
+        self.expression = expression
+
+    def __repr__(self):
+        return f"LambdaNode(param_list={self.param_list}, expression={self.expression})"
+
+    def eval(self, env):
+        """
+        Evalúa la expresión lambda y retorna una función callable.
+        
+        Returns:
+            function: Función que puede ser llamada con argumentos
+        """
+        # Capturar el entorno actual para crear un closure
+        captured_env = env.copy()
+        
+        def lambda_function(*args):
+            """
+            Función lambda generada que puede ser llamada con argumentos.
+            
+            Args:
+                *args: Argumentos pasados a la lambda
+                
+            Returns:
+                Resultado de evaluar la expresión con los parámetros sustituidos
+            """
+            # Verificar que el número de argumentos coincida con el número de parámetros
+            if len(args) != len(self.param_list):
+                raise ValueError(f"Lambda esperaba {len(self.param_list)} argumentos, pero recibió {len(args)}")
+            
+            # Crear un nuevo entorno para la evaluación de la lambda
+            lambda_env = captured_env.copy()
+            
+            # Si no existe data_local, crearlo
+            if 'data_local' not in lambda_env:
+                lambda_env['data_local'] = {}
+            
+            # Crear una copia del data_local para no modificar el original
+            lambda_env['data_local'] = lambda_env['data_local'].copy()
+            
+            # Asignar los argumentos a los parámetros en el entorno local
+            for param_name, arg_value in zip(self.param_list, args):
+                # Inferir el tipo del argumento
+                arg_type = self._infer_argument_type(arg_value)
+                lambda_env['data_local'][param_name] = (arg_type, arg_value)
+            
+            # Evaluar la expresión en el entorno con los parámetros asignados
+            try:
+                if hasattr(self.expression, 'eval'):
+                    result = self.expression.eval(lambda_env)
+                else:
+                    # Si la expresión no tiene método eval, retornarla directamente
+                    result = self.expression
+                return result
+            except Exception as e:
+                raise RuntimeError(f"Error evaluando lambda: {e}")
+        
+        # Agregar metadatos a la función para debugging
+        lambda_function.__name__ = f"lambda({', '.join(self.param_list)})"
+        lambda_function.__doc__ = f"Lambda function with parameters: {self.param_list}"
+        lambda_function.param_list = self.param_list
+        lambda_function.expression = self.expression
+        
+        return lambda_function
+    
+    def _infer_argument_type(self, value):
+        """
+        Infiere el tipo del lenguaje basado en el valor del argumento.
+        
+        Args:
+            value: Valor del argumento
+            
+        Returns:
+            list[str]: Lista con el tipo inferido
+        """
+        # Mapeo de tipos Python a tipos del lenguaje
+        if isinstance(value, int):
+            return ['Entero']
+        elif isinstance(value, float):
+            return ['Flotante']
+        elif isinstance(value, bool):
+            return ['Bool']
+        elif isinstance(value, complex):
+            return ['Complejo']
+        elif isinstance(value, str):
+            return ['Cadena']
+        elif isinstance(value, TDA.Cadena):
+            return ['Cadena']
+        elif isinstance(value, TDA.Arreglo):
+            # Para Arreglos, usar el tipo interno si está disponible
+            if hasattr(value, 'datatype'):
+                inner_type = python_type_to_language_type_list(value.datatype)
+                return ['Arreglo'] + inner_type
+            else:
+                return ['Arreglo', 'Entero']  # Default fallback
+        elif isinstance(value, TDA.Conjunto):
+            # Para Conjuntos, usar el tipo interno si está disponible
+            if hasattr(value, 'datatype'):
+                inner_type = python_type_to_language_type_list(value.datatype)
+                return ['Conjunto'] + inner_type
+            else:
+                return ['Conjunto', 'Entero']  # Default fallback
+        elif isinstance(value, TDA.Diccionario):
+            # Para Diccionarios, usar los tipos de clave y valor si están disponibles
+            if hasattr(value, 'key_datatype') and hasattr(value, 'value_datatype'):
+                key_type = python_type_to_language_type_list(value.key_datatype)
+                value_type = python_type_to_language_type_list(value.value_datatype)
+                return ['Diccionario'] + key_type + value_type
+            else:
+                return ['Diccionario', 'Cadena', 'Entero']  # Default fallback
+        elif isinstance(value, (TDA.Matriz, TDA.MatrizRachas, TDA.Multicotomizacion, TDA.M2VClasificacion)):
+            # Para otros tipos TDA, usar el nombre de la clase
+            class_name = value.__class__.__name__
+            if hasattr(value, 'datatype'):
+                inner_type = python_type_to_language_type_list(value.datatype)
+                return [class_name] + inner_type
+            else:
+                return [class_name]
+        else:
+            # Para tipos no reconocidos, asumir Entero
+            return ['Entero']
+
+class ObjFunctionCall:
+    def __init__(self, ID: str, ID_funcion: str, arg_list: list):
+        """
+        Constructor para llamadas a métodos de objetos.
+        
+        Args:
+            ID: Nombre del objeto en el entorno
+            ID_funcion: Nombre del método a llamar
+            arg_list: Lista de argumentos para el método
+        """
+        self.ID = ID
+        self.ID_funcion = ID_funcion
+        self.arg_list = arg_list
+
+    def __repr__(self):
+        return f"ObjFunctionCall(ID={self.ID}, ID_funcion={self.ID_funcion}, arg_list={self.arg_list})"
+
+    def eval(self, env):
+        """
+        Evalúa la llamada al método del objeto.
+        
+        Args:
+            env: Entorno de ejecución
+            
+        Returns:
+            Resultado de la llamada al método
+            
+        Raises:
+            ValueError: Si el objeto no existe
+            AttributeError: Si el método no existe en el objeto
+            TypeError: Si los argumentos son inválidos
+        """
+        # Verificar que el objeto existe en el entorno y obtenerlo
+        try:
+            datatype, obj_value = get_variable_from_env(env, self.ID)
+            # Determinar la fuente para actualizaciones posteriores
+            if self.ID in env.get('data_local', {}):
+                source = 'data_local'
+            else:
+                source = 'data'
+        except ValueError:
+            raise ValueError(f"Objeto '{self.ID}' no está definido en el entorno")
+        
+        # Validar que el objeto no sea None
+        if obj_value is None:
+            raise ValueError(f"Objeto '{self.ID}' tiene valor None, no se pueden llamar métodos")
+        
+        # Evaluar los argumentos de la lista
+        evaluated_args = []
+        for i, arg in enumerate(self.arg_list):
+            try:
+                if hasattr(arg, 'eval'):
+                    # Es una expresión que necesita evaluación
+                    evaluated_arg = arg.eval(env)
+                elif callable(arg):
+                    # Es una función (como lambda)
+                    evaluated_arg = arg
+                elif isinstance(arg, str):
+                    # Es un ID (identificador de variable), buscar en el entorno
+                    datatype, value = get_variable_from_env(env, arg)
+                    evaluated_arg = value
+                else:
+                    # Es un valor literal (int, float, bool, etc.)
+                    evaluated_arg = arg
+                evaluated_args.append(evaluated_arg)
+            except Exception as e:
+                raise ValueError(f"Error evaluando argumento {i+1}: {e}")
+        
+        # Verificar que el método existe en el objeto
+        if not hasattr(obj_value, self.ID_funcion):
+            available_methods = [method for method in dir(obj_value) if not method.startswith('_')]
+            raise AttributeError(f"Objeto '{self.ID}' de tipo {type(obj_value).__name__} no tiene método '{self.ID_funcion}'. "
+                               f"Métodos disponibles: {available_methods}")
+        
+        # Intentar llamar al método directamente con los argumentos evaluados
+        try:
+            result = getattr(obj_value, self.ID_funcion)(*evaluated_args)
+            
+            # Manejar métodos que modifican el objeto in-place (como pushback, add, etc.)
+            # y retornan None, actualizando el objeto en el entorno
+            if result is None and self._is_mutating_method(self.ID_funcion):
+                # El método modificó el objeto, actualizar en el entorno
+                if source == 'data_local':
+                    env['data_local'][self.ID] = (datatype, obj_value)
+                else:
+                    env['data'][self.ID] = (datatype, obj_value)
+                
+                # Retornar el objeto para permitir chaining o simplemente None
+                return obj_value
+            
+            return result
+            
+        except TypeError as e:
+            # Error de argumentos (número incorrecto, tipos incorrectos, etc.)
+            raise TypeError(f"Error llamando método '{self.ID_funcion}' en objeto '{self.ID}': {e}")
+        except AttributeError as e:
+            # El método no es callable o no existe (doble verificación)
+            raise AttributeError(f"'{self.ID_funcion}' no es un método callable en el objeto '{self.ID}': {e}")
+        except Exception as e:
+            # Otros errores durante la ejecución del método
+            raise RuntimeError(f"Error ejecutando método '{self.ID_funcion}' en objeto '{self.ID}': {e}")
+    
+    def _is_mutating_method(self, method_name: str) -> bool:
+        """
+        Determina si un método es mutante (modifica el objeto in-place).
+        
+        Args:
+            method_name: Nombre del método
+            
+        Returns:
+            bool: True si el método modifica el objeto
+        """
+        # Lista de métodos conocidos que modifican objetos TDA
+        mutating_methods = {
+            # Métodos de Arreglo
+            'pushback', 'pushfront', 'popback', 'popfront', 'insert', 'delete',
+            
+            # Métodos de Conjunto  
+            'add', 'remove',
+            
+            # Métodos de Diccionario
+            'pop', 'clear', 'update', 'setdefault',
+            
+            # Métodos de Matriz
+            'modificar',
+            
+            # Métodos de MatrizRachas
+            'modificaRacha',
+            
+            # Métodos de Multicotomizacion
+            'agnadeRegla', 'eliminarRegla',
+            
+            # Métodos de M2VClasificacion
+            'modificar',
+            
+            # Métodos generales que suelen ser mutantes
+            'append', 'extend', 'sort', 'reverse'
+        }
+        
+        return method_name in mutating_methods
+    
+    def _validate_argument_types(self, method, args):
+        """
+        Valida los tipos de argumentos para el método (opcional, para mayor robustez).
+        
+        Args:
+            method: Método a llamar
+            args: Argumentos evaluados
+            
+        Note:
+            Esta función podría extenderse para validar tipos específicos
+            basándose en anotaciones o documentación de métodos TDA.
+        """
+        # Esta función podría implementarse para validación adicional
+        # Por ahora, delegamos la validación al método mismo
+        pass
+
+class FunctionCall:
+    def __init__(self, ID_funcion: str, arg_list: list):
+        self.ID_funcion = ID_funcion
+        self.arg_list = arg_list
+
+    def __repr__(self):
+        return f"FunctionCall(ID_funcion={self.ID_funcion}, arg_list={self.arg_list})"
+
+    def eval(self, env):
+        """
+        Evalúa la llamada a función:
+        - Llama a swicth_function del servidor
+        - Asigna los valores evaluados de arg_list a los parámetros de la función en data_local
+        """
+        # 1. Llamar a swicth_function para preparar el entorno de la función
+        SERVER.swicth_function(self.ID_funcion)
+
+        # 2. Obtener los parámetros de la función desde el entorno
+        params_dict = env[self.ID_funcion]['params']
+        param_names = list(params_dict.keys())
+
+        if len(param_names) != len(self.arg_list):
+            raise ValueError(f"La función '{self.ID_funcion}' espera {len(param_names)} argumentos, pero se recibieron {len(self.arg_list)}")
+
+        # 3. Asignar los valores evaluados de arg_list a los parámetros en data_local
+        for param_name, arg_expr in zip(param_names, self.arg_list):
+            # Evaluar el argumento si es necesario
+            if hasattr(arg_expr, 'eval'):
+                value = arg_expr.eval(env)
+            elif callable(arg_expr):
+                value = arg_expr
+            elif isinstance(arg_expr, str):
+                # Buscar el valor en el entorno si es un identificador
+                try:
+                    _, value = get_variable_from_env(env, arg_expr)
+                except Exception:
+                    value = arg_expr  # Si no está en el entorno, usar el string literal
+            else:
+                value = arg_expr
+
+            # Obtener el tipo esperado del parámetro
+            datatype, _ = params_dict[param_name]
+            # Actualizar en data_local (sobrescribe el valor anterior)
+            SERVER.env['data_local'][param_name] = (datatype, value)
+
+        # No retorna nada explícitamente, la ejecución de la función continúa en el servidor
+
 
 # =============================================================================
 
@@ -1828,4 +2002,152 @@ class LogExpressionNode:
             except Exception as e:
                 raise TypeError(f"No se puede aplicar operador lógico '{self.opLOG}' entre {type(valor1).__name__} y {type(valor2).__name__}: {e}")
 
+
 # =============================================================================
+
+class SelectionNode:
+    def __init__(self, cond_blocks: list, else_block):
+        """
+        cond_blocks: lista de tuplas (cond, block)
+        else_block: bloque para el caso 'Entonces' o None
+        """
+        self.cond_blocks = cond_blocks
+        self.else_block = else_block
+
+    def __repr__(self):
+        return f"SelectionNode(cond_blocks={self.cond_blocks}, else_block={self.else_block})"
+
+    def eval(self, env):
+        """
+        Evalúa la estructura de selección:
+        - Evalúa cada condición en orden; si alguna es True, ejecuta su bloque y termina.
+        - Si ninguna condición es True y hay else_block, ejecuta else_block.
+        """
+        for cond, block in self.cond_blocks:
+            cond_value = cond.eval(env) if hasattr(cond, 'eval') else cond
+            if cond_value:
+                # Ejecutar el bloque asociado
+                if isinstance(block, list):
+                    for i, stmt in enumerate(block):
+                        env['program_iterator'].insert(i, stmt)
+                else:
+                    raise SyntaxError("Block is not a list")
+                return
+        # Si ninguna condición fue verdadera, ejecutar else_block si existe
+        if self.else_block is not None:
+            if isinstance(self.else_block, list):
+                for i, stmt in enumerate(self.else_block):
+                    env['program_iterator'].insert(i, stmt)
+            else:
+                raise SyntaxError("Else block is not a list")
+
+class ForNode:
+    def __init__(self, init_decl, condition, update_assign, block):
+        self.init_decl = init_decl
+        self.condition = condition
+        self.update_assign = update_assign
+        self.block = block
+        self.to_check_condition = False
+
+    def __repr__(self):
+        return f"ForNode(init_decl={self.init_decl}, condition={self.condition}, update_assign={self.update_assign}, block={self.block})"
+
+    def eval(self, env):
+
+        if self.to_check_condition:
+            return self.check_condition(env)
+        
+        # Inicialización
+        if hasattr(self.init_decl, 'eval'):
+            self.init_decl.eval(env)
+        else:
+            raise SyntaxError("La inicialización del for no es válida")
+        
+        cond_value = self.condition.eval(env) if hasattr(self.condition, 'eval') else self.condition
+        if not cond_value:
+            return
+        # Ejecutar el bloque
+        if isinstance(self.block, list):
+            acc = 0
+            for i, stmt in enumerate(self.block):
+                env['program_iterator'].insert(i, stmt)
+                acc = i
+            self.to_check_condition = True
+            env['program_iterator'].insert(acc + 1, self)
+            return
+        else:
+            raise SyntaxError("El bloque del for no es una lista")
+
+    def check_condition(self, env):
+        # Ejecutar la actualización
+        if hasattr(self.update_assign, 'eval'):
+            self.update_assign.eval(env)
+
+            cond_value = self.condition.eval(env) if hasattr(self.condition, 'eval') else self.condition
+            if not cond_value:
+                self.to_check_condition = False
+                return
+            # Ejecutar el bloque
+            if isinstance(self.block, list):
+                acc = -1
+                for i, stmt in enumerate(self.block):
+                    env['program_iterator'].insert(i, stmt)
+                    acc = i
+                self.to_check_condition = True
+                if acc > -1:
+                    env['program_iterator'].insert(acc + 1, self)
+                return
+            else:
+                raise SyntaxError("El bloque del for no es una lista")
+
+        else:
+            raise SyntaxError("La actualización del for no es válida")
+
+class WhileNode:
+    def __init__(self, condition, block):
+        self.condition = condition
+        self.block = block
+        self.to_check_condition = False
+
+    def __repr__(self):
+        return f"WhileNode(condition={self.condition}, block={self.block})"
+
+    def eval(self, env):
+        if self.to_check_condition:
+            return self.check_condition(env)
+        # Primera evaluación de la condición
+        cond_value = self.condition.eval(env) if hasattr(self.condition, 'eval') else self.condition
+        if not cond_value:
+            return
+        # Ejecutar el bloque
+        if isinstance(self.block, list):
+            acc = -1
+            for i, stmt in enumerate(self.block):
+                env['program_iterator'].insert(i, stmt)
+                acc = i
+            self.to_check_condition = True
+            if acc > -1:
+                env['program_iterator'].insert(acc + 1, self)
+            return
+        else:
+            raise SyntaxError("El bloque del while no es una lista")
+
+    def check_condition(self, env):
+        cond_value = self.condition.eval(env) if hasattr(self.condition, 'eval') else self.condition
+        if not cond_value:
+            self.to_check_condition = False
+            return
+        # Ejecutar el bloque
+        if isinstance(self.block, list):
+            acc = -1
+            for i, stmt in enumerate(self.block):
+                env['program_iterator'].insert(i, stmt)
+                acc = i
+            self.to_check_condition = True
+            if acc > -1:
+                env['program_iterator'].insert(acc + 1, self)
+            return
+        else:
+            raise SyntaxError("El bloque del while no es una lista")
+
+
