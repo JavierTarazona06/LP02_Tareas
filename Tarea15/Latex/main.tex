@@ -135,9 +135,22 @@ El emulador del computador ORISC-I se desarrolla en el contexto de la asignatura
 
 \section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
 
+El propósito de este proyecto es implementar, mediante un lenguaje de programación de alto nivel, un simulador funcional del computador diseñado en la Tarea 14. Dicho computador cuenta con una arquitectura específica definida previamente, que incluye una memoria RAM direccionable bit a bit, un conjunto de instrucciones codificadas, registros especiales y de propósito general, así como soporte para operaciones aritméticas, de control de flujo y de gestión de pila.
+
+La necesidad de desarrollar esta aplicación radica en que permite validar de forma práctica el correcto funcionamiento de la arquitectura propuesta, garantizando que las instrucciones codificadas operen conforme a lo planificado. Además, proporciona una plataforma experimental donde se pueden cargar y ejecutar programas escritos directamente en código binario, manipulando los bits de la memoria RAM de forma controlada. Esta funcionalidad es esencial para verificar la correcta interpretación de instrucciones y datos, así como para detectar posibles errores de diseño en la arquitectura.
+
+El proyecto también contempla la implementación de un submódulo \textbf{Cargador}, encargado de permitir la escritura directa sobre los bits de la memoria RAM o la carga de programas y datos desde archivos externos.
+
 
 \subsection{Objetivo Principal}
 
+Desarrollar una aplicación en un lenguaje de programación de alto nivel que simule completamente el computador diseñado en la Tarea 14, permitiendo:
+
+\begin{itemize}
+  \item Manipular directamente los bits de la memoria RAM o cargarlos desde archivos mediante un módulo cargador.
+  \item Ejecutar programas en código binario sobre la arquitectura propuesta.
+  \item Validar el comportamiento del computador mediante la ejecución de los mismos casos de prueba empleados durante el diseño original.
+\end{itemize}
 
 %---------------------------------------------------------------------------------
 % Diseño de la solución ---------------------------------------------------------
@@ -327,19 +340,12 @@ control de ejecución y visualización de resultados.
 \section{Código Fuente}\label{sec:cod}
 
 El código fuente completo de este modelo se encuentra adjunto en el buzón
-(11 Tarazona Jimenez Javier Andres 02.zip)
+(15 Muñoz Lemus Juan Sebastian 02.zip)
 y disponible en el repositorio GitHub del proyecto:
 
 \begin{center}
-  \url{URL}
+  \url{https://github.com/JavierTarazona06/LP02_Tareas}
 \end{center}
-
-El repositorio contiene:
-\begin{itemize}
-  \item A
-  \item B
-  \item C
-\end{itemize}
 
 %---------------------------------------------------------------------------------
 % Manual Usuario ---------------------------------------------------------
@@ -347,7 +353,7 @@ El repositorio contiene:
 
 \section{Manual Usuario}\label{sec:man_u}
 
-El primer paso es descargar el archivo \texttt{11 Tarazona Jimenez Javier Andres 02.zip}.
+El primer paso es descargar el archivo \texttt{15 Muñoz Lemus Juan Sebastian 02.zip}.
 
 Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un
 entorno virtual utilizando Python 3.12. o superior. Para ello, ejecute el siguiente
@@ -394,34 +400,16 @@ Una vez activo, puede ejecutar el archivo principal con el siguiente comando:
 \end{center}
 
 %---------------------------------------------------------------------------------
-% Manual Técnico ---------------------------------------------------------
-%---------------------------------------------------------------------------------
-
-\section{Manual Técnico}\label{sec:man_t}
-
-
-\subsection{Fases de la Simulación}
-
-
-\subsection{Manejo de Datos}
-
-\subsection{Evaluación de la Simulación}
-
-
-\subsection{Conclusiones y Recomendaciones}
-
-
-%---------------------------------------------------------------------------------
 % Experimentación ---------------------------------------------------------
 %---------------------------------------------------------------------------------
 
 \section{Experimentación}\label{sec:exp}
 
-\subsubsection{Escenario 1: }
+\subsubsection{Escenario 1: Suma de N enteros consecutivos }
 
-\subsubsection{Escenario 2: }
+\subsubsection{Escenario 2: Conteo de ceros en un arreglo }
 
-\subsubsection{Escenario 3: }
+\subsubsection{Escenario 3: Factorial de un numero}
 
 
 \section{Referencias}

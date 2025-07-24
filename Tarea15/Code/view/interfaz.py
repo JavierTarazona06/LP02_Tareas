@@ -38,7 +38,7 @@ class SimuladorComputador(tk.Tk):
         self._crear_area_ejecucion()
 
     def _crear_area_codigo(self):
-        frame = ttk.LabelFrame(self.scroll_frame, text="Código Ensamblador o Binario", padding=10)
+        frame = ttk.LabelFrame(self.scroll_frame, text="Código Binario", padding=10)
         frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         ttk.Label(frame, text="Código:").pack(anchor="w")
