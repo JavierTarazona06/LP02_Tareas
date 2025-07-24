@@ -210,75 +210,105 @@ Asimismo, este proyecto fortalece las competencias de los estudiantes en la cons
 % Diseño de la solución ---------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{Diseño solucion}
+
 \subsection{Parser}
 
-La solución está dividida en varios componentes modulares, cada uno con una responsabilidad clara, siguiendo un flujo de procesamiento bien definido.
-
-\begin{enumerate}
-    \item \textbf{Analizador Léxico (\texttt{lexer.py})}: Responsable de leer el código fuente y dividirlo en una secuencia de "tokens" o componentes léxicos. Por ejemplo, la línea \texttt{Entero miVar = 10;} se convierte en tokens como \texttt{TIPOA('Entero')}, \texttt{ID('miVar')}, \texttt{OPASI('=')}, etc.
-
-    \item \textbf{Analizador Sintáctico (\texttt{parser.py})}: Utiliza PLY (YACC) para definir la gramática del lenguaje. Su función es verificar si la secuencia de tokens es sintácticamente correcta y construir un \textbf{Árbol de Sintaxis Abstracta (AST)} que representa la estructura del código.
-
-    \item \textbf{Árbol de Sintaxis Abstracta y Nodos (\texttt{ASTInterpreter.py})}: Define las clases que representan cada construcción del lenguaje (variables, operaciones, bucles). El parser crea instancias de estos nodos para construir el AST. La raíz del árbol es un \texttt{ProgramNode}.
-
-    \item \textbf{Intérprete (Lógica en \texttt{ASTInterpreter.py})}: Recorre el AST nodo por nodo y ejecuta la lógica correspondiente. Mantiene un "entorno" o tabla de símbolos para almacenar las variables y sus valores durante la ejecución.
-
-    \item \textbf{Tipos de Datos Abstractos (\texttt{TDA.py})}: Módulo auxiliar para definir implementaciones personalizadas de tipos de datos, como \texttt{TDA.Cadena}, permitiendo añadir funcionalidades específicas a los tipos del lenguaje.
-\end{enumerate}
-
-El flujo general es: \\
-\texttt{Código Fuente} $\rightarrow$ \texttt{Lexer} $\rightarrow$ \texttt{Tokens} $\rightarrow$ \texttt{Parser} $\rightarrow$ \texttt{AST} $\rightarrow$ \texttt{Intérprete} $\rightarrow$ \texttt{Resultado}.
+El diseño del parser se centra en robustecer el análisis sintáctico, mejorar la flexibilidad del lenguaje y facilitar el mantenimiento futuro. Se abordan cuatro áreas clave: el manejo de retornos de función, la consolidación de expresiones, la flexibilización de estructuras de datos y el reporte de errores.
 
 
+\subsubsection{Manejo de Retornos de Función}
+Para cumplir con el requisito de que las llamadas a funciones puedan ser utilizadas como valores, se expanden las reglas gramaticales de asignación y de impresión.
 
-
-\subsection{Diseño del Lenguaje}
-
-La gramática definida en \texttt{parser.py} da forma a un lenguaje con las siguientes características:
-
-\subsubsection{Estructura del Programa}
 \begin{itemize}
-    \item Un programa debe contener una función principal obligatoria: \texttt{Func Vacio Principal () \{ ... \}}.
-    \item Se pueden declarar otras funciones antes de la función \texttt{Principal}.
-    \item Los comentarios se ignoran durante el análisis.
+    \item \textbf{Problema:} Actualmente, una llamada a función como \texttt{miFuncion()} es una sentencia independiente, pero no puede ser parte de una asignación (\texttt{x = miFuncion();}) o una impresión (\texttt{imprimir(miFuncion());}).
+    
+    \item \textbf{Solución de Diseño:} Se modifican las reglas de producción para que acepten \texttt{func\_call} como un elemento válido a la derecha de un operador de asignación y como argumento de la función \texttt{imprimir}.
 \end{itemize}
 
-\subsubsection{Tipos de Datos}
+\begin{lstlisting}[style=mypython, caption={Modificación de la regla \texttt{p\_print} para aceptar llamadas a función.}]
+def p_print(p):
+    """
+    print : PALABCLAVE DELIM (string | ID | func_call) DELIM
+    """
+    # ... Lógica de validación ...
+    p[0] = ASTInterpreter.PrintNode(p[3])
+\end{lstlisting}
+
+\begin{lstlisting}[style=mypython, caption={Expansión de la regla \texttt{p\_var\_declaration} para inicializar con el retorno de una función.}]
+def p_var_declaration(p):
+    """
+    var_declaration : datatype ID OPASI ( expression | func_call | ... )
+    """
+    # ... Lógica de validación ...
+\end{lstlisting}
+
+
+\subsubsection{Consolidación de Reglas de Expresión}
+Para reducir la redundancia y simplificar la gramática, se introduce una regla que agrupa los elementos atómicos del lenguaje.
+
 \begin{itemize}
-    \item \textbf{Primitivos (\texttt{TIPOA})}: Soporta \texttt{Entero}, \texttt{Real}, \texttt{Complejo}, \texttt{Booleano} y \texttt{Caracter}.
-    \item \textbf{Genéricos / Contenedores (\texttt{TIPOB})}: Admite tipos que contienen otros tipos usando la sintaxis \texttt{<>}, como \texttt{Lista<Entero>} o \texttt{Diccionario<Cadena, Entero>}.
+    \item \textbf{Problema:} Reglas como \texttt{string}, \texttt{number}, \texttt{boolean}, e \texttt{ID} se repiten en múltiples producciones, lo que dificulta el mantenimiento.
+    
+    \item \textbf{Solución de Diseño:} Se crea una nueva regla no terminal, \texttt{primary\_expression}, que agrupa todos estos elementos. Las reglas de nivel superior referenciarán a \texttt{primary\_expression}, simplificando la gramática.
 \end{itemize}
 
-\subsubsection{Variables}
+\begin{lstlisting}[style=mypython, caption={Definición de la regla de consolidación \texttt{primary\_expression}.}]
+def p_primary_expression(p):
+    """
+    primary_expression : number
+                       | string
+                       | boolean
+                       | ID
+                       | func_call
+                       | obj_func_call
+                       | iterables
+    """
+    p[0] = p[1]
+\end{lstlisting}
+
+
+\subsubsection{Flexibilidad en Listas y Colecciones}
+Las reglas actuales para la creación de listas son demasiado restrictivas. El nuevo diseño permite la creación de colecciones con tipos de datos mixtos.
+
 \begin{itemize}
-    \item \textbf{Declaración}: \texttt{tipo nombre = valor;}. Ejemplo: \texttt{Entero miNumero = 10;}.
-    \item \textbf{Asignación}: \texttt{nombre = nuevoValor;} o para elementos de colección: \texttt{miLista[0] = 20;}.
+    \item \textbf{Problema:} Las reglas como \texttt{ints\_array} o \texttt{strings\_array} impiden la creación de listas heterogéneas como \texttt{[10, "hola", verdadero]}.
+    
+    \item \textbf{Solución de Diseño:} Se eliminan las reglas de array por tipo. Se reutiliza la regla \texttt{arg\_list}, que maneja secuencias de expresiones mixtas, para definir el contenido de los iterables. La validación semántica de tipos se delega a la fase de interpretación.
 \end{itemize}
 
-\subsubsection{Funciones}
+\begin{lstlisting}[style=mypython, caption={Regla simplificada para iterables que permite elementos mixtos.}]
+def p_iterables(p):
+    """
+    iterables : OPACC arg_list OPACC  // Para listas [...]
+              | DELIM arg_list DELIM  // Para conjuntos {...}
+    """
+    # ... Lógica de validación de delimitadores ...
+    p[0] = list(p[2])
+\end{lstlisting}
+
+\subsubsection{Mejora en el Reporte de Errores Sintácticos}
+El diseño se apoya en validaciones explícitas dentro de las reglas gramaticales para proporcionar retroalimentación precisa al programador.
+
 \begin{itemize}
-    \item \textbf{Declaración}: \texttt{Func tipoRetorno nombre (params) \{ ... \}}.
-    \item \textbf{Llamada a Funciones}: \texttt{nombreFuncion(args);}.
-    \item \textbf{Llamada a Métodos de Objetos}: Usa la notación de punto, ej. \texttt{miLista.agregar(5);}.
+    \item \textbf{Problema:} Un error genérico como ``Error sintáctico cerca de...'' es poco útil.
+    
+    \item \textbf{Solución de Diseño:} Se mantiene la práctica de insertar comprobaciones dentro de las reglas. Al verificar palabras clave y delimitadores, se lanzan excepciones \texttt{SyntaxError} con mensajes descriptivos.
 \end{itemize}
 
-\subsubsection{Estructuras de Control}
-\begin{itemize}
-    \item \textbf{Condicional}: \texttt{Si (cond) \{...\} Sino (cond) \{...\} Entonces \{...\} }.
-    \item \textbf{Bucle Para}: \texttt{Para (Entero i = 0; i < 10; i = i + 1) \{ ... \}}.
-    \item \textbf{Bucle Mientras}: \texttt{Mientras (condicion) \{ ... \}}.
-\end{itemize}
+\begin{lstlisting}[style=mypython, caption={Ejemplo de validación explícita en la regla para el bucle \texttt{Mientras}.}]
+def p_while_statement(p):
+    """
+    while_statement : PALABCLAVE DELIM rel_expression DELIM block
+    """
+    if p[1] != 'Mientras':
+        raise SyntaxError("Bucle debe iniciar con 'Mientras'")
+    if p[2] != '(' or p[4] != ')':
+        raise SyntaxError("Sintaxis: Mientras (expresion) { ... }")
+    
+    p[0] = Nodes.WhileNode(p[3], p[5])
+\end{lstlisting}
 
-\subsubsection{Expresiones}
-El parser maneja correctamente la precedencia de operadores para evaluar expresiones aritméticas, lógicas y relacionales.
 
-\subsubsection{Entrada/Salida}
-La función \texttt{imprimir()} se utiliza para mostrar valores en la consola. Ejemplo: \texttt{imprimir("Hola");}.
-\\\\
-
-\textbf{Conclusión del Diseño}
-
-El diseño es \textbf{robusto y extensible}. La separación de responsabilidades, especialmente la creación del AST como un paso intermedio, es la clave. Este enfoque desacopla el análisis sintáctico de la ejecución, lo que permitiría, por ejemplo, cambiar el intérprete por un generador de código para compilar el lenguaje a otro formato sin modificar el parser.
 \subsection{Analizador Semántico}\label{sec:dis}
 
 La solución se estructura en las siguientes capas semánticas:
