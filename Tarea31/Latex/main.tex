@@ -1,0 +1,194 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titletoc}
+\usepackage{adjustbox}
+\usepackage[spanish]{babel}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue, % Color del texto del enlace
+    urlcolor=blue % Color del enlace
+}
+
+\usepackage{longtable} % Agrega el paquete longtable
+
+\definecolor{mygreen}{RGB}{0,128,0}
+
+\usepackage{array} % Para personalizar la tabla
+\usepackage{booktabs} % Para líneas horizontales de mejor calidad
+\usepackage{graphicx} % Paquete para incluir imágenes
+\usepackage{float}
+\usepackage[section]{placeins}
+
+% Definir márgenes
+\usepackage[margin=1in]{geometry}
+
+\renewcommand{\contentsname}{\textcolor{mygreen}{Tabla de Contenidos}}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    % Logo de la Universidad
+    \includegraphics[width=0.48\textwidth]{logo_universidad.png}
+    \par\vspace{2cm}
+
+    % Nombre de la Universidad y detalles del curso
+    {\Large \textbf{Universidad Nacional de Colombia} \par}
+    \vspace{0.5cm}
+    {\large Ingeniería de Sistemas y Computación \par}
+    {\large 2025966 Lenguajes de Programación (02)\par}
+    \vspace{3cm}
+
+    % Detalles del laboratorio y actividad
+    {\large \textbf{Tarea 31} \par}
+    {\large Traductor para las sentencias while y de asignación\par}
+    \vspace{3cm}
+
+    % Lista de integrantes
+    {\large \textbf{Integrantes:} \par}
+    \vspace{0.5cm}
+    \begin{tabular}{ll}
+    Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co   \\
+    Eder  José Hernández Buelvas   & ehernandezbu@unal.edu.co \\
+    Juan Sebastián Muñoz Lemus     & jumunozle@unal.edu.co   \\
+    David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
+    \end{tabular}
+    \par\vspace{3cm}
+
+    % Fecha
+    {\large Mayo 7 de 2025 \par}
+\end{titlepage}
+
+\tableofcontents % Inserta la tabla de contenidos
+
+\newpage % Salto de página para separar la tabla de contenidos del contenido del documento
+
+% Contenido del artículo----------------------------------------------------------
+
+%---------------------------------------------------------------------------------
+% Intro --------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Introducción}\label{sec:intr}
+
+Los lenguajes de programación de alto nivel proporcionan estructuras que permiten describir algoritmos de forma clara y entendible para los humanos. Sin embargo, para que estas instrucciones puedan ser ejecutadas por una máquina, es necesario transformarlas en un lenguaje más cercano al hardware. En este contexto, \texttt{LEX} y \texttt{YACC} son herramientas ampliamente utilizadas para construir analizadores léxicos y sintácticos, que facilitan el diseño de traductores y compiladores. El presente trabajo se enfoca en la creación de un traductor que tome sentencias de asignación y ciclos \texttt{while} y las convierta en instrucciones en lenguaje ensamblador, específicamente para la máquina descrita por el profesor Ricardo Peña en su obra \textit{De Euclides a Java}. Este proceso combina teoría y práctica, permitiendo consolidar conocimientos fundamentales sobre compilación y traducción de programas.
+%---------------------------------------------------------------------------------
+% Marco Teórico ------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Marco Teórico}\label{sec:marc}
+
+\subsection*{Introducción}
+
+Este apartado reúne los fundamentos conceptuales necesarios para entender el desarrollo de un traductor que convierta estructuras de control escritas en un lenguaje de alto nivel a instrucciones en lenguaje ensamblador. Se describe la estructura \texttt{while} como caso de estudio principal, así como los principios del análisis léxico y sintáctico mediante las herramientas \texttt{Flex} y \texttt{YACC}. También se abordan conceptos básicos de gramáticas formales, que sustentan la construcción de analizadores y traductores.
+
+\subsection*{Estructura de Control While}
+
+El ciclo \texttt{while} es una construcción clave en la programación estructurada, ya que permite la ejecución iterativa de un bloque de instrucciones bajo una condición booleana. Para efectos de esta implementación, se considera que la condición evalúa expresiones lógicas limitadas a los valores \texttt{true} o \texttt{false}, lo que simplifica la traducción a instrucciones de bajo nivel. El flujo de control de esta estructura se maneja generando etiquetas que marcan el inicio y final del bucle, de forma que la verificación de la condición defina si el bloque se repite o se omite. Esta transformación es fundamental en compiladores, pues permite mapear instrucciones de alto nivel a operaciones que la máquina puede ejecutar directamente.
+
+\subsection*{Flex: Analizador Léxico}
+
+\texttt{Flex} es una herramienta diseñada para la construcción automática de analizadores léxicos. Su función principal es identificar patrones dentro de un texto de entrada y clasificarlos en unidades significativas denominadas \emph{tokens}. Esta identificación resulta esencial para descartar elementos irrelevantes como espacios y comentarios, facilitando que el código fuente se procese adecuadamente en fases posteriores. Al recibir como entrada una definición de patrones léxicos, \texttt{Flex} genera código que se encarga de escanear y dividir el texto de acuerdo con dichos patrones, sirviendo como punto de partida para la construcción de compiladores y traductores.
+
+\subsection*{YACC (Bison): Analizador Sintáctico}
+
+\texttt{YACC} (Yet Another Compiler-Compiler) es una herramienta orientada a la generación de analizadores sintácticos basados en gramáticas libres de contexto. Fue creada para automatizar la construcción de analizadores que interpreten la secuencia de tokens producida por un analizador léxico. \texttt{Bison} es la implementación del proyecto GNU compatible con \texttt{YACC}, ofreciendo funcionalidades ampliadas. Estas herramientas funcionan de forma complementaria a \texttt{Lex} o \texttt{Flex}, ya que mientras el analizador léxico identifica los tokens, \texttt{YACC}/\texttt{Bison} se encarga de organizarlos según las reglas gramaticales establecidas y de ejecutar acciones semánticas asociadas. Gracias a su enfoque de análisis LALR(1), basado en un análisis ascendente con un símbolo de anticipación, \texttt{YACC}/\texttt{Bison} permite crear analizadores sintácticos robustos y eficientes, utilizados ampliamente en la construcción de compiladores, intérpretes y traductores.
+
+
+%---------------------------------------------------------------------------------
+% Descripción y Justificación del Problema a Resolver ----------------------------
+%---------------------------------------------------------------------------------
+
+\section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
+
+El propósito de este proyecto es diseñar e implementar un traductor que procese sentencias de asignación y estructuras de control \texttt{while} para la máquina propuesta por el profesor Ricardo Peña, siguiendo la arquitectura descrita en su libro \textit{De Euclides a Java}. Para lograrlo, se utilizarán las herramientas \texttt{LEX} y \texttt{YACC}, encargadas del análisis léxico y sintáctico respectivamente. El traductor debe ser capaz de reconocer elementos básicos como la palabra reservada \texttt{while}, los valores lógicos \texttt{true} y \texttt{false}, identificadores, números y operadores de asignación. Para ello se definirán expresiones regulares adecuadas que permitan detectar estos patrones en el análisis léxico. La conversión a lenguaje ensamblador se realizará generando el código correspondiente de acuerdo con la gramática de la máquina objetivo, controlando la precedencia y asociatividad de las expresiones. Además, se verificará su funcionamiento mediante la traducción de un ejemplo que incluya tres bucles \texttt{while} (dos seguidos y uno dentro de otro).
+
+\section*{Justificación}
+
+Desarrollar un traductor para sentencias de control y asignación brinda la oportunidad de aplicar de forma práctica los principios de análisis léxico y sintáctico empleados en la construcción de compiladores. Esta actividad permite profundizar en la forma en que instrucciones escritas en un lenguaje de alto nivel pueden transformarse en instrucciones comprensibles para un procesador específico. Asimismo, la implementación consolida habilidades en el manejo de \texttt{LEX} y \texttt{YACC}, herramientas clave en la creación de analizadores y traductores, reforzando así la comprensión de los procesos fundamentales para el diseño de compiladores e intérpretes.
+
+\subsection{Objetivo Principal}
+
+Desarrollar un traductor que permita convertir sentencias de asignación y estructuras de control \texttt{while} escritas en un lenguaje de alto nivel a su representación en lenguaje ensamblador para la máquina propuesta por Ricardo Peña. Para ello, se implementará un análisis léxico para identificar los componentes básicos de la sintaxis y se diseñará la estructura sintáctica que genere el código de salida, asegurando una traducción correcta y coherente con la arquitectura de la máquina destino.
+
+
+%---------------------------------------------------------------------------------
+% Diseño de la solución ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Diseño de la solución}\label{sec:dis}
+
+
+Para transformar sentencias de asignación y ciclos \texttt{while} a instrucciones en lenguaje ensamblador, se plantea una solución modular que divide el proceso en dos fases principales: el análisis léxico y el análisis sintáctico. En la primera fase se identifican y clasifican los elementos básicos del lenguaje, como palabras clave, identificadores, operadores y literales. En la segunda fase, se interpretan las secuencias de tokens según una gramática definida y se produce la salida en lenguaje ensamblador conforme a la estructura de la máquina objetivo.
+
+El diseño contempla la definición de expresiones regulares precisas para cada tipo de token, así como la construcción de reglas gramaticales que describan la estructura de las sentencias de asignación y los bucles \texttt{while}. Cada regla se acompaña de acciones semánticas que generan las instrucciones correspondientes, gestionando etiquetas, saltos y asignaciones de forma coherente con la lógica de la máquina descrita por Ricardo Peña. Además, se define un esquema para manejar la numeración de etiquetas y los registros necesarios, evitando conflictos y asegurando la correcta ejecución del código traducido.
+
+\section*{Metodología}
+
+El desarrollo del traductor se organiza en etapas claramente diferenciadas. Primero, se define el conjunto de tokens y se implementa el analizador léxico empleando \texttt{Flex}, encargándose de reconocer palabras clave, símbolos y operadores. Posteriormente, se diseña la gramática que describe la sintaxis de las sentencias de asignación y de la estructura \texttt{while}, integrándola en \texttt{YACC} o \texttt{Bison}. En esta fase, se asocian acciones semánticas a las reglas gramaticales para generar el código ensamblador línea por línea.
+
+Una vez construido el traductor, se validará su funcionamiento mediante pruebas con programas de entrada que combinen múltiples ciclos \texttt{while} (en serie y anidados) junto con asignaciones, verificando que la salida en ensamblador respete la lógica original. Esta validación permite identificar posibles errores en la definición de tokens, reglas o acciones, y ajustar el diseño para garantizar la fidelidad de la traducción. La metodología adoptada asegura una correspondencia clara entre el lenguaje de alto nivel y las instrucciones generadas, promoviendo la comprensión del proceso de compilación de estructuras de control.
+
+
+
+%---------------------------------------------------------------------------------
+% Código Fuente ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+
+%---------------------------------------------------------------------------------
+% Manual Usuario ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+
+%---------------------------------------------------------------------------------
+% Manual Técnico ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+
+%---------------------------------------------------------------------------------
+% Experimentación ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Experimentación}\label{sec:exp}
+
+Para comprobar que el traductor funciona de forma correcta, se diseñarán y ejecutarán diversas pruebas que combinan ciclos \texttt{while} y sentencias de asignación. Cada caso de prueba permitirá verificar que el código ensamblador generado refleje la lógica de control planteada en el programa de entrada. Se emplearán ejemplos con ciclos consecutivos, bucles anidados y variaciones que integren varias asignaciones, con el fin de validar la correcta gestión de etiquetas, saltos y operaciones.
+
+\section*{Análisis de Resultados}
+
+\subsection*{Escenario 1: Dos ciclos \texttt{while} en secuencia}
+
+\begin{itemize}
+    \item \textbf{Entrada}: \texttt{while (true) y = 3; while (false) z = 8;}
+    \item \textbf{Salida esperada}: Instrucciones ensamblador que generen un bucle infinito asignando 3 a \texttt{y} y omitan la segunda asignación por la condición falsa.
+\end{itemize}
+
+\subsection*{Escenario 2: Bucle \texttt{while} dentro de otro}
+
+\begin{itemize}
+    \item \textbf{Entrada}: \texttt{while (true) \{ while (true) w = 2; \}}
+    \item \textbf{Salida esperada}: Código ensamblador que genere dos bucles anidados, ejecutando la asignación de 2 a \texttt{w} de forma indefinida dentro del ciclo exterior.
+\end{itemize}
+
+\subsection*{Escenario 3: Ejemplo con múltiples asignaciones y anidación}
+
+\begin{itemize}
+    \item \textbf{Entrada}: \texttt{while (true) \{ x = 1; while (false) y = 4; z = 7; \}}
+    \item \textbf{Salida esperada}: Código ensamblador que mantenga un bucle infinito, realice la asignación de 1 a \texttt{x} y 7 a \texttt{z} en cada iteración, omitiendo la asignación de \texttt{y} por la condición falsa del ciclo interno.
+\end{itemize}
+
+
+
+\section{Referencias}
+\renewcommand{\refname}{}
+
+\begin{thebibliography}{9}
+
+\bibitem{ref} \label{ref:vidIntro} Westes, B. (s.f.). \textit{flex: The fast lexical analyzer}. GitHub. Recuperado de \url{https://github.com/westes/flex}
+\end{thebibliography}
+
+\end{document}
