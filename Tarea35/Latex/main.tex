@@ -1,0 +1,280 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[style=ieee]{biblatex} % Establecer el estilo de las referencias como IEEE
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titletoc}
+\usepackage{adjustbox}
+\usepackage[spanish]{babel}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue, % Color del texto del enlace
+    urlcolor=blue % Color del enlace
+}
+
+\usepackage{longtable} % Agrega el paquete longtable
+
+\definecolor{mygreen}{RGB}{0,128,0}
+
+\usepackage{array} % Para personalizar la tabla
+\usepackage{booktabs} % Para líneas horizontales de mejor calidad
+\usepackage{graphicx} % Paquete para incluir imágenes
+\usepackage{float}
+\usepackage[section]{placeins}
+
+% Definir márgenes
+\usepackage[margin=1in]{geometry}
+
+\renewcommand{\contentsname}{\textcolor{mygreen}{Tabla de Contenidos}}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    % Logo de la Universidad
+    \includegraphics[width=0.48\textwidth]{logo_universidad.png}
+    \par\vspace{2cm}
+
+    % Nombre de la Universidad y detalles del curso
+    {\Large \textbf{Universidad Nacional de Colombia} \par}
+    \vspace{0.5cm}
+    {\large Ingeniería de Sistemas y Computación \par}
+    {\large 2025966 Lenguajes de Programación (02)\par}
+    \vspace{3cm}
+
+    % Detalles del laboratorio y actividad
+    {\large \textbf{Tarea 35} \par}
+    {\large Traductor de notación infija a postfija \par}
+    \vspace{3cm}
+
+    % Lista de integrantes
+    {\large \textbf{Integrantes:} \par}
+    \vspace{0.5cm}
+    \begin{tabular}{ll}
+    Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co   \\
+    Eder  José Hernández Buelvas   & ehernandezbu@unal.edu.co \\
+    Juan Sebastián Muñoz Lemus     & jumunozle@unal.edu.co   \\
+    David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
+    \end{tabular}
+    \par\vspace{3cm}
+
+    % Fecha
+    {\large 24 de Julio de 2025 \par}
+\end{titlepage}
+
+\tableofcontents % Inserta la tabla de contenidos
+
+\newpage % Salto de página para separar la tabla de contenidos del contenido del documento
+
+% Contenido del artículo----------------------------------------------------------
+
+%---------------------------------------------------------------------------------
+% Intro --------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Introducción}\label{sec:intr}
+
+El presente trabajo tiene como propósito principal la construcción de un traductor que convierta expresiones aritméticas escritas en notación infija a su equivalente en notación postfija, utilizando las herramientas Flex (para el análisis léxico) y Bison/YACC (para el análisis sintáctico).  
+Este proyecto pone en práctica conceptos fundamentales del análisis de lenguajes de programación, como la definición de tokens, la estructura de gramáticas libres de contexto y la gestión de reglas de precedencia y asociatividad.  
+
+La conversión de notación infija a postfija es un problema clásico en el ámbito de los compiladores e intérpretes, pues la notación postfija facilita la evaluación automática de expresiones matemáticas mediante estructuras de datos simples, como pilas, eliminando la necesidad de paréntesis y simplificando el orden de evaluación.  
+%---------------------------------------------------------------------------------
+% Marco Teórico ------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Marco Teórico}\label{sec:marc}
+
+En este apartado se describe el marco conceptual necesario para la implementación de un traductor de expresiones aritméticas de notación infija a notación postfija, haciendo uso de las herramientas LEX y YACC. Se presentan los conceptos fundamentales sobre las formas de notación matemática y se explica el papel de estas herramientas en la construcción de analizadores léxicos y sintácticos.
+
+\subsection*{Notación Infija y Notación Postfija}
+
+La notación infija es la forma habitual en la que se escriben expresiones matemáticas, situando los operadores entre los operandos, como en el ejemplo $(3+4) \times 5$. En contraste, la notación postfija coloca los operadores después de los operandos, prescindiendo de paréntesis, como en la expresión $34+5*$. Esta forma de escritura presenta la ventaja de simplificar el proceso de evaluación de expresiones, pues elimina la necesidad de manejar precedencia de operadores y paréntesis, facilitando la evaluación mediante estructuras de datos como pilas.
+
+\subsection*{Flex: Herramienta para el Análisis Léxico}
+
+\texttt{Flex} es una herramienta ampliamente utilizada para la generación automática de analizadores léxicos, encargados de reconocer patrones en cadenas de texto y clasificarlos en tokens significativos. Estos analizadores son fundamentales en la primera fase de compilación o interpretación de lenguajes, pues identifican elementos como números, operadores o paréntesis, y descartan caracteres irrelevantes como espacios en blanco.  
+Flex permite definir expresiones regulares para los diferentes tipos de tokens que se desean reconocer, generando código eficiente para realizar esta tarea de forma automática y confiable. Gracias a ello, el analizador sintáctico puede operar sobre una secuencia clara y estructurada de tokens.
+
+\subsection*{YACC (Bison)}
+
+\texttt{YACC} (Yet Another Compiler-Compiler) es un generador de analizadores sintácticos LALR(1) desarrollado originalmente para sistemas Unix. Su función principal es producir automáticamente un analizador sintáctico a partir de una gramática libre de contexto descrita en una notación similar a la Backus-Naur Form (BNF).  
+\texttt{Bison} es la versión GNU de YACC, totalmente compatible y mejorada. YACC y Bison trabajan en conjunto con Lex o Flex: mientras Flex se encarga del análisis léxico y devuelve tokens a través de la función \texttt{yylex()}, YACC/Bison organiza estos tokens según las reglas gramaticales definidas, ejecutando acciones semánticas mediante la función \texttt{yyparse()}.  
+Entre sus capacidades, destaca la posibilidad de asociar acciones en lenguaje C a cada regla gramatical, permitiendo construir representaciones intermedias de la expresión, generar código intermedio o realizar validaciones durante el análisis. Su enfoque LALR(1) le permite procesar gramáticas de forma eficiente, con un único token de anticipación, siendo ampliamente empleado en la creación de compiladores, intérpretes y traductores.
+
+
+%---------------------------------------------------------------------------------
+% Descripción y Justificación del Problema a Resolver ----------------------------
+%---------------------------------------------------------------------------------
+
+\section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
+
+El objetivo de este taller es diseñar e implementar un traductor que permita convertir expresiones aritméticas escritas en notación infija a su representación equivalente en notación postfija, empleando las herramientas LEX y YACC. Para lograrlo, el sistema debe analizar expresiones matemáticas ingresadas por el usuario, identificando correctamente cada uno de sus componentes léxicos (números, operadores y paréntesis) mediante LEX, y posteriormente transformar la estructura sintáctica de la expresión a notación postfija mediante YACC.  
+
+El traductor debe garantizar que la conversión respete las reglas de precedencia y asociatividad de los operadores aritméticos. Además, debe reconocer correctamente expresiones que incluyan paréntesis, asegurando así que el orden de evaluación se mantenga de forma adecuada. El programa permitirá obtener de forma automática la versión postfija de una expresión matemática, facilitando su evaluación mediante técnicas que hacen uso de estructuras de datos como pilas.  
+
+Los principales componentes son:  
+\begin{itemize}
+    \item \textbf{Análisis léxico con LEX:} Definir expresiones regulares para identificar números, operadores aritméticos (+, -, *, /) y paréntesis.
+    \item \textbf{Análisis sintáctico con YACC:} Construir la conversión de la expresión infija a su forma postfija, considerando la jerarquía de operaciones y la estructura correcta de la expresión.
+    \item \textbf{Gestión de precedencia y asociatividad:} Aplicar reglas que aseguren el orden correcto de los operadores en la salida postfija, incluso cuando se empleen paréntesis para alterar la precedencia natural.
+\end{itemize}
+
+\section*{Justificación}
+
+El desarrollo de este traductor es una aplicación práctica de los conceptos fundamentales de análisis léxico y sintáctico, conocimientos esenciales para la construcción de compiladores e intérpretes de lenguajes de programación. Esta práctica permite afianzar la comprensión de cómo operan los analizadores léxicos y sintácticos, así como la correcta gestión de reglas de precedencia y estructura gramatical.  
+
+La notación postfija es especialmente útil en evaluadores de expresiones y en la ejecución de instrucciones dentro de máquinas virtuales, ya que elimina la ambigüedad de los paréntesis y facilita la evaluación mediante algoritmos basados en pilas.  
+
+Además, este proyecto sirve como base para trabajos más avanzados, como la creación de intérpretes, optimización de código y diseño de lenguajes. El uso de LEX y YACC refuerza la familiaridad con herramientas ampliamente utilizadas en el desarrollo de software de análisis de lenguajes, aportando conocimientos aplicables tanto a nivel académico como profesional.
+
+\subsection{Objetivo Principal}
+
+Desarrollar e implementar un traductor que procese expresiones aritméticas en notación infija y genere su equivalente en notación postfija, utilizando las herramientas LEX y YACC, garantizando la correcta identificación de los componentes léxicos y la aplicación de las reglas de precedencia y asociatividad de los operadores.
+%---------------------------------------------------------------------------------
+% Diseño de la solución ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Diseño de la solución}\label{sec:dis}
+
+La aplicación desarrollada permite transformar expresiones matemáticas escritas en notación infija a su forma equivalente en notación postfija, haciendo uso de las herramientas Flex para el análisis léxico y Bison/YACC para el análisis sintáctico. La herramienta procesa expresiones que incluyen operadores aritméticos básicos (+, –, *, /) y paréntesis, generando como salida la expresión convertida en notación postfija, lista para ser evaluada de forma sencilla mediante algoritmos basados en pilas.
+
+\subsection*{Funcionamiento de la Aplicación}
+
+El funcionamiento de la aplicación se organiza en tres etapas principales:  
+\begin{itemize}
+    \item \textbf{Ingreso de datos:} El usuario introduce una expresión matemática en notación infija a través de la entrada estándar.
+    \item \textbf{Procesamiento:} La expresión ingresada se analiza léxica y sintácticamente, transformándola a notación postfija. Durante este proceso se respetan las reglas de precedencia y asociatividad de los operadores, así como la correcta interpretación de paréntesis.
+    \item \textbf{Generación del resultado:} Una vez procesada la expresión, el resultado en notación postfija se muestra en consola para su posterior evaluación.
+\end{itemize}
+
+\subsection*{Arquitectura de la Aplicación}
+
+La arquitectura de la aplicación se divide en tres módulos fundamentales:  
+\begin{itemize}
+    \item \textbf{Análisis Léxico:} Implementado con Flex, identifica y clasifica los elementos de la expresión (números, operadores y paréntesis), generando los tokens necesarios para el análisis posterior.
+    \item \textbf{Análisis Sintáctico:} A cargo de Bison/YACC, organiza los tokens recibidos según una gramática definida, gestionando la estructura de la expresión y aplicando las acciones semánticas necesarias para producir la forma postfija.
+    \item \textbf{Salida:} El resultado final, que es la expresión convertida a notación postfija, se imprime directamente en la consola.
+\end{itemize}
+\subsection{Metodología}
+
+La metodología aplicada para la construcción de la aplicación contempla los siguientes pasos:  
+\begin{enumerate}
+    \item \textbf{Definición de patrones léxicos:} Se elaboraron expresiones regulares en Flex para reconocer números, operadores y paréntesis.
+    \item \textbf{Diseño de la gramática:} Se diseñaron reglas gramaticales en Bison/YACC que describen la estructura de las expresiones aritméticas, respetando precedencia y asociatividad.
+    \item \textbf{Implementación de acciones semánticas:} Se integraron acciones que producen la forma postfija de la expresión durante el análisis sintáctico.
+    \item \textbf{Integración y pruebas:} Se unieron los módulos léxico y sintáctico, realizando pruebas con distintas expresiones para verificar la correcta conversión y validación de casos con paréntesis y operadores combinados.
+\end{enumerate}
+
+%---------------------------------------------------------------------------------
+% Código Fuente ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Código Fuente}\label{sec:cod}
+
+El código fuente completo de este modelo se encuentra adjunto en el buzón 
+(35 Muñoz Lemus Juan Sebastian 02.zip)
+y disponible en el repositorio GitHub del proyecto:
+
+\begin{center}
+\url{https://github.com/JavierTarazona06/LP02_Tareas}
+\end{center}
+
+
+%---------------------------------------------------------------------------------
+% Manual Usuario ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Manual Usuario}\label{sec:man_u}
+
+Para compilar y ejecutar el traductor de expresiones aritméticas es necesario contar con los siguientes elementos instalados y configurados:
+
+\begin{itemize}
+    \item Un sistema operativo Windows con \texttt{win\_flex} y \texttt{win\_bison} instalados, o un sistema Linux con \texttt{flex} y \texttt{bison}.
+    \item Un compilador de C, como \texttt{gcc}.
+    \item Un editor de texto o entorno de desarrollo, como VSCode.
+\end{itemize}
+
+\subsection*{Archivos de la Aplicación}
+
+El traductor se compone de los siguientes archivos principales, descargar del repositorio o el buzon:  
+\begin{itemize}
+    \item \texttt{infix.l} : Archivo de definición léxica, implementado con Flex.
+    \item \texttt{infix.Y} : Archivo de definición sintáctica, implementado con Bison/YACC.
+\end{itemize}
+
+\subsection*{Pasos para Compilar y Ejecutar}
+
+A continuación se describen los pasos para compilar y ejecutar el traductor en un entorno Windows. Para sistemas Linux, basta con sustituir \texttt{win\_flex} y \texttt{win\_bison} por \texttt{flex} y \texttt{bison}.
+
+\begin{enumerate}
+    \item Abrir una terminal o consola en la carpeta donde se encuentren los archivos \texttt{infix.l} e \texttt{infix.Y}.
+    \item Generar el analizador léxico ejecutando:
+    \begin{verbatim}
+    win_flex infix.l
+    \end{verbatim}
+
+    \item Generar el analizador sintáctico ejecutando:
+    \begin{verbatim}
+    win_bison -d infix.Y
+    \end{verbatim}
+
+    \item Compilar los archivos generados con un compilador C:
+    \begin{verbatim}
+    gcc lex.yy.c y.tab.c -o infix.exe
+    \end{verbatim}
+
+    \item Ejecutar el traductor:
+    \begin{verbatim}
+    ./infix.exe
+    \end{verbatim}
+
+    \item Ingresar la expresión aritmética en notación infija cuando el programa lo solicite. El resultado en notación postfija se mostrará en la consola.
+\end{enumerate}
+
+%---------------------------------------------------------------------------------
+% Experimentación ---------------------------------------------------------
+%---------------------------------------------------------------------------------
+
+\section{Experimentación}\label{sec:exp}
+Para verificar el correcto funcionamiento del traductor, se plantearon distintos escenarios de prueba con expresiones matemáticas variadas. Cada caso evalúa la conversión de notación infija a postfija, revisando que se respeten la precedencia de operadores y el manejo de paréntesis. Los resultados obtenidos se comparan con los resultados teóricos esperados para validar la implementación.
+
+A continuación, se presentan tres escenarios de prueba representativos junto con sus resultados esperados:
+
+\subsection*{Escenario 1: Expresión simple sin paréntesis}
+
+\begin{itemize}
+    \item \textbf{Entrada:} \texttt{6 - 2 * 3}
+    \item \textbf{Resultado esperado:} \texttt{6 2 3 * -}
+\end{itemize}
+
+\subsection*{Escenario 2: Expresión con paréntesis}
+
+\begin{itemize}
+    \item \textbf{Entrada:} \texttt{(5 + 2) * 4}
+    \item \textbf{Resultado esperado:} \texttt{5 2 + 4 *}
+\end{itemize}
+
+\subsection*{Escenario 3: Expresión más compleja}
+
+\begin{itemize}
+    \item \textbf{Entrada:} \texttt{7 + 4 * (2 + 1)}
+    \item \textbf{Resultado esperado:} \texttt{7 4 2 1 + * +}
+\end{itemize}
+
+\section*{Conclusiones}
+
+Los resultados de las pruebas confirman que el traductor implementado transforma correctamente expresiones de notación infija a postfija, gestionando la precedencia de operadores y el uso de paréntesis de forma adecuada. 
+
+
+\section{Referencias}
+\renewcommand{\refname}{}
+
+\begin{thebibliography}{9}
+
+\bibitem{ref} \label{ref:vidIntro} Westes, B. (s.f.). \textit{flex: The fast lexical analyzer}. GitHub. Recuperado de \url{https://github.com/westes/flex}
+
+
+\end{thebibliography}
+
+\end{document}
