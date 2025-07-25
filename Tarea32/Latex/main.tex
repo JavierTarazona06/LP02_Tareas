@@ -44,21 +44,23 @@
     \vspace{3cm}
 
     % Detalles del laboratorio y actividad
-    {\large \textbf{Tarea Template} \par}
-    {\large Emulación de su computador\par}
+    {\large \textbf{Tarea 32} \par}
+    {\large AFD obtenido de la expresión regular de números complejos de la Tarea 28\par}
     \vspace{3cm}
 
     % Lista de integrantes
     {\large \textbf{Integrantes:} \par}
     \vspace{0.5cm}
     \begin{tabular}{ll}
-    Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co \\
-    - & -@unal.edu.co \\
+    Javier Andrés Tarazona Jiménez & jtarazonaj@unal.edu.co   \\
+    Eder  José Hernández Buelvas   & ehernandezbu@unal.edu.co \\
+    Juan Sebastián Muñoz Lemus     & jumunozle@unal.edu.co   \\
+    David Felipe Marin Rosas       & dmarinro@unal.edu.co   \\
     \end{tabular}
     \par\vspace{3cm}
 
     % Fecha
-    {\large Mayo 7 de 2025 \par}
+    {\large 24 de Julio de 2025 \par}
 \end{titlepage}
 
 \tableofcontents % Inserta la tabla de contenidos
@@ -73,15 +75,21 @@
 
 \section{Introducción}\label{sec:intr}
 
+El presente documento expone el proceso de diseño, construcción e implementación de un Autómata Finito Determinista (AFD) que permite reconocer números reales en una cadena de texto. El trabajo se desarrolla a partir de la expresión regular utilizada en un analizador léxico que forma parte de un compilador básico para operaciones matemáticas. Se describe el modelo teórico, el problema a resolver, la metodología seguida, y se analizan los resultados obtenidos en diferentes escenarios de prueba.
+
 %---------------------------------------------------------------------------------
 % Marco Teórico ------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 
 \section{Marco Teórico}\label{sec:marc}
 
+Un Autómata Finito es un modelo matemático de máquina de estados utilizado para el reconocimiento de patrones dentro de cadenas de caracteres. Existen dos tipos principales: los Autómatas Finitos No Deterministas (AFN), que pueden incluir transiciones lambda ($\lambda$), y los Autómatas Finitos Deterministas (AFD), que no poseen ambigüedad en sus transiciones.
 
+La expresión regular \texttt{[0-9]+(\.[0-9]+)?} describe la estructura de un número real que puede ser entero o contener una parte decimal. El AFN se construye primero, permitiendo transiciones $\lambda$ para reflejar opcionalidad, y posteriormente se convierte en un AFD para su implementación práctica en un lenguaje de programación como C++.
 
-\subsection{Contextualización del problema}
+\section{Descripción y Justificación del Problema a Resolver}
+
+Se requiere un componente capaz de validar si una cadena ingresada por el usuario representa correctamente un número real conforme a la expresión regular definida. Esta funcionalidad es esencial en compiladores, intérpretes y analizadores léxicos, ya que garantiza la correcta identificación de literales numéricos en expresiones matemáticas.
 
 
 
@@ -92,19 +100,28 @@
 
 \section{Descripción y Justificación del Problema a Resolver}\label{sec:descr}
 
+Se requiere un componente capaz de validar si una cadena ingresada por el usuario representa correctamente un número real conforme a la expresión regular definida. Esta funcionalidad es esencial en compiladores, intérpretes y analizadores léxicos, ya que garantiza la correcta identificación de literales numéricos en expresiones matemáticas.
 
 \subsection{Objetivo Principal}
 
-
+Desarrollar un AFD funcional e implementar su lógica en C++ para verificar la validez de números reales, junto con la experimentación de diferentes casos de prueba que aseguren su correcto funcionamiento.
 %---------------------------------------------------------------------------------
 % Diseño de la solución ---------------------------------------------------------
 %---------------------------------------------------------------------------------
 
 \section{Diseño de la solución}\label{sec:dis}
-
+El diseño parte de la construcción del $\lambda$-AFN correspondiente a la expresión regular, seguido por su transformación a un AFD.
 
 \subsection{Metodología}
 
+Se siguieron los siguientes pasos:
+\begin{enumerate}
+    \item Análisis de la expresión regular.
+    \item Construcción del $\lambda$-AFN.
+    \item Transformación del $\lambda$-AFN al AFD.
+    \item Programación del AFD en C++.
+    \item Pruebas de validación con entradas variadas.
+\end{enumerate}
 
 
 %---------------------------------------------------------------------------------
@@ -114,19 +131,13 @@
 \section{Código Fuente}\label{sec:cod}
 
 El código fuente completo de este modelo se encuentra adjunto en el buzón 
-(11 Tarazona Jimenez Javier Andres 02.zip)
+(32 Muñoz Lemus Juan Sebastian 02.zip)
 y disponible en el repositorio GitHub del proyecto:
 
 \begin{center}
-\url{URL}
+\url{https://github.com/JavierTarazona06/LP02_Tareas/tree/main}
 \end{center}
 
-El repositorio contiene:
-\begin{itemize}
-\item A
-\item B
-\item C
-\end{itemize}
 
 %---------------------------------------------------------------------------------
 % Manual Usuario ---------------------------------------------------------
@@ -134,69 +145,12 @@ El repositorio contiene:
 
 \section{Manual Usuario}\label{sec:man_u}
 
-El primer paso es descargar el archivo \texttt{11 Tarazona Jimenez Javier Andres 02.zip}.
-
-Una vez descargado, descomprímalo y acceda a la carpeta. Dentro de ella, cree un 
-entorno virtual utilizando Python 3.12. o superior. Para ello, ejecute el siguiente 
-comando en 
-la terminal o línea de comandos:
-
 \begin{itemize}
-  \item En Windows:
-  \begin{verbatim}
-    python3.12 -m venv nombre_del_entorno
-  \end{verbatim}
-  \item En macOS o Linux:
-  \begin{verbatim}
-    python3.12 -m venv nombre_del_entorno
-  \end{verbatim}
+    \item Compile el archivo C++ usando un compilador como \texttt{g++}.
+    \item Ejecute el programa.
+    \item Ingrese una cadena de texto cuando se solicite.
+    \item El programa indicará si la cadena es un número válido o no.
 \end{itemize}
-
-Donde \texttt{nombre\_del\_entorno} es el nombre que desea asignar a su entorno virtual. 
-A continuación, active el entorno virtual:
-
-\begin{itemize}
-  \item En Windows:
-  \begin{verbatim}
-    .\nombre_del_entorno\Scripts\activate
-  \end{verbatim}
-  \item En macOS o Linux:
-  \begin{verbatim}
-    source nombre_del_entorno/bin/activate
-  \end{verbatim}
-\end{itemize}
-
-En el archivo \texttt{constants/program.py} encontrará las constantes del programa. 
-En ese archivo, podrá modificar los parámetros de entrada que se detallan más abajo.\\
-
-Después de configurar los parámetros, asegúrese de tener el entorno virtual activado. 
-Una vez activo, puede ejecutar el archivo principal con el siguiente comando:
-
-\begin{center}
-  \begin{adjustbox}{minipage=\linewidth, center}
-  \begin{verbatim}
-    python main.py
-  \end{verbatim}
-  \end{adjustbox}
-\end{center}
-
-%---------------------------------------------------------------------------------
-% Manual Técnico ---------------------------------------------------------
-%---------------------------------------------------------------------------------
-
-\section{Manual Técnico}\label{sec:man_t}
-
-
-\subsection{Fases de la Simulación}
-
-
-\subsection{Manejo de Datos}
-
-\subsection{Evaluación de la Simulación}
-
-
-\subsection{Conclusiones y Recomendaciones}
-
 
 %---------------------------------------------------------------------------------
 % Experimentación ---------------------------------------------------------
@@ -204,34 +158,82 @@ Una vez activo, puede ejecutar el archivo principal con el siguiente comando:
 
 \section{Experimentación}\label{sec:exp}
 
+\begin{verbatim}
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+bool esNumero(const string& s) {
+    enum Estado { S0, S1, S2, S3, ERROR };
+    Estado estado = S0;
+
+    for (char c : s) {
+        switch (estado) {
+            case S0:
+                if (isdigit(c)) estado = S1;
+                else return false;
+                break;
+            case S1:
+                if (isdigit(c)) estado = S1;
+                else if (c == '.') estado = S2;
+                else return false;
+                break;
+            case S2:
+                if (isdigit(c)) estado = S3;
+                else return false;
+                break;
+            case S3:
+                if (isdigit(c)) estado = S3;
+                else return false;
+                break;
+            default:
+                return false;
+        }
+    }
+
+    return estado == S1 || estado == S3;
+}
+
+int main() {
+    string entrada;
+    cout << "Ingrese una cadena: ";
+    cin >> entrada;
+
+    if (esNumero(entrada)) {
+        cout << "Cadena válida.\n";
+    } else {
+        cout << "Cadena inválida.\n";
+    }
+
+    return 0;
+}
+
+\end{verbatim}
+
+Se realizaron tres escenarios de prueba con datos de entrada representativos:
 \subsection{Análisis de resultados}
 
-\subsubsection{Escenario 1: }
+\subsubsection{Escenario 1: Entrada: \texttt{12345} }
 
-\subsubsection{Escenario 2: }
- 
-\subsubsection{Escenario 3: }
+\textbf{Resultado Esperado:} Cadena válida (número entero).
 
+\subsubsection{Escenario 2: Entrada: \texttt{78.90}}
 
+\textbf{Resultado Esperado:} Cadena válida (número real).
 
-\section{Referencias}
-\renewcommand{\refname}{}
+\subsubsection{Escenario 3: Entrada: \texttt{.456}}
 
-\begin{thebibliography}{9}
+\textbf{Resultado Esperado:} Cadena inválida (no cumple con la expresión).
 
-\bibitem{ref} \label{ref:vidIntro} A. Párraga, “Cómo se programa un ORDENADOR CUÁNTICO (bien explicado),”
-YouTube, 2021. [Online]. Available: \url{https://www.youtube.com/watch?v=eRlQdW1lgJE. }
+\subsection{Conclusiones}
 
-\bibitem{ref} \label{ref:vidTelepor} Ket.G, “La Teleportación cuántica,” YouTube, 3-Mar-2020. [Online]. 
-Available: \url{https://www.youtube.com/watch?v=4BUB41iK25Y.}
+Los resultados obtenidos coincidieron con lo esperado:
+\begin{itemize}
+    \item Se identificaron correctamente números enteros.
+    \item Se validaron números con parte decimal.
+    \item Se rechazaron entradas inválidas como cadenas sin dígito entero antes del punto.
+\end{itemize}
 
-\bibitem{ref} \label{ref:Grover} Ket.G, “PROGRAMANDO \#3 Algoritmo de Grover (Qiskit),” YouTube, 3-Mar-2020. 
-[Online]. Available: \url{https://www.youtube.com/watch?v=u5Yd0St6MN4.}
-
-\bibitem{ref} \label{ref:IBMQuant} IBM Research, “Running an experiment in the IBM Quantum Experience,” 
-YouTube, 4-May-2016. [Online]. 
-Available: \url{https://www.youtube.com/watch?v=pYD6bvKLI_c}
-
-\end{thebibliography}
 
 \end{document}
